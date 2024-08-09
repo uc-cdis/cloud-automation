@@ -254,9 +254,7 @@ encrypt_backup() {
 
 # Function to set up cronjob for encrypted backup
 setup_cronjob() {
-    kubectl create cronjob dbbackup-encrypt-cron --schedule="0 2 * * *" \
-        --image=gen3jobimage \
-        -- /bin/bash -c "gen3 job run psql-db-backup-encrypt"
+    gen3 job cron psql-db-backup-encrypt "15 7 * * *"    
 }
 
 # Check prerequisites for encrypted backup and cronjob
