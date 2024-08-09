@@ -210,5 +210,15 @@ spec:
 
               # Sleep for 600 seconds to allow the user to check the logs
               sleep 600
+          volumeMounts:
+            - mountPath: "/home/ubuntu/backup"
+              name: s3-volume
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+      volumes:
+        - name: s3-volume
+          persistentVolumeClaim:
+            claimName: s3-pvc-db-backups              
       restartPolicy: Never
       
