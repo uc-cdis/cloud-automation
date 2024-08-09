@@ -206,7 +206,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: psql-db-copy-sa
-
+  namespace: ${namespace}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -216,7 +216,6 @@ rules:
 - apiGroups: [""]
   resources: ["secrets"]
   verbs: ["get", "watch", "list"]
-
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -254,7 +253,7 @@ encrypt_backup() {
 
 # Function to set up cronjob for encrypted backup
 setup_cronjob() {
-    gen3 job cron psql-db-backup-encrypt "15 7 * * *"    
+    gen3 job cron psql-db-backup-encrypt "15 7 * * *"
 }
 
 # Check prerequisites for encrypted backup and cronjob
@@ -271,14 +270,14 @@ check_prerequisites() {
         create_service_account_and_role
     fi
 
-    if ! kubectl get serviceaccount -n default dbencrypt-sa 2>&1; then
+    if ! kubectl get serviceaccount -n ${namespace} dbencrypt-sa 2>&1; then
         echo "Creating Kubernetes Service Account for the CSI driver..."
         cat <<EOF | kubectl apply -f -
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: dbencrypt-sa
-  namespace: default
+  namespace: ${namespace}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -306,7 +305,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: dbencrypt-sa
-  namespace: default
+  namespace: ${namespace}
 EOF
     fi
 
