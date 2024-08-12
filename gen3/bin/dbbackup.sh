@@ -417,6 +417,7 @@ csi_driver_check=$(aws eks describe-addon --cluster-name $eks_cluster --addon-na
 if echo "$csi_driver_check" | grep -q "ResourceNotFoundException"; then
   gen3_log_info "CSI driver not found, installing..."
   aws eks create-addon --cluster-name $eks_cluster --addon-name aws-mountpoint-s3-csi-driver --service-account-role-arn arn:aws:iam::${account_id}:role/AmazonEKS_S3_CSI_DriverRole
+  sleep 20
   # Check CSI driver installation status
   csi_status=$(aws eks describe-addon --cluster-name $eks_cluster --addon-name aws-mountpoint-s3-csi-driver --query 'addon.status' --output text)
   if [ "$csi_status" == "ACTIVE" ]; then
