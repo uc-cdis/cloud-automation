@@ -254,7 +254,7 @@ setup_cronjob() {
 create_s3_csi_policy() {
   policy_name="AmazonS3CSIDriverPolicy"
   policy_arn=$(aws iam list-policies --query "Policies[?PolicyName == '$policy_name'] | [0].Arn" --output text)
-  if [ -z "$policy_arn" ]; then
+  if [ "$policy_arn" == "None" ]; then
     cat <<EOF > /tmp/s3-csi-policy.json
 {
     "Version": "2012-10-17",
@@ -332,7 +332,7 @@ attach_s3_csi_policies() {
   policy_arn=$2
   eks_policy_name="eks-s3-csi-policy"
   eks_policy_arn=$(aws iam list-policies --query "Policies[?PolicyName == '$eks_policy_name'] | [0].Arn" --output text)
-  if [ -z "$eks_policy_arn" ]; then
+  if [ "$eks_policy_arn" == "None" ]; then
     cat <<EOF > /tmp/eks-s3-csi-policy.json
 {
     "Version": "2012-10-17",
@@ -378,10 +378,9 @@ EOF
 # Create or update the CSI driver and its resources
 setup_csi_driver() {
   create_or_get_kms_key
-  create_s3_csi_policy
+  policy_arn=$(create_s3_csi_policy)
   create_s3_csi_trust_policy
   role_name=$(create_s3_csi_role)
-  policy_arn=$(create_s3_csi_policy)
   attach_s3_csi_policies $role_name $policy_arn
 
   if ! kubectl get serviceaccount -n ${namespace} dbencrypt-sa 2>&1; then
@@ -427,14 +426,6 @@ EOF
   gen3_log_info "eks cluster name: $eks_cluster"
   aws eks create-addon --cluster-name $eks_cluster --addon-name aws-mountpoint-s3-csi-driver --service-account-role-arn arn:aws:iam::${account_id}:role/AmazonEKS_S3_CSI_DriverRole
 
-  # Check CSI driver installation status
-  csi_status=$(aws eks describe-addon --cluster-name $eks_cluster --addon-name aws-mountpoint-s3-csi-driver --query 'addon.status' --output text)
-  if [ "$csi_status" == "ACTIVE" ]; then
-    gen3_log_info "CSI driver successfully installed and active."
-  else
-    gen3_log_error "CSI driver installation failed or not active. Current status: $csi_status"
-  fi
-
   if ! kubectl get pv s3-pv-db-backups 2>&1; then
     cat <<EOF | kubectl apply -f -
 apiVersion: v1
@@ -473,6 +464,14 @@ spec:
       storage: 120Gi
   volumeName: s3-pv-db-backups
 EOF
+  fi
+
+  # Check CSI driver installation status
+  csi_status=$(aws eks describe-addon --cluster-name $eks_cluster --addon-name aws-mountpoint-s3-csi-driver --query 'addon.status' --output text)
+  if [ "$csi_status" == "ACTIVE" ]; then
+    gen3_log_info "CSI driver successfully installed and active."
+  else
+    gen3_log_error "CSI driver installation failed or not active. Current status: $csi_status"
   fi
 }
 
