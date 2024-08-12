@@ -27,8 +27,6 @@
 #
 ####################################################################################################
 
-
-
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 
@@ -41,6 +39,8 @@ bucket_name="gen3-db-backups-${account_id}"
 bucket_name_encrypted="gen3-db-backups-encrypted-${account_id}"
 kms_key_alias="alias/gen3-db-backups-kms-key"
 
+cluster_arn=$(kubectl config current-context)
+eks_cluster=$(echo "$cluster_arn" | awk -F'/' '{print $2}')
 
 gen3_log_info "account_id: $account_id"
 gen3_log_info "vpc_name: $vpc_name"
@@ -49,6 +49,7 @@ gen3_log_info "sa_name: $sa_name"
 gen3_log_info "bucket_name: $bucket_name"
 gen3_log_info "bucket_name_encrypted: $bucket_name_encrypted"
 gen3_log_info "kms_key_alias: $kms_key_alias"
+gen3_log_info "eks_cluster: $eks_cluster"
 
 # Create or get the KMS key
 create_or_get_kms_key() {
@@ -61,7 +62,6 @@ create_or_get_kms_key() {
     gen3_log_info "KMS key with alias $kms_key_alias already exists"
   fi
   kms_key_arn=$(aws kms describe-key --key-id $kms_key_id --query "KeyMetadata.Arn" --output text)
-  gen3_log_info "KMS Key ARN: $kms_key_arn"
 }
 
 # Create an S3 access policy if it doesn't exist
@@ -100,16 +100,10 @@ EOM
 
 # Create or update the Service Account and its corresponding IAM Role
 create_service_account_and_role() {
-    cluster_arn=$(kubectl config current-context)
-    eks_cluster=$(echo "$cluster_arn" | awk -F'/' '{print $2}')
     oidc_url=$(aws eks describe-cluster --name $eks_cluster --query 'cluster.identity.oidc.issuer' --output text | sed -e 's/^https:\/\///')
     role_name="${vpc_name}-${namespace}-${sa_name}-role"
     role_arn="arn:aws:iam::${account_id}:role/${role_name}"
     local trust_policy=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_policy.XXXXXX")
-    gen3_log_info "trust_policy: $trust_policy"
-    gen3_log_info "eks_cluster: $eks_cluster"
-    gen3_log_info "oidc_url: $oidc_url"
-    gen3_log_info "role_name: $role_name"
 
   cat > ${trust_policy} <<EOF
 {
@@ -133,16 +127,9 @@ create_service_account_and_role() {
 }
 EOF
 
-  echo ${trust_policy}
-  gen3_log_info "Exiting create_assume_role_policy"
-
-    # Create or Update IAM Role
-    gen3_log_info "Create or Update IAM Role"
     if aws iam get-role --role-name $role_name 2>&1; then
-        gen3_log_info "Updating existing role: $role_name"
         aws iam update-assume-role-policy --role-name $role_name --policy-document "file://$trust_policy"
     else
-        gen3_log_info "Creating new role: $role_name"
         aws iam create-role --role-name $role_name --assume-role-policy-document "file://$trust_policy"
     fi
 
@@ -154,7 +141,6 @@ EOF
         kubectl create serviceaccount -n $namespace $sa_name
     fi
     # Annotate the KSA with the IAM role ARN
-    gen3_log_info "Annotating Service Account with IAM role ARN"
     kubectl annotate serviceaccount -n ${namespace} ${sa_name} eks.amazonaws.com/role-arn=${role_arn} --overwrite
 }
 
@@ -164,7 +150,6 @@ create_s3_bucket() {
   local kms_key_arn=$2
   # Check if bucket already exists
   if aws s3 ls "s3://$bucket_name" 2>&1 | grep -q 'NoSuchBucket'; then
-      gen3_log_info "Bucket does not exist, creating..."
       aws s3 mb "s3://$bucket_name"
       # Enable SSE-KMS encryption on the bucket
       aws s3api put-bucket-encryption --bucket $bucket_name --server-side-encryption-configuration '{
@@ -175,8 +160,6 @@ create_s3_bucket() {
           }
         }]
       }'
-  else
-      gen3_log_info "Bucket $bucket_name already exists, skipping bucket creation."
   fi
 }
 
@@ -254,11 +237,8 @@ setup_cronjob() {
 # Create policy for Mountpoint for Amazon S3 CSI driver
 create_s3_csi_policy() {
   policy_name="AmazonS3CSIDriverPolicy"
-  gen3_log_info "Checking if policy $policy_name exists..."
-  policy_arn=$(aws iam list-policies --query "Policies[?PolicyName == '$policy_name'] | [0].Arn" --output text)
-  gen3_log_info "Policy ARN retrieved: $policy_arn"
-  if [ -z "$policy_arn" ] || [ "$policy_arn" == "None" ]; then
-    gen3_log_info "Policy $policy_name does not exist. Creating it..."
+  policy_arn=$(aws iam list-policies --query "Policies[?PolicyName == '$policy_name'].[Arn]" --output text)
+  if [ -z "$policy_arn" ]; then
     cat <<EOF > /tmp/s3-csi-policy.json
 {
     "Version": "2012-10-17",
@@ -290,16 +270,14 @@ create_s3_csi_policy() {
 }
 EOF
     policy_arn=$(aws iam create-policy --policy-name "$policy_name" --policy-document file:///tmp/s3-csi-policy.json --query "Policy.Arn" --output text)
-    gen3_log_info "Created S3 CSI policy with ARN: $policy_arn"
-  else
-    gen3_log_info "S3 CSI policy already exists with ARN: $policy_arn"
   fi
+  gen3_log_info "Created or found policy with ARN: $policy_arn"
   echo $policy_arn
 }
 
 # Create the trust policy for Mountpoint for Amazon S3 CSI driver
 create_s3_csi_trust_policy() {
-  oidc_url=$(aws eks describe-cluster --name $vpc_name --query 'cluster.identity.oidc.issuer' --output text | sed -e 's/^https:\/\///')
+  oidc_url=$(aws eks describe-cluster --name $eks_cluster --query 'cluster.identity.oidc.issuer' --output text | sed -e 's/^https:\/\///')
   cat <<EOF > /tmp/aws-s3-csi-driver-trust-policy.json
 {
     "Version": "2012-10-17",
@@ -320,21 +298,15 @@ create_s3_csi_trust_policy() {
     ]
 }
 EOF
-  gen3_log_info "Created trust policy for S3 CSI driver: /tmp/aws-s3-csi-driver-trust-policy.json"
 }
 
 # Create the IAM role for Mountpoint for Amazon S3 CSI driver
 create_s3_csi_role() {
   role_name="AmazonEKS_S3_CSI_DriverRole"
-  gen3_log_info "Checking if role $role_name exists..."
   if ! aws iam get-role --role-name $role_name 2>/dev/null; then
-    gen3_log_info "Creating IAM role for S3 CSI driver with the following command:"
-    gen3_log_info "aws iam create-role --role-name $role_name --assume-role-policy-document file:///tmp/aws-s3-csi-driver-trust-policy.json"
     aws iam create-role --role-name $role_name --assume-role-policy-document file:///tmp/aws-s3-csi-driver-trust-policy.json
-    gen3_log_info "Created IAM role: $role_name"
-  else
-    gen3_log_info "IAM role already exists: $role_name"
   fi
+  gen3_log_info "Created or found role: $role_name"
   echo $role_name
 }
 
@@ -342,12 +314,10 @@ create_s3_csi_role() {
 attach_s3_csi_policies() {
   role_name=$1
   policy_arn=$2
-  gen3_log_info "Attaching S3 CSI policy with ARN: $policy_arn to role: $role_name"
   eks_policy_name="eks-s3-csi-policy"
+  gen3_log_info "Attaching S3 CSI policy with ARN: $policy_arn to role: $role_name"
   eks_policy_arn=$(aws iam list-policies --query "Policies[?PolicyName == '$eks_policy_name'].Arn" --output text)
-  gen3_log_info "EKS policy ARN retrieved: $eks_policy_arn"
-  if [ -z "$eks_policy_arn" ] || [ "$eks_policy_arn" == "None" ]; then
-    gen3_log_info "EKS policy $eks_policy_name does not exist. Creating it..."
+  if [ -z "$eks_policy_arn" ]; then
     cat <<EOF > /tmp/eks-s3-csi-policy.json
 {
     "Version": "2012-10-17",
@@ -385,17 +355,7 @@ attach_s3_csi_policies() {
 }
 EOF
     eks_policy_arn=$(aws iam create-policy --policy-name "$eks_policy_name" --policy-document file:///tmp/eks-s3-csi-policy.json --query "Policy.Arn" --output text)
-    gen3_log_info "Created EKS policy with ARN: $eks_policy_arn"
-  else
-    gen3_log_info "EKS policy already exists with ARN: $eks_policy_arn"
   fi
-
-  if [ -z "$policy_arn" ] || [ -z "$eks_policy_arn" ]; then
-    gen3_log_err "One or both policy ARNs are invalid: S3 CSI policy ARN: $policy_arn, EKS policy ARN: $eks_policy_arn"
-    exit 1
-  fi
-
-  gen3_log_info "Attaching policies to role: $role_name"
   aws iam attach-role-policy --role-name $role_name --policy-arn $policy_arn
   aws iam attach-role-policy --role-name $role_name --policy-arn $eks_policy_arn
 }
@@ -403,15 +363,14 @@ EOF
 # Create or update the CSI driver and its resources
 setup_csi_driver() {
   create_or_get_kms_key
-  gen3_log_info "KMS Key ARN: $kms_key_arn"
-  
-  policy_arn=$(create_s3_csi_policy)
+  create_s3_csi_policy
+  policy_arn=$(aws iam list-policies --query "Policies[?PolicyName == 'AmazonS3CSIDriverPolicy'].[Arn]" --output text)
   create_s3_csi_trust_policy
-  role_name=$(create_s3_csi_role)
+  create_s3_csi_role
+  role_name=AmazonEKS_S3_CSI_DriverRole
   attach_s3_csi_policies $role_name $policy_arn
 
   if ! kubectl get serviceaccount -n ${namespace} dbencrypt-sa 2>&1; then
-    gen3_log_info "Creating service account for S3 CSI driver..."
     cat <<EOF | kubectl apply -f -
 apiVersion: v1
 kind: ServiceAccount
@@ -451,18 +410,29 @@ EOF
 
 # Install CSI driver
 gen3_log_info "eks cluster name: $eks_cluster"
-aws eks create-addon --cluster-name $eks_cluster --addon-name aws-mountpoint-s3-csi-driver --service-account-role-arn arn:aws:iam::${account_id}:role/AmazonEKS_S3_CSI_DriverRole
 
-# Check CSI driver installation status
-csi_status=$(aws eks describe-addon --cluster-name $eks_cluster --addon-name aws-mountpoint-s3-csi-driver --query 'addon.status' --output text)
-if [ "$csi_status" == "ACTIVE" ]; then
-  gen3_log_info "CSI driver successfully installed and active."
+# Capture the output of the command and prevent it from exiting the script
+csi_driver_check=$(aws eks describe-addon --cluster-name $eks_cluster --addon-name aws-mountpoint-s3-csi-driver --query 'addon.addonName' --output text 2>&1 || true)
+
+if echo "$csi_driver_check" | grep -q "ResourceNotFoundException"; then
+  gen3_log_info "CSI driver not found, installing..."
+  aws eks create-addon --cluster-name $eks_cluster --addon-name aws-mountpoint-s3-csi-driver --service-account-role-arn arn:aws:iam::${account_id}:role/AmazonEKS_S3_CSI_DriverRole
+  # Check CSI driver installation status
+  csi_status=$(aws eks describe-addon --cluster-name $eks_cluster --addon-name aws-mountpoint-s3-csi-driver --query 'addon.status' --output text)
+  if [ "$csi_status" == "ACTIVE" ]; then
+    gen3_log_info "CSI driver successfully installed and active."
+  else
+    gen3_log_info "CSI driver installation failed or not active. Current status: $csi_status"
+    exit 1
+  fi
+elif echo "$csi_driver_check" | grep -q "aws-mountpoint-s3-csi-driver"; then
+  gen3_log_info "CSI driver already exists, skipping installation."
 else
-  gen3_log_error "CSI driver installation failed or not active. Current status: $csi_status"
+  gen3_log_info "Unexpected error occurred: $csi_driver_check"
+  exit 1
 fi
 
   if ! kubectl get pv s3-pv-db-backups 2>&1; then
-    gen3_log_info "Creating Persistent Volume and Persistent Volume Claim..."
     cat <<EOF | kubectl apply -f -
 apiVersion: v1
 kind: PersistentVolume
