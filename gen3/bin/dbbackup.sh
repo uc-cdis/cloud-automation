@@ -231,7 +231,7 @@ encrypt_backup() {
 
 # Function to set up cronjob for encrypted backup
 setup_cronjob() {
-    gen3 job cron psql-db-backup-encrypt "15 7 * * *"
+    gen3 job cron psql-db-backup-encrypt "15 1 * * *"
 }
 
 # Create policy for Mountpoint for Amazon S3 CSI driver
