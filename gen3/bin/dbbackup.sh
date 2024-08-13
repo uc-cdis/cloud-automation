@@ -35,7 +35,6 @@ account_id=$(aws sts get-caller-identity --query "Account" --output text)
 vpc_name="$(gen3 api environment)"
 namespace="$(gen3 db namespace)"
 sa_name="dbbackup-sa"
-bucket_name="gen3-db-backups-${account_id}"
 bucket_name_encrypted="gen3-db-backups-encrypted-${account_id}"
 kms_key_alias="alias/gen3-db-backups-kms-key"
 
@@ -46,7 +45,6 @@ gen3_log_info "account_id: $account_id"
 gen3_log_info "vpc_name: $vpc_name"
 gen3_log_info "namespace: $namespace"
 gen3_log_info "sa_name: $sa_name"
-gen3_log_info "bucket_name: $bucket_name"
 gen3_log_info "bucket_name_encrypted: $bucket_name_encrypted"
 gen3_log_info "kms_key_alias: $kms_key_alias"
 gen3_log_info "eks_cluster: $eks_cluster"
@@ -210,229 +208,8 @@ subjects:
 EOF
 }
 
-# Function to run the Aurora migration job
-migrate_to_aurora() {
-    create_db_copy_service_account
-    sleep 30
-    gen3 job run psql-db-aurora-migration
-}
-
-# Function to run the Aurora copy job
-copy_to_aurora() {
-    create_db_copy_service_account
-    sleep 30
-    gen3 job run psql-db-copy-aurora SOURCE_NAMESPACE "$1"
-}
-
-# Function to perform encrypted backup
-encrypt_backup() {
-    gen3 job run psql-db-backup-encrypt
-}
-
-# Function to set up cronjob for encrypted backup
-setup_cronjob() {
-    gen3 job cron psql-db-backup-encrypt "15 1 * * *"
-}
-
-# Create policy for Mountpoint for Amazon S3 CSI driver
-create_s3_csi_policy() {
-  policy_name="AmazonS3CSIDriverPolicy"
-  policy_arn=$(aws iam list-policies --query "Policies[?PolicyName == '$policy_name'].[Arn]" --output text)
-  if [ -z "$policy_arn" ]; then
-    cat <<EOF > /tmp/s3-csi-policy.json
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Sid": "MountpointFullBucketAccess",
-            "Effect": "Allow",
-            "Action": [
-                "s3:ListBucket"
-            ],
-            "Resource": [
-                "arn:aws:s3:::${bucket_name_encrypted}"
-            ]
-        },
-        {
-            "Sid": "MountpointFullObjectAccess",
-            "Effect": "Allow",
-            "Action": [
-                "s3:GetObject",
-                "s3:PutObject",
-                "s3:AbortMultipartUpload",
-                "s3:DeleteObject"
-            ],
-            "Resource": [
-                "arn:aws:s3:::${bucket_name_encrypted}/*"
-            ]
-        }
-    ]
-}
-EOF
-    policy_arn=$(aws iam create-policy --policy-name "$policy_name" --policy-document file:///tmp/s3-csi-policy.json --query "Policy.Arn" --output text)
-  fi
-  gen3_log_info "Created or found policy with ARN: $policy_arn"
-  echo $policy_arn
-}
-
-# Create the trust policy for Mountpoint for Amazon S3 CSI driver
-create_s3_csi_trust_policy() {
-  oidc_url=$(aws eks describe-cluster --name $eks_cluster --query 'cluster.identity.oidc.issuer' --output text | sed -e 's/^https:\/\///')
-  cat <<EOF > /tmp/aws-s3-csi-driver-trust-policy.json
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Principal": {
-                "Federated": "arn:aws:iam::${account_id}:oidc-provider/${oidc_url}"
-            },
-            "Action": "sts:AssumeRoleWithWebIdentity",
-            "Condition": {
-                "StringLike": {
-                    "${oidc_url}:aud": "sts.amazonaws.com",
-                    "${oidc_url}:sub": "system:serviceaccount:*:s3-csi-*"
-                }
-            }
-        }
-    ]
-}
-EOF
-}
-
-# Create the IAM role for Mountpoint for Amazon S3 CSI driver
-create_s3_csi_role() {
-  role_name="AmazonEKS_S3_CSI_DriverRole"
-  if ! aws iam get-role --role-name $role_name 2>/dev/null; then
-    aws iam create-role --role-name $role_name --assume-role-policy-document file:///tmp/aws-s3-csi-driver-trust-policy.json
-  fi
-  gen3_log_info "Created or found role: $role_name"
-  echo $role_name
-}
-
-# Attach the policies to the IAM role
-attach_s3_csi_policies() {
-  role_name=$1
-  policy_arn=$2
-  eks_policy_name="eks-s3-csi-policy"
-  gen3_log_info "Attaching S3 CSI policy with ARN: $policy_arn to role: $role_name"
-  eks_policy_arn=$(aws iam list-policies --query "Policies[?PolicyName == '$eks_policy_name'].Arn" --output text)
-  if [ -z "$eks_policy_arn" ]; then
-    cat <<EOF > /tmp/eks-s3-csi-policy.json
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "s3:ListBucket",
-                "s3:GetObject",
-                "s3:PutObject",
-                "s3:DeleteObject"
-            ],
-            "Resource": [
-                "arn:aws:s3:::${bucket_name_encrypted}",
-                "arn:aws:s3:::${bucket_name_encrypted}/*"
-            ]
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
-                "kms:Decrypt",
-                "kms:Encrypt",
-                "kms:GenerateDataKey"
-            ],
-            "Resource": "${kms_key_arn}"
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
-                "eks:DescribeCluster"
-            ],
-            "Resource": "*"
-        }
-    ]
-}
-EOF
-    eks_policy_arn=$(aws iam create-policy --policy-name "$eks_policy_name" --policy-document file:///tmp/eks-s3-csi-policy.json --query "Policy.Arn" --output text)
-  fi
-  aws iam attach-role-policy --role-name $role_name --policy-arn $policy_arn
-  aws iam attach-role-policy --role-name $role_name --policy-arn $eks_policy_arn
-}
-
-# Create or update the CSI driver and its resources
-setup_csi_driver() {
-  create_or_get_kms_key
-  create_s3_csi_policy
-  policy_arn=$(aws iam list-policies --query "Policies[?PolicyName == 'AmazonS3CSIDriverPolicy'].[Arn]" --output text)
-  create_s3_csi_trust_policy
-  create_s3_csi_role
-  role_name=AmazonEKS_S3_CSI_DriverRole
-  attach_s3_csi_policies $role_name $policy_arn
-
-  if ! kubectl get serviceaccount -n ${namespace} dbencrypt-sa 2>&1; then
-    cat <<EOF | kubectl apply -f -
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: dbencrypt-sa
-  namespace: ${namespace}
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: dbencrypt-role
-rules:
-- apiGroups: [""]
-  resources: ["secrets", "pods", "pods/exec", "services", "endpoints", "persistentvolumeclaims", "persistentvolumes", "configmaps"]
-  verbs: ["get", "watch", "list", "create", "delete", "patch", "update"]
-- apiGroups: ["batch"]
-  resources: ["jobs", "cronjobs"]
-  verbs: ["get", "watch", "list", "create", "delete", "patch", "update"]
-- apiGroups: ["apps"]
-  resources: ["deployments", "statefulsets", "daemonsets"]
-  verbs: ["get", "watch", "list", "create", "delete", "patch", "update"]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: dbencrypt-rolebinding
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: dbencrypt-role
-subjects:
-- kind: ServiceAccount
-  name: dbencrypt-sa
-  namespace: ${namespace}
-EOF
-  fi
-
-# Install CSI driver
-gen3_log_info "eks cluster name: $eks_cluster"
-
-# Capture the output of the command and prevent it from exiting the script
-csi_driver_check=$(aws eks describe-addon --cluster-name $eks_cluster --addon-name aws-mountpoint-s3-csi-driver --query 'addon.addonName' --output text 2>&1 || true)
-
-if echo "$csi_driver_check" | grep -q "ResourceNotFoundException"; then
-  gen3_log_info "CSI driver not found, installing..."
-  aws eks create-addon --cluster-name $eks_cluster --addon-name aws-mountpoint-s3-csi-driver --service-account-role-arn arn:aws:iam::${account_id}:role/AmazonEKS_S3_CSI_DriverRole
-  sleep 20
-  # Check CSI driver installation status
-  csi_status=$(aws eks describe-addon --cluster-name $eks_cluster --addon-name aws-mountpoint-s3-csi-driver --query 'addon.status' --output text)
-  if [ "$csi_status" == "ACTIVE" ]; then
-    gen3_log_info "CSI driver successfully installed and active."
-  else
-    gen3_log_info "CSI driver installation failed or not active. Current status: $csi_status"
-    exit 1
-  fi
-elif echo "$csi_driver_check" | grep -q "aws-mountpoint-s3-csi-driver"; then
-  gen3_log_info "CSI driver already exists, skipping installation."
-else
-  gen3_log_info "Unexpected error occurred: $csi_driver_check"
-  exit 1
-fi
-
+# Function to create the persistent volume and persistent volume claim
+create_pv_pvc() {
   if ! kubectl get pv s3-pv-db-backups 2>&1; then
     cat <<EOF | kubectl apply -f -
 apiVersion: v1
@@ -474,12 +251,36 @@ EOF
   fi
 }
 
+# Function to run the Aurora migration job
+migrate_to_aurora() {
+    create_db_copy_service_account
+    sleep 30
+    gen3 job run psql-db-aurora-migration
+}
+
+# Function to run the Aurora copy job
+copy_to_aurora() {
+    create_db_copy_service_account
+    sleep 30
+    gen3 job run psql-db-copy-aurora SOURCE_NAMESPACE "$1"
+}
+
+# Function to perform encrypted backup
+encrypt_backup() {
+    gen3 job run psql-db-backup-encrypt
+}
+
+# Function to set up cronjob for encrypted backup
+setup_cronjob() {
+    gen3 job cron psql-db-backup-encrypt "15 1 * * *"
+}
+
 # Check prerequisites for encrypted backup and cronjob
 check_prerequisites() {
     create_or_get_kms_key
-    create_s3_bucket $bucket_name $kms_key_arn
     create_s3_bucket $bucket_name_encrypted $kms_key_arn
-    setup_csi_driver
+    gen3 kube-setup-s3-csi-driver $bucket_name_encrypted
+    create_pv_pvc
 }
 
 # main function to determine whether dump, restore, create service account, encrypt backup, or setup cronjob
@@ -490,7 +291,7 @@ main() {
             create_policy
             create_service_account_and_role
             create_or_get_kms_key
-            create_s3_bucket $bucket_name $kms_key_arn
+            create_s3_bucket $bucket_name_encrypted $kms_key_arn
             db_dump
             ;;
         restore)
@@ -498,7 +299,7 @@ main() {
             create_policy
             create_service_account_and_role
             create_or_get_kms_key
-            create_s3_bucket $bucket_name $kms_key_arn
+            create_s3_bucket $bucket_name_encrypted $kms_key_arn
             db_restore
             ;;
         va-dump)
@@ -506,7 +307,7 @@ main() {
             create_policy
             create_service_account_and_role
             create_or_get_kms_key
-            create_s3_bucket $bucket_name $kms_key_arn
+            create_s3_bucket $bucket_name_encrypted $kms_key_arn
             va_testing_db_dump
             ;;
         create-sa)
