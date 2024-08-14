@@ -8,7 +8,7 @@
 #   It creates necessary IAM policies and roles.
 #
 # Usage:
-#   gen3 kube-setup-s3-csi-driver [<bucket_name>]
+#   gen3 kube-setup-s3-csi-driver [bucket_name]
 #
 ####################################################################################################
 
@@ -35,7 +35,7 @@ create_s3_csi_policy() {
   policy_name="AmazonS3CSIDriverPolicy"
   policy_arn=$(aws iam list-policies --query "Policies[?PolicyName == '$policy_name'].[Arn]" --output text)
   if [ -z "$policy_arn" ]; then
-    cat <<EOF > /tmp/s3-csi-policy.json
+    cat <<EOF > /tmp/s3-csi-policy-$$.json
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -65,7 +65,8 @@ create_s3_csi_policy() {
     ]
 }
 EOF
-    policy_arn=$(aws iam create-policy --policy-name "$policy_name" --policy-document file:///tmp/s3-csi-policy.json --query "Policy.Arn" --output text)
+    policy_arn=$(aws iam create-policy --policy-name "$policy_name" --policy-document file:///tmp/s3-csi-policy-$$.json --query "Policy.Arn" --output text)
+    rm -f /tmp/s3-csi-policy-$$.json
   fi
   gen3_log_info "Created or found policy with ARN: $policy_arn"
   echo $policy_arn
@@ -74,7 +75,7 @@ EOF
 # Create the trust policy for Mountpoint for Amazon S3 CSI driver
 create_s3_csi_trust_policy() {
   oidc_url=$(aws eks describe-cluster --name $eks_cluster --query 'cluster.identity.oidc.issuer' --output text | sed -e 's/^https:\/\///')
-  cat <<EOF > /tmp/aws-s3-csi-driver-trust-policy.json
+  cat <<EOF > /tmp/aws-s3-csi-driver-trust-policy-$$.json
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -100,7 +101,8 @@ EOF
 create_s3_csi_role() {
   role_name="AmazonEKS_S3_CSI_DriverRole"
   if ! aws iam get-role --role-name $role_name 2>/dev/null; then
-    aws iam create-role --role-name $role_name --assume-role-policy-document file:///tmp/aws-s3-csi-driver-trust-policy.json
+    aws iam create-role --role-name $role_name --assume-role-policy-document file:///tmp/aws-s3-csi-driver-trust-policy-$$.json
+    rm -f /tmp/aws-s3-csi-driver-trust-policy-$$.json
   fi
   gen3_log_info "Created or found role: $role_name"
   echo $role_name
@@ -114,7 +116,7 @@ attach_s3_csi_policies() {
   gen3_log_info "Attaching S3 CSI policy with ARN: $policy_arn to role: $role_name"
   eks_policy_arn=$(aws iam list-policies --query "Policies[?PolicyName == '$eks_policy_name'].Arn" --output text)
   if [ -z "$eks_policy_arn" ]; then
-    cat <<EOF > /tmp/eks-s3-csi-policy.json
+    cat <<EOF > /tmp/eks-s3-csi-policy-$$.json
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -150,7 +152,8 @@ attach_s3_csi_policies() {
     ]
 }
 EOF
-    eks_policy_arn=$(aws iam create-policy --policy-name "$eks_policy_name" --policy-document file:///tmp/eks-s3-csi-policy.json --query "Policy.Arn" --output text)
+    eks_policy_arn=$(aws iam create-policy --policy-name "$eks_policy_name" --policy-document file:///tmp/eks-s3-csi-policy-$$.json --query "Policy.Arn" --output text)
+    rm -f /tmp/eks-s3-csi-policy-$$.json
   fi
   aws iam attach-role-policy --role-name $role_name --policy-arn $policy_arn
   aws iam attach-role-policy --role-name $role_name --policy-arn $eks_policy_arn
