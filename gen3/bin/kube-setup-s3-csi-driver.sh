@@ -32,7 +32,7 @@ gen3_log_info "eks_cluster: $eks_cluster"
 
 # Create policy for Mountpoint for Amazon S3 CSI driver
 create_s3_csi_policy() {
-  policy_name="AmazonS3CSIDriverPolicy"
+  policy_name="AmazonS3CSIDriverPolicy-${eks_cluster}"
   policy_arn=$(aws iam list-policies --query "Policies[?PolicyName == '$policy_name'].[Arn]" --output text)
   if [ -z "$policy_arn" ]; then
     cat <<EOF > /tmp/s3-csi-policy-$$.json
@@ -74,16 +74,12 @@ EOF
 
 # Create the trust policy for Mountpoint for Amazon S3 CSI driver
 create_s3_csi_trust_policy() {
-  oidc_providers=$(for cluster in $(aws eks list-clusters --query "clusters[]" --output text); do aws eks describe-cluster --name $cluster --query 'cluster.identity.oidc.issuer' --output text | sed -e 's/^https:\/\///'; done)
+  oidc_url=$(aws eks describe-cluster --name $eks_cluster --query 'cluster.identity.oidc.issuer' --output text | sed -e 's/^https:\/\///')
   trust_policy_file="/tmp/aws-s3-csi-driver-trust-policy-$$.json"
   cat <<EOF > ${trust_policy_file}
 {
     "Version": "2012-10-17",
     "Statement": [
-EOF
-
-  for oidc_url in ${oidc_providers}; do
-    cat <<EOF >> ${trust_policy_file}
         {
             "Effect": "Allow",
             "Principal": {
@@ -96,13 +92,7 @@ EOF
                     "${oidc_url}:sub": "system:serviceaccount:*:s3-csi-*"
                 }
             }
-        },
-EOF
-  done
-
-  # Remove the last comma and close the JSON
-  sed -i '$ s/,$//' ${trust_policy_file}
-  cat <<EOF >> ${trust_policy_file}
+        }
     ]
 }
 EOF
@@ -110,7 +100,7 @@ EOF
 
 # Create the IAM role for Mountpoint for Amazon S3 CSI driver
 create_s3_csi_role() {
-  role_name="AmazonEKS_S3_CSI_DriverRole"
+  role_name="AmazonEKS_S3_CSI_DriverRole-${eks_cluster}"
   if ! aws iam get-role --role-name $role_name 2>/dev/null; then
     aws iam create-role --role-name $role_name --assume-role-policy-document file:///tmp/aws-s3-csi-driver-trust-policy-$$.json
     rm -f /tmp/aws-s3-csi-driver-trust-policy-$$.json
@@ -123,7 +113,7 @@ create_s3_csi_role() {
 attach_s3_csi_policies() {
   role_name=$1
   policy_arn=$2
-  eks_policy_name="eks-s3-csi-policy"
+  eks_policy_name="eks-s3-csi-policy-${eks_cluster}"
   gen3_log_info "Attaching S3 CSI policy with ARN: $policy_arn to role: $role_name"
   eks_policy_arn=$(aws iam list-policies --query "Policies[?PolicyName == '$eks_policy_name'].Arn" --output text)
   if [ -z "$eks_policy_arn" ]; then
@@ -173,10 +163,10 @@ EOF
 # Create or update the CSI driver and its resources
 setup_csi_driver() {
   create_s3_csi_policy
-  policy_arn=$(aws iam list-policies --query "Policies[?PolicyName == 'AmazonS3CSIDriverPolicy'].[Arn]" --output text)
+  policy_arn=$(aws iam list-policies --query "Policies[?PolicyName == 'AmazonS3CSIDriverPolicy-${eks_cluster}'].[Arn]" --output text)
   create_s3_csi_trust_policy
   create_s3_csi_role
-  role_name=AmazonEKS_S3_CSI_DriverRole
+  role_name="AmazonEKS_S3_CSI_DriverRole-${eks_cluster}"
   attach_s3_csi_policies $role_name $policy_arn
 
   # Install CSI driver
@@ -187,7 +177,7 @@ setup_csi_driver() {
 
   if echo "$csi_driver_check" | grep -q "ResourceNotFoundException"; then
     gen3_log_info "CSI driver not found, installing..."
-    aws eks create-addon --cluster-name $eks_cluster --addon-name aws-mountpoint-s3-csi-driver --service-account-role-arn arn:aws:iam::${account_id}:role/AmazonEKS_S3_CSI_DriverRole
+    aws eks create-addon --cluster-name $eks_cluster --addon-name aws-mountpoint-s3-csi-driver --service-account-role-arn arn:aws:iam::${account_id}:role/AmazonEKS_S3_CSI_DriverRole-${eks_cluster}
     csi_status="CREATING"
     retries=0
     while [ "$csi_status" != "ACTIVE" ] && [ $retries -lt 12 ]; do
