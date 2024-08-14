@@ -251,6 +251,47 @@ EOF
   fi
 }
 
+# Create the service account, cluster role, and cluster role binding for the backup encryption job
+create_backup_encryption_sa() {
+  if ! kubectl get serviceaccount -n ${namespace} dbencrypt-sa 2>&1; then
+    cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: dbencrypt-sa
+  namespace: ${namespace}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: dbencrypt-role
+rules:
+- apiGroups: [""]
+  resources: ["secrets", "pods", "pods/exec", "services", "endpoints", "persistentvolumeclaims", "persistentvolumes", "configmaps"]
+  verbs: ["get", "watch", "list", "create", "delete", "patch", "update"]
+- apiGroups: ["batch"]
+  resources: ["jobs", "cronjobs"]
+  verbs: ["get", "watch", "list", "create", "delete", "patch", "update"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "statefulsets", "daemonsets"]
+  verbs: ["get", "watch", "list", "create", "delete", "patch", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: dbencrypt-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: dbencrypt-role
+subjects:
+- kind: ServiceAccount
+  name: dbencrypt-sa
+  namespace: ${namespace}
+EOF
+  fi
+}
+
 # Function to run the Aurora migration job
 migrate_to_aurora() {
     create_db_copy_service_account
@@ -281,6 +322,7 @@ check_prerequisites() {
     create_s3_bucket $bucket_name_encrypted $kms_key_arn
     gen3 kube-setup-s3-csi-driver $bucket_name_encrypted
     create_pv_pvc
+    create_backup_encryption_sa
 }
 
 # main function to determine whether dump, restore, create service account, encrypt backup, or setup cronjob
