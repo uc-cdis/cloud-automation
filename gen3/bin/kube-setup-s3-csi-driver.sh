@@ -74,11 +74,16 @@ EOF
 
 # Create the trust policy for Mountpoint for Amazon S3 CSI driver
 create_s3_csi_trust_policy() {
-  oidc_url=$(aws eks describe-cluster --name $eks_cluster --query 'cluster.identity.oidc.issuer' --output text | sed -e 's/^https:\/\///')
-  cat <<EOF > /tmp/aws-s3-csi-driver-trust-policy-$$.json
+  oidc_providers=$(for cluster in $(aws eks list-clusters --query "clusters[]" --output text); do aws eks describe-cluster --name $cluster --query 'cluster.identity.oidc.issuer' --output text | sed -e 's/^https:\/\///'; done)
+  trust_policy_file="/tmp/aws-s3-csi-driver-trust-policy-$$.json"
+  cat <<EOF > ${trust_policy_file}
 {
     "Version": "2012-10-17",
     "Statement": [
+EOF
+
+  for oidc_url in ${oidc_providers}; do
+    cat <<EOF >> ${trust_policy_file}
         {
             "Effect": "Allow",
             "Principal": {
@@ -91,7 +96,13 @@ create_s3_csi_trust_policy() {
                     "${oidc_url}:sub": "system:serviceaccount:*:s3-csi-*"
                 }
             }
-        }
+        },
+EOF
+  done
+
+  # Remove the last comma and close the JSON
+  sed -i '$ s/,$//' ${trust_policy_file}
+  cat <<EOF >> ${trust_policy_file}
     ]
 }
 EOF
