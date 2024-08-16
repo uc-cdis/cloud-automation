@@ -8,13 +8,8 @@ if ! g3kubectl get secrets/zendesk-g3auto > /dev/null 2>&1; then
     exit 1
 fi
 
-if ! gen3 secrets decode zendesk-g3auto zendesk_api_key.txt> /dev/null 2>&1; then
-    gen3_log_err "No zendesk api key present in zendesk-g3auto secret, not rolling zendesk wrapper"
-    exit 1
-fi
-
-if ! gen3 secrets decode zendesk-g3auto zendesk_email.txt> /dev/null 2>&1; then
-    gen3_log_err "No zendesk email present in zendesk-g3auto secret, not rolling zendesk wrapper"
+if ! gen3 secrets decode zendesk-g3auto zendesk_client_credentials.json> /dev/null 2>&1; then
+    gen3_log_err "No zendesk client credentials present in zendesk-g3auto secret, not rolling zendesk wrapper"
     exit 1
 fi
 

@@ -93,16 +93,11 @@ spec:
         env:
           - name: HOSTNAME
             value: revproxy-service
-          - name: API_KEY
+          - name: ZENDESK_CLIENT_CREDENTIALS
             valueFrom:
               secretKeyRef:
                 name: zendesk-g3auto
-                key: "zendesk_api_key.txt"
-          - name: ZENDESK_EMAIL
-            valueFrom:
-              secretKeyRef:
-                name: zendesk-g3auto
-                key: "zendesk_email.txt"
+                key: "zendesk_client_credentials.json"
         volumeMounts:
           - name: "ca-volume"
             readOnly: true
