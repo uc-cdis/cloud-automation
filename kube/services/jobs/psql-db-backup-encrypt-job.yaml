@@ -1,0 +1,224 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: psql-db-backup-encrypt
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND
+      serviceAccountName: dbencrypt-sa
+      containers:
+        - name: pgdump
+          image: quay.io/cdis/awshelper:master
+          imagePullPolicy: Always
+          env:
+            - name: gen3Env
+              valueFrom:
+                configMapKeyRef:
+                  name: global
+                  key: environment
+            - name: JENKINS_HOME
+              value: "devterm"
+            - name: GEN3_HOME
+              value: /home/ubuntu/cloud-automation
+          command: [ "/bin/bash" ]
+          args:
+            - "-c"
+            - |
+              #!/bin/bash
+
+              # This script takes backup of Gen3 Service databases, encrypts it, and moves it to an encrypted S3 bucket.
+              # Requirements:
+              # 1. PGP public key must be available as a variable in the script.
+              # 2. The job needs the necessary permissions to read secrets, config maps from the target namespace.
+
+              source "${GEN3_HOME}/gen3/lib/utils.sh"
+              gen3_load "gen3/gen3setup"
+
+              # Fetch necessary information
+              namespace=$(gen3 api namespace)
+              environment=$(gen3 api environment)
+              hostname=$(gen3 api hostname)
+              default_databases=($(gen3 db services))
+              date_str=$(date -u +%y%m%d_%H%M%S)
+              databases=("${default_databases[@]}")
+              gen3_log_info "Databases to be backed up: ${databases[@]}"
+
+              # Define backup directory structure
+              BACKUP_DIR="/home/ubuntu/backup"
+              HOST_DIR="${BACKUP_DIR}/${hostname}"
+              ENV_NS_DIR="${HOST_DIR}/${environment}-${namespace}"
+              DATE_DIR="${ENV_NS_DIR}/${date_str}"
+              mkdir -p "${DATE_DIR}"
+
+              # PGP public key
+              PUBLIC_KEY="-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+              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
+              =/4uP
+              -----END PGP PUBLIC KEY BLOCK-----"
+
+              # Import the public key
+              echo "$PUBLIC_KEY" | gpg --import
+
+              # Function to encrypt a database with PGP public key
+              function encrypt_database() {
+                local db_name=$1
+                gpg --yes --trust-model always --output "${DATE_DIR}/${db_name}.sql.gpg" --encrypt --recipient pe@ctds.uchicago.edu "${DATE_DIR}/${db_name}.sql"
+
+                if [ $? -eq 0 ]; then
+                  rm "${DATE_DIR}/${db_name}.sql"
+                  gen3_log_info "Successfully encrypted and removed the original file for database $db_name. \n"
+                  return 0
+                fi
+                gen3_log_err "Failed to encrypt database $db_name.\n"
+                return 1
+              }
+
+              # Loop through each service to back up and encrypt the database
+              for database in "${databases[@]}"; do
+                for secret_name in "${database}-creds creds.json" "$database-g3auto dbcreds.json"; do
+                  creds=$(gen3 secrets decode $secret_name 2>/dev/null)
+                  # Extracting service credentials
+                  if [ $? -eq 0 ] && [ ! -z "$creds" ]; then
+                    db_hostname=$(echo $creds | jq -r .db_host)
+                    db_username=$(echo $creds | jq -r .db_username)
+                    db_password=$(echo $creds | jq -r .db_password)
+                    db_database=$(echo $creds | jq -r .db_database)
+                    gen3_log_info "Extracting service credentials for $database from $secret_name:\n db_hostname: $db_hostname\n db_username: $db_username\n db_database: $db_database\n"
+                    break
+                  fi
+                done
+                
+                # Verify credentials are extracted
+                if [ -z "$db_hostname" ] || [ -z "$db_username" ] || [ -z "$db_password" ] || [ -z "$db_database" ]; then
+                  gen3_log_err "Failed to extract database credentials for $database"
+                  failed_backups="${failed_backups}\nDatabase: $database, Error: Failed to extract credentials"
+                  continue
+                fi
+
+                # Check database accessibility
+                PGPASSWORD=${db_password} pg_isready -h $db_hostname -U "$db_username" -d "$db_database"
+                if [ $? -ne 0 ]; then
+                  gen3_log_err "Cannot connect to source database $db_database at $db_hostname. Skipping database $database."
+                  failed_backups="${failed_backups}\nDatabase: $database, Error: Cannot connect to source database at $db_hostname"
+                  continue
+                fi
+
+                if [ "$database" != "peregrine" ]; then
+                  # Backup the current database
+                  if PGPASSWORD=${db_password} pg_dump -h $db_hostname -U "$db_username" -d "$db_database" > "${DATE_DIR}/${db_database}.sql"; then
+                    gen3_log_info "Database $database backed up to ${DATE_DIR}/${db_database}.sql"
+                    if encrypt_database "$db_database"; then
+                      backedup_databases="${backedup_databases}\nDatabase: $db_database"
+                    else
+                      failed_backups="${failed_backups}\nDatabase: $database, Error: Failed to encrypt database"
+                    fi
+                  else
+                    gen3_log_err "Failed to backup $database"
+                    failed_backups="${failed_backups}\nDatabase: $database, Error: Failed to backup database"
+                  fi
+                fi
+              done
+
+              # Logging the successful backups
+              if [ -n "$backedup_databases" ]; then
+                gen3_log_info "Successfully backed up and encrypted databases:\n$backedup_databases"
+              fi
+
+              # Logging the failed backups
+              if [ -n "$failed_backups" ]; then
+                gen3_log_info "Failed backups:\n$failed_backups"
+              fi
+
+              # Sleep for 600 seconds to allow the user to check the logs
+              sleep 600
+          volumeMounts:
+            - mountPath: "/home/ubuntu/backup"
+              name: s3-volume
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+      volumes:
+        - name: s3-volume
+          persistentVolumeClaim:
+            claimName: s3-pvc-db-backups              
+      restartPolicy: Never
+      
