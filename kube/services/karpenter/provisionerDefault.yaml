@@ -11,14 +11,14 @@ spec:
     - key: kubernetes.io/arch
       operator: In
       values:
-      - amd64
+        - amd64
     - key: karpenter.k8s.aws/instance-category
       operator: In
       values:
-      - c
-      - m
-      - r
-      - t       
+        - c
+        - m
+        - r
+        - t
   # Set a limit of 1000 vcpus
   limits:
     resources:
@@ -30,6 +30,4 @@ spec:
   consolidation:
     enabled: true
   # Kill nodes after 30 days to ensure they stay up to date
-  ttlSecondsUntilExpired: 2592000
-
-
+  ttlSecondsUntilExpired: 604800
