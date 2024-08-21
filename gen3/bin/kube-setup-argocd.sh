@@ -10,13 +10,13 @@ force=false
 
 for arg in "${@}"; do 
     if [ "$arg" == "--force" ] || [ "$arg" == "-f" ]; then
-        force=false
+        force=true
     else
         gen3_log_info "Usage: gen3 kube-setup-argocd [--force/-f]"
         exit 1
     fi 
 
-if [g3kubectl get namespace argocd > /dev/null 2>&1;] || 
+if [g3kubectl get namespace argocd > /dev/null 2>&1;] || [ "$force" == true ]
 then
     gen3_log_info "ArgoCD is already deployed. Skipping..."
 else
