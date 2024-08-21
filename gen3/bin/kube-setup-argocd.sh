@@ -6,7 +6,17 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
-if g3kubectl get namespace argocd > /dev/null 2>&1;
+force=false
+
+for arg in "${@}"; do 
+    if [ "$arg" == "--force" ] || [ "$arg" == "-f" ]; then
+        force=false
+    else
+        gen3_log_info "Usage: gen3 kube-setup-argocd [--force/-f]"
+        exit 1
+    fi 
+
+if [g3kubectl get namespace argocd > /dev/null 2>&1;] || 
 then
     gen3_log_info "ArgoCD is already deployed. Skipping..."
 else
