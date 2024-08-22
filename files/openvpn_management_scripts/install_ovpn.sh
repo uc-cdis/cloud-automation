@@ -17,7 +17,7 @@ COUNTRY="US"
 STATE="IL"
 CITY="Chicago"
 ORG="CDIS" 
-EMAIL='support\@datacommons.io'
+EMAIL='support\@gen3.org'
 KEY_EXPIRE=365
 
 
