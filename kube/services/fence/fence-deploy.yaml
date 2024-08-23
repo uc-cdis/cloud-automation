@@ -28,6 +28,7 @@ spec:
         userhelper: "yes"
         tags.datadoghq.com/service: "fence"
         GEN3_ENV_LABEL
+        GEN3_HOSTNAME_LABEL
         GEN3_FENCE_VERSION
         GEN3_DATE_LABEL
     spec:

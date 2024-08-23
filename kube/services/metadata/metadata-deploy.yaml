@@ -25,6 +25,7 @@ spec:
         # for network policy
         netnolimit: "yes"
         GEN3_DATE_LABEL
+        GEN3_HOSTNAME_LABEL
     spec:
       affinity:
         podAntiAffinity:
