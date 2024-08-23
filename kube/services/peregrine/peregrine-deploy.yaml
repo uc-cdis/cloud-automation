@@ -29,6 +29,7 @@ spec:
         GEN3_ENV_LABEL
         GEN3_PEREGRINE_VERSION
         GEN3_DATE_LABEL
+        GEN3_HOSTNAME_LABEL
     spec:
       affinity:
         podAntiAffinity:
