@@ -6,7 +6,17 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
-if g3kubectl get namespace argocd > /dev/null 2>&1;
+force=false
+
+for arg in "${@}"; do 
+    if [ "$arg" = "--force" ] || [ "$arg" = "-f" ]; then
+        force=true
+    else
+        gen3_log_info "Usage: gen3 kube-setup-argocd [--force/-f]"
+        exit 1
+    fi 
+
+if [g3kubectl get namespace argocd > /dev/null 2>&1;] || [ "$force" = "true" ];
 then
     gen3_log_info "ArgoCD is already deployed. Skipping..."
 else
@@ -16,6 +26,7 @@ else
     helm repo add argo https://argoproj.github.io/argo-helm
     helm upgrade --install argocd -f "$GEN3_HOME/kube/services/argocd/values.yaml" argo/argo-cd -n argocd 
     gen3 kube-setup-revproxy
-    export argocdsecret=`kubectl get secret argocd-initial-admin-secret -n argocd -o json | jq .data.password -r | base64 -d` # pragma: allowlist secret
-    gen3_log_info "You can now access the ArgoCD endpoint with the following credentials: Username= admin and Password= $argocdsecret"
+    # Make sure all the pods pick up any changes
+    kubectl rollout restart -n argocd deployment 
+    echo "ArgoCD is installed!"
 fi
