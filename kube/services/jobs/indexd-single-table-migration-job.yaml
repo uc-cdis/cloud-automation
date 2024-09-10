@@ -1,0 +1,83 @@
+# Setup for running this migration https://github.com/uc-cdis/indexd/blob/master/docs/migration_to_single_table_indexd.md
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: indexd-single-table-migration
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND
+      automountServiceAccountToken: false
+      volumes:
+        - name: config-volume
+          secret:
+            secretName: "indexd-secret" # pragma: allowlist secret
+        - name: "indexd-creds-volume"
+          secret:
+            secretName: "indexd-creds" # pragma: allowlist secret
+        - name: config-helper
+          configMap:
+            name: config-helper
+        - name: creds-volume-new
+          secret:
+            secretName: "indexd-new-creds" # pragma: allowlist secret
+      containers:
+        - name: indexd
+          GEN3_INDEXD_IMAGE
+          env:
+            - name: START_DID
+              GEN3_START_DID|-value: ""-|
+          volumeMounts:
+            - name: "config-volume"
+              readOnly: true
+              mountPath: "/var/www/indexd/local_settings.py"
+              subPath: "local_settings.py"
+            - name: "indexd-creds-volume"
+              readOnly: true
+              mountPath: "/var/www/indexd/creds.json"
+              subPath: creds.json
+            - name: "config-helper"
+              readOnly: true
+              mountPath: "/var/www/indexd/config_helper.py"
+              subPath: config_helper.py
+            - name: "creds-volume-new"
+              readOnly: true
+              mountPath: "/var/www/indexd/creds_new.json"
+              subPath: creds.json
+          resources:
+            requests:
+              cpu: 1000m
+              memory: 1Gi
+          imagePullPolicy: Always
+          command: ["/bin/bash"]
+          args:
+            - "-c"
+            - |
+              flags="--creds-path /var/www/indexd/creds_new.json"
+              if [[ -n "$START_DID" ]]; then
+                flags="$flags --start-did $START_DID"
+              fi
+              time python /indexd/bin/migrate_to_single_table.py $flags
+              echo "Exit code: $?"
+      restartPolicy: Never
+
+        
