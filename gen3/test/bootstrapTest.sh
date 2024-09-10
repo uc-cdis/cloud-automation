@@ -12,7 +12,7 @@ test_bootstrap_fenceconfig() {
     because $? "secret template exists and is valid yaml: $secretConf"
   [[ -f "$publicConf" ]] && yq -r . < "$secretConf" > /dev/null;
     because $? "public template exists and is valid yaml: $secretConf"
-  python3.8 "$GEN3_HOME/apis_configs/yaml_merge.py" "$publicConf" "$secretConf" | yq -r . > /dev/null;
+  python3.9 "$GEN3_HOME/apis_configs/yaml_merge.py" "$publicConf" "$secretConf" | yq -r . > /dev/null;
     because $? "yaml_perge public private should yield valid yaml"
 }
 

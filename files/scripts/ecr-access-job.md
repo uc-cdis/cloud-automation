@@ -59,7 +59,7 @@ Trust policy (allows Acct2):
 }
 ```
 
-- Policy in the account (Acct2) that contains the DynamoDB table (created automatically by `kube-setup-ecr-access-job.sh`):
+- Policy in the account (Acct2) that contains the DynamoDB table (created automatically by `kube-setup-ecr-access-cronjob.sh`):
 ```
 {
     "Version": "2012-10-17",

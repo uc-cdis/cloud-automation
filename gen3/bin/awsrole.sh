@@ -14,7 +14,6 @@ gen3_load "gen3/gen3setup"
 gen3_awsrole_help() {
   gen3 help awsrole
 }
-
 #
 # Assume-role policy - allows SA's to assume role.
 # NOTE: service-account to role is 1 to 1
@@ -71,7 +70,8 @@ function gen3_awsrole_ar_policy() {
           "${issuer_url}:aud": "sts.amazonaws.com",
           "${issuer_url}:sub": [
             "system:serviceaccount:*:${serviceAccount}",
-            "system:serviceaccount:argo:default"
+            "system:serviceaccount:argo:default",
+            "system:serviceaccount:argo:argo-argo-workflows-server"
           ]
         }
       }

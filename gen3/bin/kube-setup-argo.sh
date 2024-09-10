@@ -188,11 +188,13 @@ EOF
       roleArn=$(aws iam get-role --role-name "${roleName}" --query 'Role.Arn' --output text)
       gen3_log_info "Role annotate"
       g3kubectl annotate serviceaccount default eks.amazonaws.com/role-arn=${roleArn} --overwrite -n $argo_namespace
+      g3kubectl annotate serviceaccount argo-argo-workflows-server eks.amazonaws.com/role-arn=${roleArn} --overwrite -n $argo_namespace
       g3kubectl annotate serviceaccount argo eks.amazonaws.com/role-arn=${roleArn} --overwrite -n $nameSpace
   else
         gen3 awsrole create $roleName argo $nameSpace -all_namespaces
         roleArn=$(aws iam get-role --role-name "${roleName}" --query 'Role.Arn' --output text)
         g3kubectl annotate serviceaccount default eks.amazonaws.com/role-arn=${roleArn} -n $argo_namespace
+        g3kubectl annotate serviceaccount argo-argo-workflows-server eks.amazonaws.com/role-arn=${roleArn} -n $argo_namespace
   fi
 
   # Grant access within the current namespace to the argo SA in the current namespace
@@ -201,6 +203,18 @@ EOF
   if [[ -z $internalBucketName ]]; then
     aws iam put-role-policy --role-name ${roleName} --policy-name ${internalBucketPolicy} --policy-document file://$internalBucketPolicyFile || true
   fi
+
+  # Create a secret for the slack webhook
+  alarm_webhook=$(g3kubectl get cm global -o yaml | yq .data.slack_alarm_webhook | tr -d '"')
+
+  if [ -z "$alarm_webhook" ]; then
+    gen3_log_err "Please set a slack_alarm_webhook in the 'global' configmap. This is needed to alert for failed workflows."
+    exit 1
+  fi
+
+  g3kubectl -n argo delete secret slack-webhook-secret
+  g3kubectl -n argo create secret generic "slack-webhook-secret" --from-literal=SLACK_WEBHOOK_URL=$alarm_webhook
+
 
   ## if new bucket then do the following
   # Get the aws keys from secret
