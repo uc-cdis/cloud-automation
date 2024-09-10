@@ -37,7 +37,7 @@ spec:
         - name: config-helper
           configMap:
             name: config-helper
-        - name: creds-volume-bk
+        - name: creds-volume-new
           secret:
             secretName: "indexd-new-creds" # pragma: allowlist secret
       containers:
@@ -59,9 +59,9 @@ spec:
               readOnly: true
               mountPath: "/var/www/indexd/config_helper.py"
               subPath: config_helper.py
-            - name: "creds-volume-bk"
+            - name: "creds-volume-new"
               readOnly: true
-              mountPath: "/var/www/indexd/creds_bk.json"
+              mountPath: "/var/www/indexd/creds_new.json"
               subPath: creds.json
           resources:
             requests:
@@ -72,7 +72,7 @@ spec:
           args:
             - "-c"
             - |
-              flags="--creds-path /var/www/indexd/creds_bk.json"
+              flags="--creds-path /var/www/indexd/creds_new.json"
               if [[ -n "$START_DID" ]]; then
                 flags="$flags --start-did $START_DID"
               fi
