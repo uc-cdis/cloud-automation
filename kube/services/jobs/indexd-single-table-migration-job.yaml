@@ -1,3 +1,4 @@
+# Setup for running this migration https://github.com/uc-cdis/indexd/blob/master/docs/migration_to_single_table_indexd.md
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -38,7 +39,7 @@ spec:
             name: config-helper
         - name: creds-volume-bk
           secret:
-            secretName: "indexd-bk-creds" # pragma: allowlist secret
+            secretName: "indexd-new-creds" # pragma: allowlist secret
       containers:
         - name: indexd
           GEN3_INDEXD_IMAGE
