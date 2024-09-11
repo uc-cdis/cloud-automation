@@ -40,7 +40,7 @@ spec:
                 values:
                 - ONDEMAND
       automountServiceAccountToken: false
-      serviceAccountName: es-proxy
+      serviceAccountName: esproxy-sa
       priorityClassName: aws-es-proxy-high-priority
       containers:
       - name: esproxy

@@ -17,12 +17,12 @@ es7="$(jq -r ".[\"global\"][\"es7\"]" < "$manifestPath" | tr '[:upper:]' '[:lowe
 if g3kubectl get secrets/aws-es-proxy > /dev/null 2>&1; then
   envname="$(gen3 api environment)"
 
-  sa_name="es-proxy"
+  sa_name="esproxy-sa"
   if ! kubectl get serviceaccount $sa_name 2>&1; then
     kubectl create serviceaccount $sa_name
   fi
 
-  role_arn=$(aws iam get-role --role-name opensearch-access-role | jq .Role.Arn | tr -d '"')
+  role_arn=$(aws iam get-role --role-name "${vpc_name}-esproxy-sa" | jq .Role.Arn | tr -d '"')
 
   if [[ "$role_arn" != "" ]]; then
     kubectl annotate sa "$sa_name" eks.amazonaws.com/role-arn="$role_arn"
