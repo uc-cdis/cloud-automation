@@ -85,5 +85,5 @@ spec:
             - name: config-volume
               mountPath: /etc/config
           ports:
-            - containerPort: 8000
+            - containerPort: 80
             - containerPort: 9090
