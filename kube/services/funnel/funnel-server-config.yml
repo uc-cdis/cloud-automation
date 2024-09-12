@@ -19,7 +19,6 @@ Kubernetes:
     metadata:
       ## DO NOT CHANGE NAME
       name: {{.TaskId}}
-      namespace: {{.Namespace}}
     spec: 
       backoffLimit: 0
       completions: 1
