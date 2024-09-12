@@ -68,14 +68,14 @@ spec:
               ephemeral-storage: 25G
           readinessProbe:
             httpGet:
-              path: /
+              path: /service-info
               port: 8000
             initialDelaySeconds: 5
             periodSeconds: 20
             timeoutSeconds: 30
           livenessProbe:
             httpGet:
-              path: /
+              path: /service-info
               port: 8000
             initialDelaySeconds: 5
             periodSeconds: 60
