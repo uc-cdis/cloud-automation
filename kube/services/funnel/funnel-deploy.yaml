@@ -5,6 +5,7 @@ metadata:
   labels:
     app: funnel
 spec:
+  # replicas: 1
   selector:
     matchLabels:
       app: funnel
@@ -68,14 +69,14 @@ spec:
           readinessProbe:
             httpGet:
               path: /
-              port: 80
+              port: 8000
             initialDelaySeconds: 5
             periodSeconds: 20
             timeoutSeconds: 30
           livenessProbe:
             httpGet:
               path: /
-              port: 80
+              port: 8000
             initialDelaySeconds: 5
             periodSeconds: 60
             timeoutSeconds: 30
@@ -85,5 +86,5 @@ spec:
             - name: config-volume
               mountPath: /etc/config
           ports:
-            - containerPort: 80
+            - containerPort: 8000
             - containerPort: 9090
