@@ -7,6 +7,8 @@ setup_funnel_infra() {
   g3kubectl apply -f "${GEN3_HOME}/kube/services/funnel/funnel-service.yaml"
 
   # replace the cluster IP placeholder with the actual cluster IP
+  # TODO Following the funnel deployment doc, but this is probably not the best way to do this.
+  #      Does the ip even stay the same long-term?
   funnelClusterIp="$(kubectl get services funnel-service --output=json | jq -r '.spec.clusterIP')"
   gen3_log_info "Funnel cluster IP: $funnelClusterIp"
   tempFile="$(mktemp "$XDG_RUNTIME_DIR/funnel-worker-config.yaml_XXXXXX")"
