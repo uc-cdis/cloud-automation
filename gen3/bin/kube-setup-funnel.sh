@@ -18,12 +18,31 @@ setup_funnel_infra() {
   #   Key: ""
   #   Secret: ""
 
-  g3kubectl create configmap funnel-config --from-file="${GEN3_HOME}/kube/services/funnel/funnel-server-config.yaml" --from-file="$tempFile"
+  local namespace="$(gen3 db namespace)"
+  local configmap_name="funnel-config"
+  if kubectl get configmap $configmap_name -n $namespace > /dev/null 2>&1; then
+    g3kubectl delete configmap $configmap_name -n $namespace
+  fi
+  g3kubectl create configmap $configmap_name -n $namespace --from-file="${GEN3_HOME}/kube/services/funnel/funnel-server-config.yaml" --from-file="$tempFile"
   rm "$tempFile"
 
-  g3kubectl create serviceaccount funnel-sa --namespace default # TODO not sure about the namespace
-  g3kubectl create -f "${GEN3_HOME}/kube/services/funnel/funnel-role.yaml"
-  g3kubectl create -f "${GEN3_HOME}/kube/services/funnel/funnel-role-binding.yaml"
+  local sa_name="funnel-sa"
+  if kubectl get serviceaccount $sa_name -n $namespace 2>&1; then
+    g3kubectl delete serviceaccount $sa_name -n $namespace
+  fi
+  g3kubectl create serviceaccount $sa_name -n $namespace
+
+  local role_name="funnel-role" # hardcoded in `funnel-role.yaml`
+  if kubectl get role $role_name -n $namespace 2>&1; then
+    g3kubectl delete role $role_name -n $namespace
+  fi
+  g3kubectl create -f "${GEN3_HOME}/kube/services/funnel/funnel-role.yaml" -n $namespace
+
+  local role_binding_name="funnel-rolebinding" # hardcoded in `funnel-role-binding.yaml`
+  if kubectl get rolebinding $role_binding_name -n $namespace 2>&1; then
+    g3kubectl delete rolebinding $role_binding_name -n $namespace
+  fi
+  g3kubectl create -f "${GEN3_HOME}/kube/services/funnel/funnel-role-binding.yaml" -n $namespace
 
 
 #   if g3kubectl describe secret orthanc-g3auto > /dev/null 2>&1; then
@@ -74,7 +93,7 @@ setup_funnel_infra() {
 }
 
 if ! setup_funnel_infra; then
-  gen3_log_err "kube-setup-funnel bailing out - database/config failed setup"
+  gen3_log_err "kube-setup-funnel bailing out - failed to set up infrastructure"
   exit 1
 fi
 
