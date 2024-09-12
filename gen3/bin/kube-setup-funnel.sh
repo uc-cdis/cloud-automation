@@ -20,7 +20,7 @@ setup_funnel_infra() {
 
   local namespace="$(gen3 db namespace)"
   local configmap_name="funnel-config"
-  gen3_log_info "Deleting funnel configmap if it exists..."
+  gen3_log_info "Recreating funnel configmap..."
   if kubectl get configmap $configmap_name -n $namespace > /dev/null 2>&1; then
     g3kubectl delete configmap $configmap_name -n $namespace
   fi
@@ -28,21 +28,21 @@ setup_funnel_infra() {
   rm "$tempFile"
 
   local sa_name="funnel-sa"
-  gen3_log_info "Deleting funnel SA if it exists..."
+  gen3_log_info "Recreating funnel SA..."
   if kubectl get serviceaccount $sa_name -n $namespace 2>&1; then
     g3kubectl delete serviceaccount $sa_name -n $namespace
   fi
   g3kubectl create serviceaccount $sa_name -n $namespace
 
   local role_name="funnel-role" # hardcoded in `funnel-role.yaml`
-  gen3_log_info "Deleting funnel role if it exists..."
+  gen3_log_info "Recreating funnel role..."
   if kubectl get role $role_name -n $namespace 2>&1; then
     g3kubectl delete role $role_name -n $namespace
   fi
   g3kubectl create -f "${GEN3_HOME}/kube/services/funnel/funnel-role.yaml" -n $namespace
 
   local role_binding_name="funnel-rolebinding" # hardcoded in `funnel-role-binding.yaml`
-  gen3_log_info "Deleting funnel role binding if it exists..."
+  gen3_log_info "Recreating funnel role binding..."
   if kubectl get rolebinding $role_binding_name -n $namespace 2>&1; then
     g3kubectl delete rolebinding $role_binding_name -n $namespace
   fi
