@@ -5,9 +5,11 @@ setup_funnel_infra() {
   gen3_log_info "setting up funnel"
 
   g3kubectl apply -f "${GEN3_HOME}/kube/services/funnel/funnel-service.yaml"
-  g3kubectl get services funnel --output=yaml | grep clusterIP # TODO parse it
-  funnelClusterIp=""
-  # TODO replace FUNNEL_SERVICE_CLUSTER_IP_PLACEHOLDER in funnel-worker-config.yaml
+
+  # replace the cluster IP placeholder with the actual cluster IP
+  funnelClusterIp="$(kubectl get services funnel-service --output=json | jq -r '.spec.clusterIP')"
+  tempFile="$(mktemp "$XDG_RUNTIME_DIR/funnel-worker-config.yaml_XXXXXX")"
+  sed "s/FUNNEL_SERVICE_CLUSTER_IP_PLACEHOLDER/$funnelClusterIp/" ${GEN3_HOME}/kube/services/funnel/funnel-worker-config.yaml > $tempFile
 
   # TODO add to funnel-worker-config.yaml:
   # AmazonS3:
@@ -16,7 +18,8 @@ setup_funnel_infra() {
   #   Key: ""
   #   Secret: ""
 
-  g3kubectl create configmap funnel-config --from-file="${GEN3_HOME}/kube/services/funnel/funnel-server-config.yaml" --from-file="${GEN3_HOME}/kube/services/funnel/funnel-worker-config.yaml"
+  g3kubectl create configmap funnel-config --from-file="${GEN3_HOME}/kube/services/funnel/funnel-server-config.yaml" --from-file="$tempFile"
+  rm "$tempFile"
 
   g3kubectl create serviceaccount funnel-sa --namespace default # TODO not sure about the namespace
   g3kubectl create -f "${GEN3_HOME}/kube/services/funnel/funnel-role.yaml"
@@ -78,6 +81,4 @@ fi
 gen3 roll funnel
 g3kubectl apply -f "${GEN3_HOME}/kube/services/funnel/funnel-service.yaml"
 
-cat <<EOM
-The funnel service has been deployed onto the k8s cluster.
-EOM
+gen3_log_info "The funnel service has been deployed onto the kubernetes cluster."

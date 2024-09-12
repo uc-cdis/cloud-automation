@@ -48,7 +48,7 @@ spec:
       #     secretName: funnel-g3auto
       containers:
         - name: funnel
-          image: quay.io/ohsu-comp-bio/funnel:latest # TODO: GEN3_FUNNEL_IMAGE
+          GEN3_FUNNEL_IMAGE
           imagePullPolicy: IfNotPresent
           command: 
             - 'funnel'
