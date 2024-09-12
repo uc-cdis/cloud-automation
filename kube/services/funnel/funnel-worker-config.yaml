@@ -1,0 +1,21 @@
+Database: boltdb
+
+BoltDB:
+  Path: /opt/funnel/funnel-work-dir/funnel.bolt.db
+
+Compute: kubernetes
+
+Logger:
+  Level: debug
+
+RPCClient:
+  MaxRetries: 3
+  Timeout: 30s
+
+EventWriters:
+  - rpc
+  - log
+
+Server:
+  HostName: FUNNEL_SERVICE_CLUSTER_IP_PLACEHOLDER
+  RPCPort: 9090

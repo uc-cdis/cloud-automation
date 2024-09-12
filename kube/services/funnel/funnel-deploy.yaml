@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: funnel-deployment
+  labels:
+    app: funnel
+spec:
+  selector:
+    matchLabels:
+      app: funnel
+      release: production
+  template:
+    metadata:
+      labels:
+        app: funnel
+        release: production
+        public: "yes"
+        GEN3_DATE_LABEL
+        GEN3_HOSTNAME_LABEL
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - spot
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - SPOT
+      serviceAccountName: funnel-sa
+      volumes:
+        - name: funnel-deployment-storage
+          emptyDir: {}
+        - name: config-volume
+          configMap:
+            name: funnel-config
+      # volumes:
+      # - name: config-volume-g3auto
+      #   secret:
+      #     secretName: funnel-g3auto
+      containers:
+        - name: funnel
+          image: quay.io/ohsu-comp-bio/funnel:latest # TODO: GEN3_FUNNEL_IMAGE
+          imagePullPolicy: IfNotPresent
+          command: 
+            - 'funnel'
+            - 'server'
+            - 'run'
+            - '--config'
+            - '/etc/config/funnel-server-config.yml'
+          resources: 
+            requests: 
+              cpu: 500m
+              memory: 1G
+              ephemeral-storage: 25G
+            limits:
+              cpu: 2000m
+              memory: 4G
+              ephemeral-storage: 25G
+          readinessProbe:
+            httpGet:
+              path: /system
+              port: 8042
+            initialDelaySeconds: 5
+            periodSeconds: 20
+            timeoutSeconds: 30
+          livenessProbe:
+            httpGet:
+              path: /system
+              port: 8042
+            initialDelaySeconds: 5
+            periodSeconds: 60
+            timeoutSeconds: 30
+          volumeMounts:
+            - name: funnel-deployment-storage
+              mountPath: /opt/funnel/funnel-work-dir
+            - name: config-volume
+              mountPath: /etc/config
+          ports:
+            - containerPort: 8000
+            - containerPort: 9090
