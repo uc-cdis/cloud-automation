@@ -8,6 +8,7 @@ setup_funnel_infra() {
 
   # replace the cluster IP placeholder with the actual cluster IP
   funnelClusterIp="$(kubectl get services funnel-service --output=json | jq -r '.spec.clusterIP')"
+  gen3_log_info "Funnel cluster IP: $funnelClusterIp"
   tempFile="$(mktemp "$XDG_RUNTIME_DIR/funnel-worker-config.yaml_XXXXXX")"
   sed "s/FUNNEL_SERVICE_CLUSTER_IP_PLACEHOLDER/$funnelClusterIp/" ${GEN3_HOME}/kube/services/funnel/funnel-worker-config.yaml > $tempFile
 
