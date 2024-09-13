@@ -103,7 +103,8 @@ _add_bucket_to_cloudtrail() {
 #
 _bucket_exists() {
   local bucketName=$1
-  if [[ -z "$(gen3_aws_run aws s3api head-bucket --bucket $bucketName 2>&1)" ]]; then
+  gen3_aws_run aws s3api head-bucket --bucket $bucketName > /dev/null 2>&1
+  if [[ $? -eq 0 ]]; then
     echo 0
   else
     echo 1
@@ -174,8 +175,7 @@ gen3_s3_info() {
     return 1
   fi
 
-  gen3_aws_run aws s3api head-bucket --bucket $1 > /dev/null 2>&1
-  if [[ $? -ne 0 ]]; then
+  if [[ $(_bucket_exists $bucketName) -ne 0 ]]; then
     gen3_log_err "Bucket does not exist"
     return 1
   fi
