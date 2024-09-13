@@ -12,7 +12,7 @@ Kubernetes:
   DisableJobCleanup: false # TODO set to true if GEN3_DEBUG flag is true
   DisableReconciler: false
   ReconcileRate: 5m
-  Namespace: default
+  Namespace: FUNNEL_SERVICE_NAMESPACE_PLACEHOLDER
   Template: | 
     apiVersion: batch/v1
     kind: Job
