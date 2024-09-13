@@ -24,7 +24,7 @@ setup_funnel_infra() {
 
   # set the namespace in the server config
   tempServerConfig="$(mktemp "$XDG_RUNTIME_DIR/funnel-server-config.yml_XXXXXX")"
-  g3k_kv_filter ${GEN3_HOME}/kube/services/funnel/funnel-server-config.yml FUNNEL_SERVICE_NAMESPACE_PLACEHOLDER "$namespace" > $tempServerConfig
+  sed "s/FUNNEL_SERVICE_NAMESPACE_PLACEHOLDER/$namespace/" ${GEN3_HOME}/kube/services/funnel/funnel-server-config.yml > $tempServerConfig
 
   local configmap_name="funnel-config"
   gen3_log_info "Recreating funnel configmap..."
