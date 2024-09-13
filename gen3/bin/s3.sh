@@ -173,10 +173,13 @@ gen3_s3_info() {
     gen3_log_err "Unable to fetch AWS account ID."
     return 1
   fi
-  if [[ ! -z "$(gen3_aws_run aws s3api head-bucket --bucket $1 2>&1)" ]]; then
+
+  gen3_aws_run aws s3api head-bucket --bucket $1 > /dev/null 2>&1
+  if [[ $? -ne 0 ]]; then
     gen3_log_err "Bucket does not exist"
     return 1
   fi
+
   local rootPolicyArn="arn:aws:iam::${AWS_ACCOUNT_ID}:policy"
   if gen3_aws_run aws iam get-policy --policy-arn ${rootPolicyArn}/${writerName} >/dev/null 2>&1; then
     writerPolicy="{ \"name\": \"$writerName\", \"policy_arn\": \"${rootPolicyArn}/${writerName}\" } "
