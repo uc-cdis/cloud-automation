@@ -174,7 +174,7 @@ gen3_s3_info() {
     return 1
   fi
   if [[ ! -z "$(gen3_aws_run aws s3api head-bucket --bucket $1 2>&1)" ]]; then
-    gen3_log_err "Bucket does not exist"
+    gen3_log_err "Bucket '$1' does not exist"
     return 1
   fi
   local rootPolicyArn="arn:aws:iam::${AWS_ACCOUNT_ID}:policy"

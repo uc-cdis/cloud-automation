@@ -55,6 +55,29 @@ setup_funnel_infra() {
   fi
   g3kubectl create -f "${GEN3_HOME}/kube/services/funnel/funnel-role-binding.yml" -n $namespace
 
+  gen3_log_info "Setting up funnel SA with access to S3"
+  # mkdir -p $(gen3_secrets_folder)/g3auto/manifestservice
+  # credsFile="$(gen3_secrets_folder)/g3auto/manifestservice/config.json"
+  hostname="$(gen3 api hostname)"
+  bucketname="funnel-${hostname//./-}" # TODO rename since it will be user-facing
+  username="funnel-bot-${hostname//./-}"
+  gen3 s3 create "$bucketname" || true
+  gen3 awsrole create ${username} $sa_name || true
+  gen3 s3 attach-bucket-policy "$bucketname" --read-write --role-name ${username} || true
+#   if (! (g3kubectl describe secret manifestservice-g3auto 2> /dev/null | grep config.js > /dev/null 2>&1)) \
+#     && [[ (! -f "$credsFile") && -z "$JENKINS_HOME" ]];
+#   then
+#     gen3_log_info "initializing manifestservice config.json"
+#     cat - > "$credsFile" <<EOM
+# {
+#   "manifest_bucket_name": "$bucketname",
+#   "hostname": "$hostname",
+#   "prefix": "$hostname"
+# }
+# EOM
+#     gen3 secrets sync "initialize manifestservice/config.json"
+#   fi
+
 
 #   if g3kubectl describe secret orthanc-g3auto > /dev/null 2>&1; then
 #     gen3_log_info "orthanc-g3auto secret already configured"
