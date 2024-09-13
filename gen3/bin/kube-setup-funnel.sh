@@ -1,20 +1,21 @@
+# TODO add funnel to roll-all
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
 setup_funnel_infra() {
   gen3_log_info "setting up funnel"
 
-  g3kubectl apply -f "${GEN3_HOME}/kube/services/funnel/funnel-service.yaml"
+  g3kubectl apply -f "${GEN3_HOME}/kube/services/funnel/funnel-service.yml"
 
   # replace the cluster IP placeholder with the actual cluster IP
   # TODO Following the funnel deployment doc, but this is probably not the best way to do this.
   #      Does the ip even stay the same long-term?
   funnelClusterIp="$(kubectl get services funnel-service --output=json | jq -r '.spec.clusterIP')"
   gen3_log_info "Funnel cluster IP: $funnelClusterIp"
-  tempFile="$(mktemp "$XDG_RUNTIME_DIR/funnel-worker-config.yaml_XXXXXX")"
-  sed "s/FUNNEL_SERVICE_CLUSTER_IP_PLACEHOLDER/$funnelClusterIp/" ${GEN3_HOME}/kube/services/funnel/funnel-worker-config.yaml > $tempFile
+  tempFile="$(mktemp "$XDG_RUNTIME_DIR/funnel-worker-config.yml_XXXXXX")"
+  sed "s/FUNNEL_SERVICE_CLUSTER_IP_PLACEHOLDER/$funnelClusterIp/" ${GEN3_HOME}/kube/services/funnel/funnel-worker-config.yml > $tempFile
 
-  # TODO add to funnel-worker-config.yaml:
+  # TODO add to funnel-worker-config.yml:
   # AmazonS3:
   #   Disabled: false
   #   MaxRetries: 3
@@ -32,24 +33,24 @@ setup_funnel_infra() {
 
   local sa_name="funnel-sa"
   gen3_log_info "Recreating funnel SA..."
-  if kubectl get serviceaccount $sa_name -n $namespace 2>&1; then
+  if kubectl get serviceaccount $sa_name -n $namespace > /dev/null 2>&1; then
     g3kubectl delete serviceaccount $sa_name -n $namespace
   fi
   g3kubectl create serviceaccount $sa_name -n $namespace
 
-  local role_name="funnel-role" # hardcoded in `funnel-role.yaml`
+  local role_name="funnel-role" # hardcoded in `funnel-role.yml`
   gen3_log_info "Recreating funnel role..."
-  if kubectl get role $role_name -n $namespace 2>&1; then
+  if kubectl get role $role_name -n $namespace > /dev/null 2>&1; then
     g3kubectl delete role $role_name -n $namespace
   fi
-  g3kubectl create -f "${GEN3_HOME}/kube/services/funnel/funnel-role.yaml" -n $namespace
+  g3kubectl create -f "${GEN3_HOME}/kube/services/funnel/funnel-role.yml" -n $namespace
 
-  local role_binding_name="funnel-rolebinding" # hardcoded in `funnel-role-binding.yaml`
+  local role_binding_name="funnel-rolebinding" # hardcoded in `funnel-role-binding.yml`
   gen3_log_info "Recreating funnel role binding..."
-  if kubectl get rolebinding $role_binding_name -n $namespace 2>&1; then
+  if kubectl get rolebinding $role_binding_name -n $namespace > /dev/null 2>&1; then
     g3kubectl delete rolebinding $role_binding_name -n $namespace
   fi
-  g3kubectl create -f "${GEN3_HOME}/kube/services/funnel/funnel-role-binding.yaml" -n $namespace
+  g3kubectl create -f "${GEN3_HOME}/kube/services/funnel/funnel-role-binding.yml" -n $namespace
 
 
 #   if g3kubectl describe secret orthanc-g3auto > /dev/null 2>&1; then
@@ -105,6 +106,6 @@ if ! setup_funnel_infra; then
 fi
 
 gen3 roll funnel
-g3kubectl apply -f "${GEN3_HOME}/kube/services/funnel/funnel-service.yaml"
+g3kubectl apply -f "${GEN3_HOME}/kube/services/funnel/funnel-service.yml"
 
 gen3_log_info "The funnel service has been deployed onto the kubernetes cluster."
