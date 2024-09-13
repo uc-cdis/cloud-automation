@@ -59,71 +59,11 @@ setup_funnel_infra() {
   # mkdir -p $(gen3_secrets_folder)/g3auto/manifestservice
   # credsFile="$(gen3_secrets_folder)/g3auto/manifestservice/config.json"
   hostname="$(gen3 api hostname)"
-  bucketname="funnel-${hostname//./-}" # TODO rename since it will be user-facing
-  username="funnel-bot-${hostname//./-}"
-  gen3 s3 create "$bucketname" || true
-  gen3 awsrole create ${username} $sa_name || true
-  gen3 s3 attach-bucket-policy "$bucketname" --read-write --role-name ${username} || true
-#   if (! (g3kubectl describe secret manifestservice-g3auto 2> /dev/null | grep config.js > /dev/null 2>&1)) \
-#     && [[ (! -f "$credsFile") && -z "$JENKINS_HOME" ]];
-#   then
-#     gen3_log_info "initializing manifestservice config.json"
-#     cat - > "$credsFile" <<EOM
-# {
-#   "manifest_bucket_name": "$bucketname",
-#   "hostname": "$hostname",
-#   "prefix": "$hostname"
-# }
-# EOM
-#     gen3 secrets sync "initialize manifestservice/config.json"
-#   fi
-
-
-#   if g3kubectl describe secret orthanc-g3auto > /dev/null 2>&1; then
-#     gen3_log_info "orthanc-g3auto secret already configured"
-#     return 0
-#   fi
-#   if [[ -n "$JENKINS_HOME" || ! -f "$(gen3_secrets_folder)/creds.json" ]]; then
-#     gen3_log_err "skipping db setup in non-adminvm environment"
-#     return 0
-#   fi
-
-#   # Setup config files that dicom-server consumes
-#   local secretsFolder="$(gen3_secrets_folder)/g3auto/orthanc"
-#   if [[ ! -f "$secretsFolder/orthanc_config_overwrites.json" ]]; then
-#     if [[ ! -f "$secretsFolder/dbcreds.json" ]]; then
-#       if ! gen3 db setup orthanc; then
-#         gen3_log_err "Failed setting up orthanc database for dicom-server"
-#         return 1
-#       fi
-#     fi
-#     if [[ ! -f "$secretsFolder/dbcreds.json" ]]; then
-#       gen3_log_err "dbcreds not present in Gen3Secrets/"
-#       return 1
-#     fi
-
-#     # TODO: generate and mount a cert
-#     # "SslEnabled": true,
-#     # "SslCertificate": ""
-#     cat - > "$secretsFolder/orthanc_config_overwrites.json" <<EOM
-# { 
-#   "AuthenticationEnabled": false,
-#   "PostgreSQL": {
-#     "EnableIndex": true,
-#     "EnableStorage": true,
-#     "Port": 5432,
-#     "Host": "$(jq -r .db_host < $secretsFolder/dbcreds.json)",
-#     "Database": "$(jq -r .db_database < $secretsFolder/dbcreds.json)",
-#     "Username": "$(jq -r .db_username < $secretsFolder/dbcreds.json)",
-#     "Password": "$(jq -r .db_password < $secretsFolder/dbcreds.json)",
-#     "IndexConnectionsCount": 5,
-#     "Lock": false
-#   },
-#   "PythonScript": "/etc/orthanc/authz_filter.py"
-# }
-# EOM
-#   fi
-#   gen3 secrets sync 'setup orthanc-g3auto secrets'
+  bucket_name="ga4ghtes-${hostname//./-}"
+  # username="funnel-bot-${hostname//./-}"
+  gen3 s3 create "$bucket_name" || true
+  # gen3 awsrole create ${username} $sa_name || true
+  # gen3 s3 attach-bucket-policy "$bucket_name" --read-write --role-name ${username} || true
 }
 
 if ! setup_funnel_infra; then
