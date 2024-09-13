@@ -28,7 +28,7 @@ setup_funnel_infra() {
   if kubectl get configmap $configmap_name -n $namespace > /dev/null 2>&1; then
     g3kubectl delete configmap $configmap_name -n $namespace
   fi
-  g3kubectl create configmap $configmap_name -n $namespace --from-file="${GEN3_HOME}/kube/services/funnel/funnel-server-config.yml" --from-file="$tempFile"
+  g3kubectl create configmap $configmap_name -n $namespace --from-file="${GEN3_HOME}/kube/services/funnel/funnel-server-config.yml" --from-file="funnel-worker-config.yml=$tempFile"
   rm "$tempFile"
 
   local sa_name="funnel-sa"
