@@ -72,7 +72,7 @@ spec:
           args:
             - "-c"
             - |
-              flags="--creds-path /var/www/indexd/creds_new.json"
+              flags="--creds-file /var/www/indexd/creds_new.json"
               if [[ -n "$START_DID" ]]; then
                 flags="$flags --start-did $START_DID"
               fi
