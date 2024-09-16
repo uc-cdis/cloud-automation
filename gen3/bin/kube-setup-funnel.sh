@@ -1,4 +1,3 @@
-# TODO add funnel to roll-all
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
@@ -14,13 +13,6 @@ setup_funnel_infra() {
   gen3_log_info "Funnel cluster IP: $funnelClusterIp"
   tempWorkerConfig="$(mktemp "$XDG_RUNTIME_DIR/funnel-worker-config.yml_XXXXXX")"
   sed "s/FUNNEL_SERVICE_CLUSTER_IP_PLACEHOLDER/$funnelClusterIp/" ${GEN3_HOME}/kube/services/funnel/funnel-worker-config.yml > $tempWorkerConfig
-
-  # TODO add to funnel-worker-config.yml:
-  # AmazonS3:
-  #   Disabled: false
-  #   MaxRetries: 3
-  #   Key: ""
-  #   Secret: ""
 
   # set the namespace in the server config
   tempServerConfig="$(mktemp "$XDG_RUNTIME_DIR/funnel-server-config.yml_XXXXXX")"
@@ -56,12 +48,12 @@ setup_funnel_infra() {
   g3kubectl create -f "${GEN3_HOME}/kube/services/funnel/funnel-role-binding.yml" -n $namespace
 
   gen3_log_info "Setting up funnel SA with access to S3"
-  # mkdir -p $(gen3_secrets_folder)/g3auto/manifestservice
-  # credsFile="$(gen3_secrets_folder)/g3auto/manifestservice/config.json"
   hostname="$(gen3 api hostname)"
   bucket_name="ga4ghtes-${hostname//./-}"
-  # username="funnel-bot-${hostname//./-}"
   gen3 s3 create "$bucket_name" || true
+  # TODO For some reason granting the SA access to the bucket is not needed. Maybe because it's
+  #      in the same AWS account?
+  # username="funnel-bot-${hostname//./-}"
   # gen3 awsrole create ${username} $sa_name || true
   # gen3 s3 attach-bucket-policy "$bucket_name" --read-write --role-name ${username} || true
 }

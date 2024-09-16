@@ -261,6 +261,12 @@ else
   gen3_log_info "not deploying cohort-middleware - no manifest entry for .versions[\"cohort-middleware\"]"
 fi
 
+if g3k_manifest_lookup .versions.funnel 2> /dev/null; then
+  gen3 kube-setup-funnel &
+else
+  gen3_log_info "not deploying funnel - no manifest entry for .versions.funnel"
+fi
+
 gen3 kube-setup-revproxy
 
 if [[ "$GEN3_ROLL_FAST" != "true" ]]; then
