@@ -35,7 +35,7 @@ fi
 if [ "$es7" = true ]; then
   if ES_ENDPOINT="$(aws es describe-elasticsearch-domains --domain-names "${envname}"-gen3-metadata-2 --query "DomainStatusList[*].Endpoints" --output text)" \
       && [[ -n "${ES_ENDPOINT}" && -n "${envname}" ]]; then
-    g3k_manifest_filter "$deploy_path" GEN3_ES_ENDPOINT "${ES_ENDPOINT}" | g3kubectl apply -f - 
+    g3k_manifest_filter "$deploy_path" "" GEN3_ES_ENDPOINT "${ES_ENDPOINT}" | g3kubectl apply -f - 
     g3kubectl apply -f "${GEN3_HOME}/kube/services/aws-es-proxy/aws-es-proxy-priority-class.yaml" 
     g3kubectl apply -f "${GEN3_HOME}/kube/services/aws-es-proxy/aws-es-proxy-service.yaml"
     gen3_log_info "kube-setup-aws-es-proxy" "The aws-es-proxy service has been deployed onto the k8s cluster."
@@ -51,7 +51,7 @@ if [ "$es7" = true ]; then
 else
   if ES_ENDPOINT="$(aws es describe-elasticsearch-domains --domain-names "${envname}"-gen3-metadata --query "DomainStatusList[*].Endpoints" --output text)" \
       && [[ -n "${ES_ENDPOINT}" && -n "${envname}" ]]; then
-    g3k_manifest_filter "$deploy_path" GEN3_ES_ENDPOINT "${ES_ENDPOINT}" | g3kubectl apply -f -
+    g3k_manifest_filter "$deploy_path" "" GEN3_ES_ENDPOINT "${ES_ENDPOINT}" | g3kubectl apply -f -
     g3kubectl apply -f "${GEN3_HOME}/kube/services/aws-es-proxy/aws-es-proxy-service.yaml"
     gen3_log_info "kube-setup-aws-es-proxy" "The aws-es-proxy service has been deployed onto the k8s cluster."
   else
