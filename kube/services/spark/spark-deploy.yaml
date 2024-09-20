@@ -52,6 +52,7 @@ spec:
                 - ONDEMAND
       automountServiceAccountToken: false
       volumes:
+      priorityClassName: spark-high-priority
       containers:
         - name: gen3-spark
           GEN3_SPARK_IMAGE

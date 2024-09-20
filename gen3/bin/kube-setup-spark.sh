@@ -10,6 +10,7 @@ gen3_load "gen3/lib/kube-setup-init"
 
 [[ -z "$GEN3_ROLL_ALL" ]] && gen3 kube-setup-secrets
 gen3 roll spark $@
+g3kubectl apply -f "${GEN3_HOME}/kube/services/spark/spark-priority-class.yaml" 
 g3kubectl apply -f "${GEN3_HOME}/kube/services/spark/spark-service.yaml"
 
 cat <<EOM
