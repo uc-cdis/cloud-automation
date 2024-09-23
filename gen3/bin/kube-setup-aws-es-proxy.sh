@@ -99,7 +99,7 @@ else
     {
       "Action": "es:*",
       "Effect": "Allow",
-      "Resources": [
+      "Resource": [
         "$ES_ARN",
         "${ES_ARN}/*"
       ]
