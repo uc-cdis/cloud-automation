@@ -67,7 +67,7 @@ if g3kubectl get secrets/aws-es-proxy > /dev/null 2>&1; then
   fi
   gen3 job cron es-garbage '@daily'
 else
-  gen3_log_info "kube-setup-aws-es-proxy"  "No secret detected, attempting IRSA setup"
+    gen3_log_info "kube-setup-aws-es-proxy" "No secret detected, attempting IRSA setup"
     deploy=true
 
     # Let's pre-calculate all the info we need about the cluster, so we can just pass it on later
@@ -87,6 +87,7 @@ else
         ES_ARN="$(aws es describe-elasticsearch-domains --domain-names "${envname}"-gen3-metadata --query "DomainStatusList[*].ARN" --output text)"
       else
         deploy=false
+      fi
     fi
      # Let's only do setup stuff if we're going to want to deploy... otherwise, we take the CI env actions
     if [ "$deploy" = "true" ]; then
@@ -129,4 +130,3 @@ POLICY
       g3kubectl patch deployment "aws-es-proxy-deployment" -p  '{"spec":{"template":{"metadata":{"labels":{"netvpc":"yes"}}}}}' || true
     fi
   fi
-fi
