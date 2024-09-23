@@ -112,8 +112,14 @@ POLICY
       policyName="$(gen3 api safe-name es-access-policy)"
 
       gen3 awsrole create "$roleName" "$saName"
-      policyOutput=$(gen3_aws_run aws iam create-policy --policy-name "$policyName" --policy-document "$policyjson" --description "Allow access to the given ElasticSearch cluster")
+      policyArn=$(gen3_aws_run aws iam list-policies --query "Policies[?PolicyName=='$policyName'].Arn" --output text)
 
+      if [ -n "$policyArn" ]; then
+        echo "No need to create policy, it already exists" 
+      else
+        gen3_aws_run aws iam create-policy --policy-name "$policyName" --policy-document "$policyjson" --description "Allow access to the given ElasticSearch cluster"
+      fi 
+      
       # Now we need some info on the policy, so we can attach the role and the plicy
       policyArn=$(gen3_aws_run aws iam list-policies --query "Policies[?PolicyName=='$policyName'].Arn" --output text)
       gen3 awsrole attach-policy "${policyArn}" --role-name "${roleName}" --force-aws-cli || exit 1
