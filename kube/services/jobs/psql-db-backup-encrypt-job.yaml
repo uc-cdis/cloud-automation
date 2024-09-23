@@ -74,7 +74,7 @@ spec:
               ENV_NS_DIR="${HOST_DIR}/${environment}-${namespace}"
               DATE_DIR="${ENV_NS_DIR}/${date_str}"
               mkdir -p "${DATE_DIR}"
-
+              slack=false
               # PGP public key
               PUBLIC_KEY="-----BEGIN PGP PUBLIC KEY BLOCK-----
 
@@ -142,6 +142,18 @@ spec:
 
               # Import the public key
               echo "$PUBLIC_KEY" | gpg --import
+
+              # Check and retrieve Slack webhook if not provided
+              slack=false
+              if [[ "${slackWebHook}" == 'None' || -z "${slackWebHook}" ]]; then
+                slackWebHook=$(g3kubectl get configmap global -o jsonpath={.data.slack_alarm_webhook})
+              fi
+
+              if [[ "${slackWebHook}" != 'None' && ! -z "${slackWebHook}" ]]; then
+                slack=true
+              else
+                echo "WARNING: slackWebHook is None or doesn't exist; not sending results to Slack"
+              fi
 
               # Function to encrypt a database with PGP public key
               function encrypt_database() {
@@ -211,7 +223,9 @@ spec:
               # Logging the failed backups
               if [ -n "$failed_backups" ]; then
                 gen3_log_info "Failed backups:\n$failed_backups"
-                curl -X POST --data-urlencode "payload={\"text\": \"*Backup failed* for psql-db-backup-encrypt on ${hostname}  Cluster: ${environment} Namespace: ${namespace} at $(date).\nFailed backups: ${failed_backups}\"}" $slackWebHook
+                if [ "$slack" = true ]; then
+                    curl -X POST --data-urlencode "payload={\"text\": \"*Backup failed* for psql-db-backup-encrypt on ${hostname}  Cluster: ${environment} Namespace: ${namespace} at $(date).\nFailed backups: ${failed_backups}\"}" $slackWebHook
+                fi
               fi
 
               # Sleep for 600 seconds to allow the user to check the logs
