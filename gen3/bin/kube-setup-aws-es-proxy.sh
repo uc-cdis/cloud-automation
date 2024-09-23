@@ -118,6 +118,7 @@ POLICY
       policyArn=$(gen3_aws_run aws iam list-policies --query "Policies[?PolicyName=='$policyName'].Arn" --output text)
       gen3 awsrole attach-policy "${policyArn}" --role-name "${roleName}" --force-aws-cli || exit 1
 
+      g3k_manifest_filter "${GEN3_HOME}/kube/services/aws-es-proxy/aws-es-proxy-deploy-irsa.yaml" "" GEN3_ES_ENDPOINT "${ES_ENDPOINT}" | g3kubectl apply -f - 
       # Then we have to do the whole setup... just copy and modify from above
       if [ "$es7" = true ]; then
         g3kubectl apply -f "${GEN3_HOME}/kube/services/aws-es-proxy/aws-es-proxy-priority-class.yaml"
