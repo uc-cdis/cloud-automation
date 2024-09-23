@@ -38,6 +38,11 @@ spec:
                   key: environment
             - name: JENKINS_HOME
               value: "devterm"
+            - name: slackWebHook
+              valueFrom:
+                configMapKeyRef:
+                  name: global
+                  key: slack_alarm_webhook
             - name: GEN3_HOME
               value: /home/ubuntu/cloud-automation
           command: [ "/bin/bash" ]
@@ -166,7 +171,7 @@ spec:
                     break
                   fi
                 done
-                
+
                 # Verify credentials are extracted
                 if [ -z "$db_hostname" ] || [ -z "$db_username" ] || [ -z "$db_password" ] || [ -z "$db_database" ]; then
                   gen3_log_err "Failed to extract database credentials for $database"
@@ -206,6 +211,7 @@ spec:
               # Logging the failed backups
               if [ -n "$failed_backups" ]; then
                 gen3_log_info "Failed backups:\n$failed_backups"
+                curl -X POST --data-urlencode "payload={\"text\": \"*Backup failed* for psql-db-backup-encrypt on ${hostname}  Cluster: ${environment} Namespace: ${namespace} at $(date).\nFailed backups: ${failed_backups}\"}" $slackWebHook
               fi
 
               # Sleep for 600 seconds to allow the user to check the logs
@@ -219,6 +225,5 @@ spec:
       volumes:
         - name: s3-volume
           persistentVolumeClaim:
-            claimName: s3-pvc-db-backups              
+            claimName: s3-pvc-db-backups
       restartPolicy: Never
-      
