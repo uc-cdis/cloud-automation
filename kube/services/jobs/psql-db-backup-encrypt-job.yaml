@@ -43,6 +43,7 @@ spec:
                 configMapKeyRef:
                   name: global
                   key: slack_alarm_webhook
+                  optional: true 
             - name: GEN3_HOME
               value: /home/ubuntu/cloud-automation
           command: [ "/bin/bash" ]
