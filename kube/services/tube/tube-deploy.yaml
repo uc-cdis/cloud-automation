@@ -68,6 +68,7 @@ spec:
           GEN3_TUBE_IMAGE
           ports:
           - containerPort: 80
+          - containerPort: 4040
           env:
           - name: DICTIONARY_URL
             valueFrom:
@@ -75,17 +76,21 @@ spec:
                 name: manifest-global
                 key: dictionary_url
           - name: HADOOP_URL
-            value: hdfs://spark-service:9000
+            value: hdfs://namenode:9000
           - name: ES_URL
             value: esproxy-service
           - name: HADOOP_HOST
-            value: spark-service
+            value: namenode
           - name: HADOOP_CLIENT_OPTS
             value: -Xmx1g
           - name: SPARK_EXECUTOR_MEMORY
-            value: 4g
+            value: 3g
+          - name: SPARK_WORKER_MEMORY
+            value: 3g
           - name: SPARK_DRIVER_MEMORY
-            value: 6g
+            value: 2g
+          - name: SPARK_MASTER
+            value: spark://spark-master:7077
           volumeMounts:
             - name: "creds-volume"
               readOnly: true
