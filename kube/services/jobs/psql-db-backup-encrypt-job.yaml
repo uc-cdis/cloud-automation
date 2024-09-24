@@ -143,16 +143,12 @@ spec:
               # Import the public key
               echo "$PUBLIC_KEY" | gpg --import
 
-              # Check and retrieve Slack webhook if not provided
-              slack=false
-              if [[ "${slackWebHook}" == 'None' || -z "${slackWebHook}" ]]; then
-                slackWebHook=$(g3kubectl get configmap global -o jsonpath={.data.slack_alarm_webhook})
-              fi
-
-              if [[ "${slackWebHook}" != 'None' && ! -z "${slackWebHook}" ]]; then
+              # Validate Slack webhook
+              if [[ -n "${slackWebHook}" && "${slackWebHook}" == https* ]]; then
                 slack=true
               else
-                echo "WARNING: slackWebHook is None or doesn't exist; not sending results to Slack"
+                echo "WARNING: slackWebHook is not set or invalid; not sending alerts to Slack"
+                slack=false
               fi
 
               # Function to encrypt a database with PGP public key
