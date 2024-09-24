@@ -74,7 +74,6 @@ spec:
               ENV_NS_DIR="${HOST_DIR}/${environment}-${namespace}"
               DATE_DIR="${ENV_NS_DIR}/${date_str}"
               mkdir -p "${DATE_DIR}"
-              slack=false
               # PGP public key
               PUBLIC_KEY="-----BEGIN PGP PUBLIC KEY BLOCK-----
 
