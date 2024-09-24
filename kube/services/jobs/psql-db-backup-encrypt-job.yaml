@@ -38,6 +38,12 @@ spec:
                   key: environment
             - name: JENKINS_HOME
               value: "devterm"
+            - name: slackWebHook
+              valueFrom:
+                configMapKeyRef:
+                  name: global
+                  key: slack_alarm_webhook
+                  optional: true 
             - name: GEN3_HOME
               value: /home/ubuntu/cloud-automation
           command: [ "/bin/bash" ]
@@ -69,7 +75,6 @@ spec:
               ENV_NS_DIR="${HOST_DIR}/${environment}-${namespace}"
               DATE_DIR="${ENV_NS_DIR}/${date_str}"
               mkdir -p "${DATE_DIR}"
-
               # PGP public key
               PUBLIC_KEY="-----BEGIN PGP PUBLIC KEY BLOCK-----
 
@@ -138,6 +143,14 @@ spec:
               # Import the public key
               echo "$PUBLIC_KEY" | gpg --import
 
+              # Validate Slack webhook
+              if [[ -n "${slackWebHook}" && "${slackWebHook}" == https* ]]; then
+                slack=true
+              else
+                echo "WARNING: slackWebHook is not set or invalid; not sending alerts to Slack"
+                slack=false
+              fi
+
               # Function to encrypt a database with PGP public key
               function encrypt_database() {
                 local db_name=$1
@@ -166,7 +179,7 @@ spec:
                     break
                   fi
                 done
-                
+
                 # Verify credentials are extracted
                 if [ -z "$db_hostname" ] || [ -z "$db_username" ] || [ -z "$db_password" ] || [ -z "$db_database" ]; then
                   gen3_log_err "Failed to extract database credentials for $database"
@@ -206,6 +219,9 @@ spec:
               # Logging the failed backups
               if [ -n "$failed_backups" ]; then
                 gen3_log_info "Failed backups:\n$failed_backups"
+                if [ "$slack" = true ]; then
+                    curl -X POST --data-urlencode "payload={\"text\": \"*Backup failed* for psql-db-backup-encrypt on ${hostname}  Cluster: ${environment} Namespace: ${namespace} at $(date).\nFailed backups: ${failed_backups}\"}" $slackWebHook
+                fi
               fi
 
               # Sleep for 600 seconds to allow the user to check the logs
@@ -219,6 +235,5 @@ spec:
       volumes:
         - name: s3-volume
           persistentVolumeClaim:
-            claimName: s3-pvc-db-backups              
+            claimName: s3-pvc-db-backups
       restartPolicy: Never
-      
