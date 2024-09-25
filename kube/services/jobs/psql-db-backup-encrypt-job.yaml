@@ -64,7 +64,8 @@ spec:
               namespace=$(gen3 api namespace)
               environment=$(gen3 api environment)
               hostname=$(gen3 api hostname)
-              default_databases=($(gen3 db services))
+              skip_dbs=("omop-data")
+              default_databases=($(gen3 db services | grep -v -E "$(IFS='|'; echo "^(${skip_dbs[*]})$")"))
               date_str=$(date -u +%y%m%d_%H%M%S)
               databases=("${default_databases[@]}")
               gen3_log_info "Databases to be backed up: ${databases[@]}"
