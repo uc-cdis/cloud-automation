@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aws-es-proxy-deployment
+  annotations:
+    gen3.io/network-ingress: "arranger,arranger-server,arranger-dashboard,guppy,metadata,spark,tube"
+spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: esproxy
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: esproxy
+        netvpc: "yes"
+        GEN3_DATE_LABEL
+        GEN3_HOSTNAME_LABEL
+    spec:
+      serviceAccountName: esproxy-sa
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND
+      automountServiceAccountToken: false
+      priorityClassName: aws-es-proxy-high-priority
+      containers:
+      - name: esproxy
+        GEN3_AWS-ES-PROXY_IMAGE|-image: quay.io/cdis/aws-es-proxy:v1.3.1-|
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 9200
+        env:
+          - name: "ES_ENDPOINT"
+            GEN3_ES_ENDPOINT|-value: es.internal.io-|
+        command: ["/bin/sh"]
+        # NOTE- NEED TO RUN `gen3 kube-setup-aws-es-proxy` TO POPULATE ES_ENDPOINT - ugh!
+        # NOTE- `gen3 roll aws-es-proxy` WILL NOT WORK!
+        args:
+          - "-c"
+          - |
+            if [ -f /aws-es-proxy ];
+            then
+              # 1.3 needs this PR: https://github.com/uc-cdis/aws-es-proxy/pull/2
+              # aws-es-proxy 1.0+ is prone to throw ES timeout error from client
+              # customize timeout value to compensate this, note the -timeout option only works for 1.2+
+              BINARY="/aws-es-proxy -timeout 180"
+            elif [ -f /usr/local/bin/aws-es-proxy ];
+            then
+              # 0.9
+              BINARY=/usr/local/bin/aws-es-proxy
+            elif [ -f /go/src/github.com/abutaha/aws-es-proxy/aws-es-proxy ];
+            then
+              # 0.8
+              BINARY=/go/src/github.com/abutaha/aws-es-proxy/aws-es-proxy
+            fi
+            ${BINARY} -endpoint "https://$ES_ENDPOINT" -verbose -listen ":9200"
+        resources:
+          requests:
+            cpu: 250m
+            memory: 256Mi
+          limits:
+            cpu: 1000m
+            memory: 2Gi
