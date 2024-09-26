@@ -1,0 +1,15 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: gen3-workflow-service
+spec:
+  selector:
+    app: gen3-workflow
+    release: production
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80 
+      name: http
+  type: ClusterIP
+

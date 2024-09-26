@@ -1,6 +1,46 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
+setup_gen3_workflow_infra() {
+  gen3_log_info "setting up gen3-workflow"
+
+  # create the gen3-workflow database and config file if they don't already exist
+  if g3kubectl describe secret gen3-workflow-g3auto > /dev/null 2>&1; then
+    gen3_log_info "gen3-workflow-g3auto secret already configured"
+    return 0
+  fi
+  if [[ -n "$JENKINS_HOME" || ! -f "$(gen3_secrets_folder)/creds.json" ]]; then
+    gen3_log_err "skipping db setup in non-adminvm environment"
+    return 0
+  fi
+  # setup config file that gen3-workflow consumes
+  local secretsFolder="$(gen3_secrets_folder)/g3auto/gen3-workflow"
+  if [[ ! -f "$secretsFolder/gen3-workflow-config.yaml" ]]; then
+    if [[ ! -f "$secretsFolder/dbcreds.json" ]]; then
+      if ! gen3 db setup gen3-workflow; then
+        gen3_log_err "Failed setting up database for gen3-workflow service"
+        return 1
+      fi
+    fi
+    if [[ ! -f "$secretsFolder/dbcreds.json" ]]; then
+      gen3_log_err "dbcreds not present in Gen3Secrets/"
+      return 1
+    fi
+
+    cat - > "$secretsFolder/gen3-workflow-config.yaml" <<EOM
+# Server
+
+DEBUG: false
+
+DB_HOST: $(jq -r .db_host < "$secretsFolder/dbcreds.json")
+DB_USER: $(jq -r .db_username < "$secretsFolder/dbcreds.json")
+DB_PASSWORD: $(jq -r .db_password < "$secretsFolder/dbcreds.json")
+DB_DATABASE: $(jq -r .db_database < "$secretsFolder/dbcreds.json")
+EOM
+  fi
+  gen3 secrets sync 'setup gen3-workflow-g3auto secrets'
+}
+
 setup_funnel_infra() {
   gen3_log_info "setting up funnel"
   local namespace="$(gen3 db namespace)"
@@ -58,12 +98,22 @@ setup_funnel_infra() {
   # gen3 s3 attach-bucket-policy "$bucket_name" --read-write --role-name ${username} || true
 }
 
-if ! setup_funnel_infra; then
-  gen3_log_err "kube-setup-funnel bailing out - failed to set up infrastructure"
+if ! setup_gen3_workflow_infra; then
+  gen3_log_err "kube-setup-gen3-workflow bailing out - failed to set up gen3-workflow infrastructure"
   exit 1
 fi
+gen3 roll gen3-workflow
+g3kubectl apply -f "${GEN3_HOME}/kube/services/gen3-workflow/gen3-workflow-service.yml"
+gen3_log_info "The gen3-workflow service has been deployed onto the kubernetes cluster."
 
-gen3 roll funnel
-g3kubectl apply -f "${GEN3_HOME}/kube/services/funnel/funnel-service.yml"
-
-gen3_log_info "The funnel service has been deployed onto the kubernetes cluster."
+if g3k_manifest_lookup .versions.funnel 2> /dev/null; then
+  if ! setup_funnel_infra; then
+    gen3_log_err "kube-setup-gen3-workflow bailing out - failed to set up funnel infrastructure"
+    exit 1
+  fi
+  gen3 roll funnel
+  g3kubectl apply -f "${GEN3_HOME}/kube/services/funnel/funnel-service.yml"
+  gen3_log_info "The funnel service has been deployed onto the kubernetes cluster."
+else
+  gen3_log_warn "not deploying funnel - no manifest entry for .versions.funnel. The gen3-workflow service may not work!"
+fi
