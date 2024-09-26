@@ -167,6 +167,7 @@ $(command -v docker) run --name squid --network=host -d \
     --volume ${SQUID_CACHE_DIR}:${SQUID_CACHE_DIR} \
     --volume ${SQUID_CONFIG_DIR}:${SQUID_CONFIG_DIR}:ro \
     quay.io/cdis/squid:${SQUID_IMAGE_TAG}
+    sleep 200
 exit 0
   
 EOF
