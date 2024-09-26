@@ -144,15 +144,15 @@ function set_boot_configuration(){
   
   cat > /etc/squid_boot.sh <<EOF
 #!/bin/bash
-# if [ -f /var/run/squid/squid.pid ];
-# then
-#   rm /var/run/squid/squid.pid
-# fi
+if [ -f /var/run/squid/squid.pid ];
+then
+  rm /var/run/squid/squid.pid
+fi
 
-# if ( docker inspect  squid -f '{{.State}}' > /dev/null 2>&1 );
-# then
-#   $(command -v docker) rm squid
-# fi
+if ( docker inspect  squid -f '{{.State}}' > /dev/null 2>&1 );
+then
+  $(command -v docker) rm squid
+fi
 
 # At this point docker is already up and we dont want to restore the firewall and wipte all
 # docker nat rules
