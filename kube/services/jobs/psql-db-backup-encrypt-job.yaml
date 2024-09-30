@@ -62,6 +62,9 @@ spec:
               # Requirements:
               # 1. PGP public key must be available as a variable in the script.
               # 2. The job needs the necessary permissions to read secrets, config maps from the target namespace.
+              # 3. Databases to skip can be provided using a ConfigMap called `dbbackup-exclude-list` containing a comma-separated list of databases under the key `skip_dbs`.
+              #  Example command to create the ConfigMap:
+              #  kubectl create configmap dbbackup-exclude-list --from-literal=skip_dbs="arborist-bak,wts-bak"              
 
               source "${GEN3_HOME}/gen3/lib/utils.sh"
               gen3_load "gen3/gen3setup"
