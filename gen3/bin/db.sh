@@ -769,13 +769,13 @@ gen3_db_service_setup() {
 
   for it in $(gen3_db_list "$server"); do
     if [[ "$it" == "$dbname" ]]; then
-      gen3_log_err "gen3_db_service_setup" "$dbname database already exists on server $it"
+      gen3_log_err "gen3_db_service_setup" "$dbname database already exists on server $server"
       return 1
     fi
   done
   for it in $(gen3_db_user_list "$server"); do
     if [[ "$it" == "$username" ]]; then
-      gen3_log_err "gen3_db_service_setup" "$username user already exists on server $it"
+      gen3_log_err "gen3_db_service_setup" "$username user already exists on server $server"
       return 1
     fi
   done

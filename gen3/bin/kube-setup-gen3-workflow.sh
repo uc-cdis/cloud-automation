@@ -5,6 +5,8 @@ setup_gen3_workflow_infra() {
   gen3_log_info "setting up gen3-workflow"
 
   # create the gen3-workflow database and config file if they don't already exist
+  # Note: `gen3_db_service_setup` doesn't allow '-' in the database name, so the db and secret
+  # name are 'gen3workflow' and not 'gen3-workflow'
   if g3kubectl describe secret gen3workflow-g3auto > /dev/null 2>&1; then
     gen3_log_info "gen3workflow-g3auto secret already configured"
     return 0
@@ -38,7 +40,7 @@ DB_PASSWORD: $(jq -r .db_password < "$secretsFolder/dbcreds.json")
 DB_DATABASE: $(jq -r .db_database < "$secretsFolder/dbcreds.json")
 EOM
   fi
-  gen3 secrets sync 'setup gen3-workflow-g3auto secrets'
+  gen3 secrets sync 'setup gen3workflow-g3auto secrets'
 }
 
 setup_funnel_infra() {

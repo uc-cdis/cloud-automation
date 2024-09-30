@@ -59,7 +59,7 @@ spec:
       volumes:
         - name: config-volume
           secret:
-            secretName: "gen3-workflow-g3auto"
+            secretName: "gen3workflow-g3auto"
       containers:
       - name: gen3-workflow
         GEN3_GEN3-WORKFLOW_IMAGE
