@@ -46,6 +46,12 @@ spec:
                   optional: true 
             - name: GEN3_HOME
               value: /home/ubuntu/cloud-automation
+            - name: SKIP_DBS
+              valueFrom:
+                configMapKeyRef:
+                  name: dbbackup-exclude-list
+                  key: skip_dbs
+                  optional: true
           command: [ "/bin/bash" ]
           args:
             - "-c"
@@ -64,11 +70,17 @@ spec:
               namespace=$(gen3 api namespace)
               environment=$(gen3 api environment)
               hostname=$(gen3 api hostname)
-              skip_dbs=("omop-data")
-              default_databases=($(gen3 db services | grep -v -E "$(IFS='|'; echo "^(${skip_dbs[*]})$")"))
+              
+              # Fetch and filter databases
+              databases=$(gen3 db services | grep -v -E "$(echo "${SKIP_DBS//,/|}")")
+
+              # Log skipped databases
+              for db in ${SKIP_DBS//,/ }; do
+                gen3_log_info "Skipping backup for database: $db"
+              done
+              
               date_str=$(date -u +%y%m%d_%H%M%S)
-              databases=("${default_databases[@]}")
-              gen3_log_info "Databases to be backed up: ${databases[@]}"
+              gen3_log_info "Databases to be backed up: ${databases}"
 
               # Define backup directory structure
               BACKUP_DIR="/home/ubuntu/backup"
@@ -167,7 +179,7 @@ spec:
               }
 
               # Loop through each service to back up and encrypt the database
-              for database in "${databases[@]}"; do
+              for database in $databases; do
                 for secret_name in "${database}-creds creds.json" "$database-g3auto dbcreds.json"; do
                   creds=$(gen3 secrets decode $secret_name 2>/dev/null)
                   # Extracting service credentials
