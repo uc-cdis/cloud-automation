@@ -5,8 +5,8 @@ setup_gen3_workflow_infra() {
   gen3_log_info "setting up gen3-workflow"
 
   # create the gen3-workflow database and config file if they don't already exist
-  if g3kubectl describe secret gen3-workflow-g3auto > /dev/null 2>&1; then
-    gen3_log_info "gen3-workflow-g3auto secret already configured"
+  if g3kubectl describe secret gen3workflow-g3auto > /dev/null 2>&1; then
+    gen3_log_info "gen3workflow-g3auto secret already configured"
     return 0
   fi
   if [[ -n "$JENKINS_HOME" || ! -f "$(gen3_secrets_folder)/creds.json" ]]; then
@@ -14,10 +14,10 @@ setup_gen3_workflow_infra() {
     return 0
   fi
   # setup config file that gen3-workflow consumes
-  local secretsFolder="$(gen3_secrets_folder)/g3auto/gen3-workflow"
+  local secretsFolder="$(gen3_secrets_folder)/g3auto/gen3workflow"
   if [[ ! -f "$secretsFolder/gen3-workflow-config.yaml" ]]; then
     if [[ ! -f "$secretsFolder/dbcreds.json" ]]; then
-      if ! gen3 db setup gen3-workflow; then
+      if ! gen3 db setup gen3workflow; then
         gen3_log_err "Failed setting up database for gen3-workflow service"
         return 1
       fi
