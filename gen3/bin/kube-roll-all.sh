@@ -261,10 +261,10 @@ else
   gen3_log_info "not deploying cohort-middleware - no manifest entry for .versions[\"cohort-middleware\"]"
 fi
 
-if g3k_manifest_lookup .versions.gen3workflow 2> /dev/null; then
-  gen3 kube-setup-gen3workflow &
+if g3k_manifest_lookup '.versions["gen3-workflow"]' 2> /dev/null; then
+  gen3 kube-setup-gen3-workflow &
 else
-  gen3_log_info "not deploying gen3workflow - no manifest entry for .versions.gen3workflow"
+  gen3_log_info "not deploying gen3-workflow - no manifest entry for .versions[\"gen3-workflow\"]"
 fi
 
 gen3 kube-setup-revproxy
