@@ -167,7 +167,7 @@ $(command -v docker) run --name squid --network=host -d \
     --volume ${SQUID_CACHE_DIR}:${SQUID_CACHE_DIR} \
     --volume ${SQUID_CONFIG_DIR}:${SQUID_CONFIG_DIR}:ro \
     quay.io/cdis/squid:${SQUID_IMAGE_TAG}
-# exit 0
+exit 0
   
 EOF
 
@@ -308,18 +308,18 @@ function main(){
       --volume ${SQUID_CONFIG_DIR}:${SQUID_CONFIG_DIR}:ro \
        quay.io/cdis/squid:${SQUID_IMAGE_TAG}
 
-  # max_attempts=10
-  # attempt_counter=0
-  # while [ $attempt_counter -lt $max_attempts ]; do
-  #   #((attempt_counter++))
-  #   sleep 10
-  #   if [[ -z "$(sudo lsof -i:3128)" ]]; then
-  #     echo "Squid not healthy, restarting."
-  #     docker restart squid
-  #   else
-  #     echo "Squid healthy"
-  #   fi
-  # done
+  max_attempts=10
+  attempt_counter=0
+  while [ $attempt_counter -lt $max_attempts ]; do
+    #((attempt_counter++))
+    sleep 10
+    if [[ -z "$(sudo lsof -i:3128)" ]]; then
+      echo "Squid not healthy, restarting."
+      docker restart squid
+    else
+      echo "Squid healthy"
+    fi
+  done
 }
 
 main
