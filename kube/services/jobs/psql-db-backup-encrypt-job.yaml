@@ -75,7 +75,8 @@ spec:
               hostname=$(gen3 api hostname)
               
               # Fetch and filter databases
-              databases=$(gen3 db services | grep -v -E "$(echo "${SKIP_DBS//,/|}")")
+              databases=$(gen3 db services | grep -v -E "$(echo "${SKIP_DBS}" | sed 's/, */|/g' )")
+
 
               # Log skipped databases
               for db in ${SKIP_DBS//,/ }; do
