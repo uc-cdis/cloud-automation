@@ -105,7 +105,7 @@ if ! setup_gen3_workflow_infra; then
   exit 1
 fi
 gen3 roll gen3-workflow
-g3kubectl apply -f "${GEN3_HOME}/kube/services/gen3-workflow/gen3-workflow-service.yml"
+g3kubectl apply -f "${GEN3_HOME}/kube/services/gen3-workflow/gen3-workflow-service.yaml"
 gen3_log_info "The gen3-workflow service has been deployed onto the kubernetes cluster."
 
 if g3k_manifest_lookup .versions.funnel 2> /dev/null; then

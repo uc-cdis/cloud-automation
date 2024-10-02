@@ -9,7 +9,7 @@ Logger:
   Level: debug
 
 Kubernetes:
-  DisableJobCleanup: false # TODO set to true if GEN3_DEBUG flag is true
+  DisableJobCleanup: false  # set to true to debug jobs
   DisableReconciler: false
   ReconcileRate: 5m
   Namespace: FUNNEL_SERVICE_NAMESPACE_PLACEHOLDER
