@@ -15,23 +15,6 @@ ctxNamespace="$(g3kubectl config view -ojson | jq -r ".contexts | map(select(.na
 scriptDir="${GEN3_HOME}/kube/services/ingress"
 
 gen3_ingress_setup_waf() {
-    gen3_log_info "Starting GPE-312 waf setup"
-    #variable to see if WAF already exists
-    export waf=`aws wafv2 list-web-acls --scope REGIONAL | jq -r '.WebACLs[]|select(.Name| contains(env.vpc_name)).Name'`
-if [[ -z $waf ]]; then
-    gen3_log_info "Creating Web ACL. This may take a few minutes."
-    aws wafv2 create-web-acl\
-        --name $vpc_name-waf \
-        --scope REGIONAL \
-        --default-action Allow={} \
-        --visibility-config SampledRequestsEnabled=true,CloudWatchMetricsEnabled=true,MetricName=GPE-312WebAclMetrics \
-        --rules file://${GEN3_HOME}/gen3/bin/waf-rules-GPE-312.json \
-        --region us-east-1
-    #Need to sleep to avoid "WAFUnavailableEntityException" error since the waf takes a bit to spin up
-    sleep 300
-else
-    gen3_log_info "WAF already exists. Skipping..."
-fi
     gen3_log_info "Attaching ACL to ALB."
     export acl_arn=`aws wafv2 list-web-acls --scope REGIONAL | jq -r '.WebACLs[]|select(.Name| contains(env.vpc_name)).ARN'`
     export alb_name=`kubectl get ingress gen3-ingress | awk '{print $4}' | tail +2 |  sed 's/^\([A-Za-z0-9]*-[A-Za-z0-9]*-[A-Za-z0-9]*\).*/\1/;q'`
