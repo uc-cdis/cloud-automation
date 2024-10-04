@@ -18,27 +18,28 @@ setup_gen3_workflow_infra() {
   # setup config file that gen3-workflow consumes
   local secretsFolder="$(gen3_secrets_folder)/g3auto/gen3workflow"
   if [[ ! -f "$secretsFolder/gen3-workflow-config.yaml" ]]; then
-    if [[ ! -f "$secretsFolder/dbcreds.json" ]]; then
-      if ! gen3 db setup gen3workflow; then
-        gen3_log_err "Failed setting up database for gen3-workflow service"
-        return 1
-      fi
-    fi
-    if [[ ! -f "$secretsFolder/dbcreds.json" ]]; then
-      gen3_log_err "dbcreds not present in Gen3Secrets/"
-      return 1
-    fi
+    # NOTE: We may not need a DB for this service. Leaving it in until the design is finalized.
+    # if [[ ! -f "$secretsFolder/dbcreds.json" ]]; then
+    #   if ! gen3 db setup gen3workflow; then
+    #     gen3_log_err "Failed setting up database for gen3-workflow service"
+    #     return 1
+    #   fi
+    # fi
+    # if [[ ! -f "$secretsFolder/dbcreds.json" ]]; then
+    #   gen3_log_err "dbcreds not present in Gen3Secrets/"
+    #   return 1
+    # fi
 
     cat - > "$secretsFolder/gen3-workflow-config.yaml" <<EOM
 # Server
 
 DEBUG: false
-
-DB_HOST: $(jq -r .db_host < "$secretsFolder/dbcreds.json")
-DB_USER: $(jq -r .db_username < "$secretsFolder/dbcreds.json")
-DB_PASSWORD: $(jq -r .db_password < "$secretsFolder/dbcreds.json")
-DB_DATABASE: $(jq -r .db_database < "$secretsFolder/dbcreds.json")
 EOM
+# DB_HOST: $(jq -r .db_host < "$secretsFolder/dbcreds.json")
+# DB_USER: $(jq -r .db_username < "$secretsFolder/dbcreds.json")
+# DB_PASSWORD: $(jq -r .db_password < "$secretsFolder/dbcreds.json")
+# DB_DATABASE: $(jq -r .db_database < "$secretsFolder/dbcreds.json")
+# EOM
   fi
   gen3 secrets sync 'setup gen3workflow-g3auto secrets'
 }
@@ -89,7 +90,8 @@ setup_funnel_infra() {
   fi
   g3kubectl create -f "${GEN3_HOME}/kube/services/funnel/funnel-role-binding.yml" -n $namespace
 
-  gen3_log_info "Setting up funnel SA with access to S3"
+  # TODO move s3 bucket setup to `setup_gen3_workflow_infra`, or remove it if we use per-user buckets
+  gen3_log_info "Setting up S3 bucket"
   hostname="$(gen3 api hostname)"
   bucket_name="ga4ghtes-${hostname//./-}"
   gen3 s3 create "$bucket_name" || true
