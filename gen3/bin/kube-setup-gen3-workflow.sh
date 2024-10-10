@@ -76,19 +76,21 @@ setup_funnel_infra() {
   fi
   g3kubectl create serviceaccount $sa_name -n $namespace
 
-  local role_name="funnel-role" # hardcoded in `funnel-role.yml`
+  local role_name="funnel-role" # hardcoded in `role.yml`
   gen3_log_info "Recreating funnel role..."
   if g3kubectl get role $role_name -n $namespace > /dev/null 2>&1; then
     g3kubectl delete role $role_name -n $namespace
   fi
-  g3kubectl create -f "${GEN3_HOME}/kube/services/funnel/funnel-role.yml" -n $namespace
+  g3kubectl create -f "${GEN3_HOME}/kube/services/funnel/role.yml" -n $namespace
 
-  local role_binding_name="funnel-rolebinding" # hardcoded in `funnel-role-binding.yml`
+  local role_binding_name="funnel-rolebinding" # hardcoded in `role-binding.yml`
   gen3_log_info "Recreating funnel role binding..."
   if g3kubectl get rolebinding $role_binding_name -n $namespace > /dev/null 2>&1; then
     g3kubectl delete rolebinding $role_binding_name -n $namespace
   fi
-  g3kubectl create -f "${GEN3_HOME}/kube/services/funnel/funnel-role-binding.yml" -n $namespace
+  g3kubectl create -f "${GEN3_HOME}/kube/services/funnel/role-binding.yml" -n $namespace
+
+  g3kubectl apply -f "${GEN3_HOME}/kube/services/funnel/pvc.yml"
 
   # TODO move s3 bucket setup to `setup_gen3_workflow_infra`, or remove it if we use per-user buckets
   gen3_log_info "Setting up S3 bucket"

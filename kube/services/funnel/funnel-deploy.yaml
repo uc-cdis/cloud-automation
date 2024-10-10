@@ -78,11 +78,10 @@ spec:
           ports:
             - containerPort: 8000
             - containerPort: 9090
-
       volumes:
         - name: funnel-deployment-storage
           persistentVolumeClaim:
-            claimName: storage-pvc
+            claimName: funnel-storage-pvc
         - name: config-volume
           configMap:
             name: funnel-config
