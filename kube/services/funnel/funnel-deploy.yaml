@@ -5,7 +5,7 @@ metadata:
   labels:
     app: funnel
 spec:
-  # replicas: 1
+  replicas: 1
   selector:
     matchLabels:
       app: funnel
@@ -37,16 +37,6 @@ spec:
                 values:
                 - SPOT
       serviceAccountName: funnel-sa
-      volumes:
-        - name: funnel-deployment-storage
-          emptyDir: {}
-        - name: config-volume
-          configMap:
-            name: funnel-config
-      # volumes:
-      # - name: config-volume-g3auto
-      #   secret:
-      #     secretName: funnel-g3auto
       containers:
         - name: funnel
           GEN3_FUNNEL_IMAGE
@@ -88,3 +78,11 @@ spec:
           ports:
             - containerPort: 8000
             - containerPort: 9090
+
+      volumes:
+        - name: funnel-deployment-storage
+          persistentVolumeClaim:
+            claimName: storage-pvc
+        - name: config-volume
+          configMap:
+            name: funnel-config

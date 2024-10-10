@@ -5,6 +5,10 @@ BoltDB:
 
 Compute: kubernetes
 
+Kubernetes:
+  # The executor used to execute tasks. Available executors: docker, kubernetes
+  Executor: "kubernetes"
+
 Logger:
   Level: debug
 

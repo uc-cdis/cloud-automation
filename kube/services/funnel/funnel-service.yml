@@ -10,11 +10,9 @@ spec:
   ports:
     - name: http
       protocol: TCP
-      port: 80
+      port: 8000
       targetPort: 8000
     - name: rpc
       protocol: TCP
       port: 9090
       targetPort: 9090
-status:
-  loadBalancer: {}
