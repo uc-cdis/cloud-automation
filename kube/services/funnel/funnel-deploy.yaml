@@ -40,7 +40,7 @@ spec:
       containers:
         - name: funnel
           GEN3_FUNNEL_IMAGE
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           command: 
             - 'funnel'
             - 'server'

@@ -4,42 +4,26 @@ gen3_load "gen3/gen3setup"
 setup_gen3_workflow_infra() {
   gen3_log_info "setting up gen3-workflow"
 
-  # create the gen3-workflow database and config file if they don't already exist
+  # create the gen3-workflow config file if it doesn't already exist
   # Note: `gen3_db_service_setup` doesn't allow '-' in the database name, so the db and secret
-  # name are 'gen3workflow' and not 'gen3-workflow'
+  # name are 'gen3workflow' and not 'gen3-workflow'. If we need a db later, we'll run `gen3 db
+  # setup gen3workflow`
   if g3kubectl describe secret gen3workflow-g3auto > /dev/null 2>&1; then
     gen3_log_info "gen3workflow-g3auto secret already configured"
     return 0
   fi
   if [[ -n "$JENKINS_HOME" || ! -f "$(gen3_secrets_folder)/creds.json" ]]; then
-    gen3_log_err "skipping db setup in non-adminvm environment"
+    gen3_log_err "skipping config file setup in non-adminvm environment"
     return 0
   fi
   # setup config file that gen3-workflow consumes
   local secretsFolder="$(gen3_secrets_folder)/g3auto/gen3workflow"
   if [[ ! -f "$secretsFolder/gen3-workflow-config.yaml" ]]; then
-    # NOTE: We may not need a DB for this service. Leaving it in until the design is finalized.
-    # if [[ ! -f "$secretsFolder/dbcreds.json" ]]; then
-    #   if ! gen3 db setup gen3workflow; then
-    #     gen3_log_err "Failed setting up database for gen3-workflow service"
-    #     return 1
-    #   fi
-    # fi
-    # if [[ ! -f "$secretsFolder/dbcreds.json" ]]; then
-    #   gen3_log_err "dbcreds not present in Gen3Secrets/"
-    #   return 1
-    # fi
-
     cat - > "$secretsFolder/gen3-workflow-config.yaml" <<EOM
 # Server
 
 DEBUG: false
 EOM
-# DB_HOST: $(jq -r .db_host < "$secretsFolder/dbcreds.json")
-# DB_USER: $(jq -r .db_username < "$secretsFolder/dbcreds.json")
-# DB_PASSWORD: $(jq -r .db_password < "$secretsFolder/dbcreds.json")
-# DB_DATABASE: $(jq -r .db_database < "$secretsFolder/dbcreds.json")
-# EOM
   fi
   gen3 secrets sync 'setup gen3workflow-g3auto secrets'
 }
@@ -69,13 +53,6 @@ setup_funnel_infra() {
   g3kubectl create configmap $configmap_name -n $namespace --from-file="funnel-server-config.yml=$tempServerConfig" --from-file="funnel-worker-config.yml=$tempWorkerConfig"
   rm $tempWorkerConfig $tempServerConfig # delete temp files
 
-  local sa_name="funnel-sa"
-  gen3_log_info "Recreating funnel SA..."
-  if g3kubectl get serviceaccount $sa_name -n $namespace > /dev/null 2>&1; then
-    g3kubectl delete serviceaccount $sa_name -n $namespace
-  fi
-  g3kubectl create serviceaccount $sa_name -n $namespace
-
   local role_name="funnel-role" # hardcoded in `role.yml`
   gen3_log_info "Recreating funnel role..."
   if g3kubectl get role $role_name -n $namespace > /dev/null 2>&1; then
@@ -83,13 +60,19 @@ setup_funnel_infra() {
   fi
   g3kubectl create -f "${GEN3_HOME}/kube/services/funnel/role.yml" -n $namespace
 
+  local sa_name="funnel-sa"
   local role_binding_name="funnel-rolebinding" # hardcoded in `role-binding.yml`
-  gen3_log_info "Recreating funnel role binding..."
+  gen3_log_info "Recreating funnel SA and role binding..."
+  if g3kubectl get serviceaccount $sa_name -n $namespace > /dev/null 2>&1; then
+    g3kubectl delete serviceaccount $sa_name -n $namespace
+  fi
   if g3kubectl get rolebinding $role_binding_name -n $namespace > /dev/null 2>&1; then
     g3kubectl delete rolebinding $role_binding_name -n $namespace
   fi
   g3kubectl create -f "${GEN3_HOME}/kube/services/funnel/role-binding.yml" -n $namespace
 
+  gen3_log_info "Creating funnel persistent volume and persistent volume claim..."
+  g3kubectl apply -f "${GEN3_HOME}/kube/services/funnel/pv.yml"
   g3kubectl apply -f "${GEN3_HOME}/kube/services/funnel/pvc.yml"
 
   # TODO move s3 bucket setup to `setup_gen3_workflow_infra`, or remove it if we use per-user buckets
