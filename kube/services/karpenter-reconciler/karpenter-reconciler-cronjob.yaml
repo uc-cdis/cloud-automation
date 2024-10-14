@@ -33,12 +33,12 @@ spec:
                 - "-c"
                 - |
                   #!/bin/bash
-                  if [ -z "$PROVISIONER_TEMPLATE" ]; then
-                    PROVISIONER_TEMPLATE="provisioner.yaml"
+                  if [ -z "$NODEPOOL_TEMPLATE" ]; then
+                    NODEPOOL_TEMPLATE="provisioner.yaml"
                   fi
 
-                  if [ -z "$AWSNODETEMPLATE_TEMPLATE" ]; then
-                    AWSNODETEMPLATE_TEMPLATE="nodetemplate.yaml"
+                  if [ -z "$NODECLASS_TEMPLATE" ]; then
+                    NODECLASS_TEMPLATE="nodetemplate.yaml"
                   fi
 
                   ENVIRONMENT=$(kubectl -n default get configmap global -o jsonpath="{.data.environment}")
@@ -61,12 +61,12 @@ spec:
                     if [ ! -z "$workflow_name" ]; then
                       if ! kubectl get awsnodetemplate workflow-$workflow_name >/dev/null 2>&1; then
                         echo "No awsnodetemplate found for ${workflow_name}, creating one"
-                        sed -e "s/WORKFLOW_NAME/$workflow_name/" -e "s/GEN3_USERNAME/$workflow_user/" -e "s/ENVIRONMENT/$ENVIRONMENT/" "$AWSNODETEMPLATE_TEMPLATE" | kubectl apply -f -
+                        sed -e "s/WORKFLOW_NAME/$workflow_name/" -e "s/GEN3_USERNAME/$workflow_user/" -e "s/ENVIRONMENT/$ENVIRONMENT/" "$NODECLASS_TEMPLATE" | kubectl apply -f -
                       fi
 
                       if ! kubectl get provisioner workflow-$workflow_name >/dev/null 2>&1; then
                         echo "No provisioner found for ${workflow_name}, creating one"
-                        sed -e "s/WORKFLOW_NAME/$workflow_name/" -e "s/GEN3_USERNAME/$workflow_user/" -e "s/ENVIRONMENT/$ENVIRONMENT/" "$PROVISIONER_TEMPLATE" | kubectl apply -f -
+                        sed -e "s/WORKFLOW_NAME/$workflow_name/" -e "s/GEN3_USERNAME/$workflow_user/" -e "s/ENVIRONMENT/$ENVIRONMENT/" "$NODEPOOL_TEMPLATE" | kubectl apply -f -
 
                       fi
                     fi
