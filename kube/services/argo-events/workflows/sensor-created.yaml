@@ -86,10 +86,10 @@ spec:
                               configMapKeyRef:
                                 name: environment
                                 key: environment
-                          - name: PROVISIONER_TEMPLATE
-                            value: /manifests/provisioner.yaml
-                          - name: AWSNODETEMPLATE_TEMPLATE
-                            value: /manifests/nodetemplate.yaml
+                          - name: NODEPOOL_TEMPLATE
+                            value: /manifests/nodepool.yaml
+                          - name: NODECLASS_TEMPLATE
+                            value: /manifests/nodeclass.yaml
                         volumeMounts:
                           - name: karpenter-templates-volume
                             mountPath: /manifests
