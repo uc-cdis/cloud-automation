@@ -26,7 +26,7 @@ data:
         httpProtocolIPv6: disabled
         httpPutResponseHopLimit: 2
         httpTokens: optional
-      role: eks_va-testing_workers_role
+      role: eks_ENVIRONMENT_workers_role
       securityGroupSelectorTerms:
       - tags:
           karpenter.sh/discovery: ENVIRONMENT-workflow
