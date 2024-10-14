@@ -1,8 +1,9 @@
 # Setup for running this migration https://github.com/uc-cdis/indexd/blob/master/docs/migration_to_single_table_indexd.md
 apiVersion: batch/v1
-kind: Job
+kind: PriorityClass
 metadata:
   name: indexd-single-table-migration
+preemtionPolicy: Never
 spec:
   template:
     metadata:
@@ -46,6 +47,10 @@ spec:
           env:
             - name: START_DID
               GEN3_START_DID|-value: ""-|
+            - name: BATCH_SIZE
+              GEN3_BATCH_SIZE |-value: ""-|
+            - name: OFFSET_VALUE
+              GEN3_OFFSET_VALUE |-value: ""-|
           volumeMounts:
             - name: "config-volume"
               readOnly: true
@@ -72,9 +77,15 @@ spec:
           args:
             - "-c"
             - |
-              flags="--creds-path /var/www/indexd/creds_new.json"
+              flags="--creds-file /var/www/indexd/creds_new.json"
               if [[ -n "$START_DID" ]]; then
                 flags="$flags --start-did $START_DID"
+              fi
+              if [[ -n "$BATCH_SIZE" ]]; then
+                flags="$flags --batch-size $BATCH_SIZE"
+              fi
+              if [[ -n "$OFFSET_VALUE" ]]; then
+                flags="$flags --start-offset $OFFSET_VALUE"
               fi
               time python /indexd/bin/migrate_to_single_table.py $flags
               echo "Exit code: $?"
