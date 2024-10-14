@@ -24,10 +24,10 @@ spec:
                 - name: karpenter-templates-volume
                   mountPath: /manifests
               env:
-                - name: PROVISIONER_TEMPLATE
-                  value: /manifests/provisioner.yaml
-                - name: AWSNODETEMPLATE_TEMPLATE
-                  value: /manifests/nodetemplate.yaml
+                - name: NODEPOOL_TEMPLATE
+                  value: /manifests/nodepool.yaml
+                - name: NODECLASS_TEMPLATE
+                  value: /manifests/nodeclass.yaml
               command: ["/bin/bash"]
               args:
                 - "-c"
@@ -38,7 +38,7 @@ spec:
                   fi
 
                   if [ -z "$NODECLASS_TEMPLATE" ]; then
-                    NODECLASS_TEMPLATE="nodetemplate.yaml"
+                    NODECLASS_TEMPLATE="nodeclass.yaml"
                   fi
 
                   ENVIRONMENT=$(kubectl -n default get configmap global -o jsonpath="{.data.environment}")

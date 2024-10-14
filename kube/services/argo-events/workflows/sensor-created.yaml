@@ -61,11 +61,11 @@ spec:
                           - |
                             #!/bin/bash
                             if [ -z "$NODEPOOL_TEMPLATE" ]; then
-                              NODEPOOL_TEMPLATE="nodepool.yaml"
+                              NODEPOOL_TEMPLATE="/manifests/nodepool.yaml"
                             fi
 
                             if [ -z "$NODECLASS_TEMPLATE" ]; then
-                              NODECLASS_TEMPLATE="nodeclass.yaml"
+                              NODECLASS_TEMPLATE="/manifests/nodeclass.yaml"
                             fi
 
 
