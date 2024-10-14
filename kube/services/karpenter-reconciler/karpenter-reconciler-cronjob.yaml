@@ -34,11 +34,11 @@ spec:
                 - |
                   #!/bin/bash
                   if [ -z "$NODEPOOL_TEMPLATE" ]; then
-                    NODEPOOL_TEMPLATE="provisioner.yaml"
+                    NODEPOOL_TEMPLATE="/manifests/provisioner.yaml"
                   fi
 
                   if [ -z "$NODECLASS_TEMPLATE" ]; then
-                    NODECLASS_TEMPLATE="nodeclass.yaml"
+                    NODECLASS_TEMPLATE="/manifests/nodeclass.yaml"
                   fi
 
                   ENVIRONMENT=$(kubectl -n default get configmap global -o jsonpath="{.data.environment}")
