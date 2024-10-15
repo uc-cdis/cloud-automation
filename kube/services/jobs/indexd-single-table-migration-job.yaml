@@ -1,15 +1,15 @@
 # Setup for running this migration https://github.com/uc-cdis/indexd/blob/master/docs/migration_to_single_table_indexd.md
 apiVersion: batch/v1
-kind: PriorityClass
+kind: Job
 metadata:
   name: indexd-single-table-migration
-preemtionPolicy: Never
 spec:
   template:
     metadata:
       labels:
         app: gen3job
     spec:
+      priorityClassName: indexd-single-table-migration-priority  # Assigning the priority class
       affinity:
         nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -46,13 +46,13 @@ spec:
           GEN3_INDEXD_IMAGE
           env:
             - name: START_DID
-              GEN3_START_DID |-value: ""-|
+              GEN3_START_DID|-value: ""-|
             - name: BATCH_SIZE
-              GEN3_BATCH_SIZE |-value: ""-|
+              GEN3_BATCH_SIZE|-value: ""-|
             - name: OFFSET_VALUE
-              GEN3_OFFSET_VALUE |-value: ""-|
+              GEN3_OFFSET_VALUE|-value: ""-|
             - name: USE_DEFAULT_CREDS
-              GEN3_USE_DEFAULT_CREDS |-value: "True"-|
+              GEN3_USE_DEFAULT_CREDS|-value: "false"-|
           volumeMounts:
             - name: "config-volume"
               readOnly: true
@@ -82,7 +82,7 @@ spec:
               if [[ -n "$USE_DEFAULT_CREDS" == "false" ]]; then
                 flags="--creds-file /var/www/indexd/creds_new.json"
               else
-                flags="--creds-file /var/www/indexd/creds_new.json"
+                flags="--creds-file /var/www/indexd/creds.json"
               fi
               if [[ -n "$START_DID" ]]; then
                 flags="$flags --start-did $START_DID"
