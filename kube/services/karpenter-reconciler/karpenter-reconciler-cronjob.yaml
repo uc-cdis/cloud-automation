@@ -57,7 +57,7 @@ spec:
                   do
                     workflow_name=$(echo "$workflow" | awk '{print $1}')
                     workflow_user=$(echo "$workflow" | awk '{print $2}')
-                    workflow_team=$(echo "$workflow" | awk '{print $3}')
+                    workflow_team=$(echo "$workflow" | awk '{print $3}') | xxd -r -p
 
                     if [ ! -z "$workflow_name" ]; then
                       if ! kubectl get ec2nodeclass workflow-$workflow_name >/dev/null 2>&1; then

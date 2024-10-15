@@ -64,6 +64,8 @@ spec:
                           - "-c"
                           - |
                             #!/bin/bash
+
+                            GEN3TEAMNAME_DECODED=$(echo -n "GEN3_TEAMNAME" | xxd -r -p)
                             if [ -z "$NODEPOOL_TEMPLATE" ]; then
                               NODEPOOL_TEMPLATE="/manifests/nodepool.yaml"
                             fi
