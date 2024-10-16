@@ -20,7 +20,6 @@ spec:
         release: production
         GEN3_DATE_LABEL
     spec:
-      serviceAccountName: gen3-user-data-library-sa
       volumes:
         - name: gen3-user-data-library-g3auto-volume
           secret:
