@@ -19,7 +19,7 @@ setup_database() {
   fi
   # Setup .env file that gen3-user-data-library service consumes
   if [[ ! -f "$secretsFolder/gen3-user-data-library.env" || ! -f "$secretsFolder/base64Authz.txt" ]]; then
-    local secretsFolder="$(gen3_secrets_folder)/g3auto/gen3-user-data-library"
+    local secretsFolder="$(gen3_secrets_folder)/g3auto/gen3userdatalibrary"
 
     if [[ ! -f "$secretsFolder/dbcreds.json" ]]; then
       if ! gen3 db setup gen3userdatalibrary; then
