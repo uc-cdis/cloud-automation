@@ -6,7 +6,6 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
-# NOTE: no db for this service yet, but we'll likely need it in the future
 setup_database() {
   gen3_log_info "setting up gen3-user-data-library service ..."
 
@@ -48,6 +47,12 @@ EOM
   fi
   gen3 secrets sync 'setup gen3-user-data-library-g3auto secrets'
 }
+
+
+if ! setup_database; then
+ gen3_log_err "kube-setup-gen3-user-data-library bailing out - database failed setup"
+ exit 1
+fi
 
 if ! g3k_manifest_lookup '.versions."gen3-user-data-library"' 2> /dev/null; then
   gen3_log_info "kube-setup-gen3-user-data-library exiting - gen3-user-data-library service not in manifest"
