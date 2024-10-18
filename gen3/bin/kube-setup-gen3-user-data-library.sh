@@ -23,7 +23,7 @@ setup_database() {
     local secretsFolder="$(gen3_secrets_folder)/g3auto/gen3-user-data-library"
 
     if [[ ! -f "$secretsFolder/dbcreds.json" ]]; then
-      if ! gen3 db setup gen3-user-data-library; then
+      if ! gen3 db setup gen3userdatalibrary; then
         gen3_log_err "Failed setting up database for gen3-user-data-library service"
         return 1
       fi
