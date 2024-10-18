@@ -63,4 +63,3 @@ if [[ -z "$GEN3_ROLL_ALL" ]]; then
 fi
 
 gen3_log_info "The gen3-user-data-library service has been deployed onto the kubernetes cluster"
-gen3_log_info "test with: curl https://commons-host/ai"
