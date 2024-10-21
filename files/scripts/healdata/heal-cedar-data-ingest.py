@@ -1,6 +1,5 @@
 import argparse
 import copy
-import json
 import sys
 import requests
 import pydash
@@ -50,6 +49,50 @@ REPOSITORY_STUDY_ID_LINK_TEMPLATE = {
     "BioSystics-AP": "https://biosystics-ap.com/assays/assaystudy/<STUDY_ID>/",
 }
 
+CLINICAL_TRIALS_GOV_FIELDS = [
+    "NCTId",
+    "OfficialTitle",
+    "BriefTitle",
+    "Acronym",
+    "StudyType",
+    "OverallStatus",
+    "StartDate",
+    "StartDateType",
+    "CompletionDate",
+    "CompletionDateType",
+    "IsFDARegulatedDrug",
+    "IsFDARegulatedDevice",
+    "IsPPSD",
+    "BriefSummary",
+    "DetailedDescription",
+    "Condition",
+    "DesignAllocation",
+    "DesignPrimaryPurpose",
+    "Phase",
+    "DesignInterventionModel",
+    "EnrollmentCount",
+    "EnrollmentType",
+    "DesignObservationalModel",
+    "InterventionType",
+    "PrimaryOutcomeMeasure",
+    "SecondaryOutcomeMeasure",
+    "OtherOutcomeMeasure",
+    "Gender",
+    "GenderBased",
+    "MaximumAge",
+    "MinimumAge",
+    "IPDSharing",
+    "IPDSharingTimeFrame",
+    "IPDSharingAccessCriteria",
+    "IPDSharingURL",
+    "SeeAlsoLinkURL",
+    "AvailIPDURL",
+    "AvailIPDId",
+    "AvailIPDComment",
+    "PatientRegistry",
+    "DesignTimePerspective",
+]
+
 
 def is_valid_uuid(uuid_to_test, version=4):
     """
@@ -76,7 +119,11 @@ def is_valid_uuid(uuid_to_test, version=4):
 def update_filter_metadata(metadata_to_update):
     # Retain these from existing filters
     save_filters = ["Common Data Elements"]
-    filter_metadata = [filter for filter in metadata_to_update["advSearchFilters"] if filter["key"] in save_filters]
+    filter_metadata = [
+        filter
+        for filter in metadata_to_update["advSearchFilters"]
+        if filter["key"] in save_filters
+    ]
     for metadata_field_key, filter_field_key in FILTER_FIELD_MAPPINGS.items():
         filter_field_values = pydash.get(metadata_to_update, metadata_field_key)
         if filter_field_values:
@@ -99,7 +146,12 @@ def update_filter_metadata(metadata_to_update):
     filter_metadata = pydash.uniq(filter_metadata)
     metadata_to_update["advSearchFilters"] = filter_metadata
     # Retain these from existing tags
-    save_tags = ["Data Repository", "Common Data Elements", "RequiredIDP",  "Additional Acknowledgement"]
+    save_tags = [
+        "Data Repository",
+        "Common Data Elements",
+        "RequiredIDP",
+        "Additional Acknowledgement",
+    ]
     tags = [tag for tag in metadata_to_update["tags"] if tag["category"] in save_tags]
     # Add any new tags from advSearchFilters
     for f in metadata_to_update["advSearchFilters"]:
@@ -164,6 +216,21 @@ def get_related_studies(serial_num, guid, hostname):
                 )
                 related_study_result.append({"title": title, "link": link})
     return related_study_result
+
+
+def get_clinical_trials_gov_metadata(nct_id):
+    if not nct_id:
+        return None
+    ct_metadata = {}
+    try:
+        ct_metadata_result = requests.get(f"https://clinicaltrials.gov/api/v2/studies/{nct_id}?fields={'|'.join(CLINICAL_TRIALS_GOV_FIELDS)}")
+        if ct_metadata_result.status_code != 200:
+            raise Exception(f"Could not get clinicaltrials.gov metadata, error code {ct_metadata_result.status_code}")
+        else:
+            ct_metadata = ct_metadata_result.json()
+    except Exception as exc:
+        raise Exception(f"Could not get clinicaltrials.gov metadata: {exc}") from exc
+    return ct_metadata
 
 
 parser = argparse.ArgumentParser()
@@ -231,7 +298,8 @@ while limit + offset <= total:
         for cedar_record in metadata_return["metadata"]["records"]:
             # get the CEDAR instance id from cedar for querying in our MDS
             cedar_instance_id = pydash.get(
-                cedar_record, "metadata_location.cedar_study_level_metadata_template_instance_ID"
+                cedar_record,
+                "metadata_location.cedar_study_level_metadata_template_instance_ID",
             )
             if cedar_instance_id is None:
                 print("This record doesn't have CEDAR instance id, skipping...")
@@ -246,7 +314,9 @@ while limit + offset <= total:
 
                 # the query result key is the record of the metadata. If it doesn't return anything then our query failed.
                 if len(list(mds_res.keys())) == 0 or len(list(mds_res.keys())) > 1:
-                    print(f"Query returned nothing for template_instance_ID={cedar_instance_id}&data=true")
+                    print(
+                        f"Query returned nothing for template_instance_ID={cedar_instance_id}&data=true"
+                    )
                     continue
 
                 # get the key for our mds record
@@ -273,8 +343,10 @@ while limit + offset <= total:
                 ).get("other_study_websites", [])
                 # this ensures the nih_application_id, cedar_study_level_metadata_template_instance_ID and study_name are not alterable from CEDAR side
                 del cedar_record["metadata_location"]
-                cedar_record["minimal_info"]["study_name"] = mds_res["gen3_discovery"]["study_metadata"].get("minimal_info", {}).get(
-                    "study_name", ""
+                cedar_record["minimal_info"]["study_name"] = (
+                    mds_res["gen3_discovery"]["study_metadata"]
+                    .get("minimal_info", {})
+                    .get("study_name", "")
                 )
 
                 mds_res["gen3_discovery"]["study_metadata"].update(cedar_record)
@@ -342,7 +414,9 @@ while limit + offset <= total:
                 related_study_result = get_related_studies(
                     serial_num, mds_record_guid, hostname
                 )
-                mds_res["gen3_discovery"]["related_studies"] = copy.deepcopy(related_study_result)
+                mds_res["gen3_discovery"]["related_studies"] = copy.deepcopy(
+                    related_study_result
+                )
 
                 # merge data from cedar that is not study level metadata into a level higher
                 deleted_keys = []
@@ -356,6 +430,27 @@ while limit + offset <= total:
                 mds_discovery_data_body = update_filter_metadata(
                     mds_res["gen3_discovery"]
                 )
+
+                clinical_trials_id = None
+                try:
+                    clinical_trials_id = (
+                        mds_res["gen3_discovery"]["study_metadata"]
+                            .get("metadata_location", {})
+                            .get("clinical_trials_study_ID", "")
+                    )
+                except Exception:
+                    print("Unable to get clinical_trials_study_ID for study")
+                if clinical_trials_id:
+                    try:
+                        ct_gov_metadata = get_clinical_trials_gov_metadata(clinical_trials_id)
+                        if ct_gov_metadata:
+                            print(f"Got clinicaltrials.gov metadata for {mds_record_guid} with NCT ID {clinical_trials_id}")
+                            mds_cedar_register_data_body["clinicaltrials_gov"] = copy.deepcopy(ct_gov_metadata)
+                    except Exception as ex:
+                        print(f'{ex}')
+                # This means the old clinicaltrials_gov section is actually from CEDAR not clinicaltrials.gov, so remove it
+                elif "clinicaltrials_gov" in mds_cedar_register_data_body:
+                    del mds_cedar_register_data_body["clinicaltrials_gov"]
 
                 mds_cedar_register_data_body["gen3_discovery"] = mds_discovery_data_body
 

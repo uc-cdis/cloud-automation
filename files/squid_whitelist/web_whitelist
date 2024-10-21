@@ -7,6 +7,7 @@ achecker.ca
 apache.github.io
 api.epigraphdb.org
 api.monqcle.com
+app.getambassador.io
 awslabs.github.io
 biodata-integration-tests.net
 marketing.biorender.com
@@ -14,6 +15,7 @@ clinicaltrials.gov
 charts.bitnami.com
 ctds-planx.atlassian.net
 data.cityofchicago.org
+data.stage.qdr.org
 dataguids.org
 api.login.yahoo.com
 apt.kubernetes.io
@@ -169,3 +171,4 @@ vpodc.org
 yahoo.com
 idp.stage.qdr.org
 stage.qdr.org
+data.qdr.syr.edu

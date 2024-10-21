@@ -175,6 +175,8 @@ $assumeImageBuilderRolePolicyBlock
             "Action": [
                 "batch:DescribeComputeEnvironments",
                 "batch:CreateComputeEnvironment",
+                "batch:UpdateComputeEnvironment",
+                "batch:ListJobs",
                 "batch:CreateJobQueue",
                 "batch:TagResource",
                 "iam:ListPolicies",
@@ -197,9 +199,27 @@ $assumeImageBuilderRolePolicyBlock
                 "iam:CreateInstanceProfile",
                 "iam:AddRoleToInstanceProfile",
                 "iam:PassRole",
-                "s3:CreateBucket"
+                "kms:CreateKey",
+                "kms:CreateAlias",
+                "kms:DescribeKey",
+                "kms:TagResource",
+                "s3:CreateBucket",
+                "s3:PutEncryptionConfiguration",
+                "s3:PutBucketPolicy",
+                "s3:PutLifecycleConfiguration"
             ],
             "Resource": "*"
+        },
+        {
+            "Sid": "CreateSlrForNextflowBatchWorkspaces",
+            "Effect": "Allow",
+            "Action": "iam:CreateServiceLinkedRole",
+            "Resource": "arn:aws:iam::*:role/aws-service-role/batch.amazonaws.com/*",
+            "Condition": {
+                "StringLike": {
+                    "iam:AWSServiceName": "batch.amazonaws.com"
+                }
+            }
         },
         {
             "Sid": "PassRoleForNextflowBatchWorkspaces",
