@@ -81,7 +81,7 @@ spec:
       volumes:
         - name: funnel-deployment-storage
           persistentVolumeClaim:
-            claimName: funnel-storage-pvc
+            claimName: storage-pvc
         - name: config-volume
           configMap:
             name: funnel-config

@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: funnel-storage-pvc
+  name: storage-pvc
 spec:
   storageClassName: standard
   resources:

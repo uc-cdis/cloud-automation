@@ -18,7 +18,7 @@ Kubernetes:
     metadata:
       ## DO NOT CHANGE NAME
       name: {{.TaskId}}
-      namespace: {{.Namespace}}
+      namespace: FUNNEL_SERVICE_NAMESPACE_PLACEHOLDER
     spec:
       backoffLimit: 0
       completions: 1

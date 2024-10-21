@@ -40,6 +40,7 @@ setup_funnel_infra() {
   gen3_log_info "Funnel cluster IP: $funnelClusterIp"
   tempWorkerConfig="$(mktemp "$XDG_RUNTIME_DIR/funnel-worker-config.yml_XXXXXX")"
   sed "s/FUNNEL_SERVICE_CLUSTER_IP_PLACEHOLDER/$funnelClusterIp/" ${GEN3_HOME}/kube/services/funnel/funnel-worker-config.yml > $tempWorkerConfig
+  sed "s/FUNNEL_SERVICE_NAMESPACE_PLACEHOLDER/$namespace/" $tempWorkerConfig > $tempServerConfig
 
   # set the namespace in the server config
   tempServerConfig="$(mktemp "$XDG_RUNTIME_DIR/funnel-server-config.yml_XXXXXX")"
@@ -87,14 +88,6 @@ setup_funnel_infra() {
   # gen3 s3 attach-bucket-policy "$bucket_name" --read-write --role-name ${username} || true
 }
 
-if ! setup_gen3_workflow_infra; then
-  gen3_log_err "kube-setup-gen3-workflow bailing out - failed to set up gen3-workflow infrastructure"
-  exit 1
-fi
-gen3 roll gen3-workflow
-g3kubectl apply -f "${GEN3_HOME}/kube/services/gen3-workflow/gen3-workflow-service.yaml"
-gen3_log_info "The gen3-workflow service has been deployed onto the kubernetes cluster."
-
 if g3k_manifest_lookup .versions.funnel 2> /dev/null; then
   if ! setup_funnel_infra; then
     gen3_log_err "kube-setup-gen3-workflow bailing out - failed to set up funnel infrastructure"
@@ -106,3 +99,11 @@ if g3k_manifest_lookup .versions.funnel 2> /dev/null; then
 else
   gen3_log_warn "not deploying funnel - no manifest entry for .versions.funnel. The gen3-workflow service may not work!"
 fi
+
+if ! setup_gen3_workflow_infra; then
+  gen3_log_err "kube-setup-gen3-workflow bailing out - failed to set up gen3-workflow infrastructure"
+  exit 1
+fi
+gen3 roll gen3-workflow
+g3kubectl apply -f "${GEN3_HOME}/kube/services/gen3-workflow/gen3-workflow-service.yaml"
+gen3_log_info "The gen3-workflow service has been deployed onto the kubernetes cluster."
