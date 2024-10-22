@@ -65,7 +65,6 @@ spec:
                           - |
                             #!/bin/bash
 
-                            GEN3_TEAMNAME_DECODED=$(echo -n "GEN3_TEAMNAME")
                             if [ -z "$NODEPOOL_TEMPLATE" ]; then
                               NODEPOOL_TEMPLATE="/manifests/nodepool.yaml"
                             fi
@@ -75,11 +74,11 @@ spec:
                             fi
 
                             if ! kubectl get ec2nodeclass workflow-$WORKFLOW_NAME >/dev/null 2>&1; then
-                              sed -e "s/WORKFLOW_NAME/$WORKFLOW_NAME/" -e "s/GEN3_USERNAME/$GEN3_USERNAME/" -e "s/GEN3_TEAMNAME/$GEN3_TEAMNAME_DECODED/" -e "s/ENVIRONMENT/$ENVIRONMENT/" "$NODECLASS_TEMPLATE" | kubectl apply -f - 
+                              sed -e "s/WORKFLOW_NAME/$WORKFLOW_NAME/" -e "s/GEN3_USERNAME/$GEN3_USERNAME/" -e "s/GEN3_TEAMNAME/$GEN3_TEAMNAME/" -e "s/ENVIRONMENT/$ENVIRONMENT/" "$NODECLASS_TEMPLATE" | kubectl apply -f - 
                             fi
 
                             if ! kubectl get nodepool workflow-$WORKFLOW_NAME >/dev/null 2>&1; then
-                              sed -e "s/WORKFLOW_NAME/$WORKFLOW_NAME/" -e "s/GEN3_USERNAME/$GEN3_USERNAME/" -e "s/GEN3_TEAMNAME/$GEN3_TEAMNAME_DECODED/" -e "s/ENVIRONMENT/$ENVIRONMENT/" "$NODEPOOL_TEMPLATE" | kubectl apply -f - 
+                              sed -e "s/WORKFLOW_NAME/$WORKFLOW_NAME/" -e "s/GEN3_USERNAME/$GEN3_USERNAME/" -e "s/GEN3_TEAMNAME/$GEN3_TEAMNAME/" -e "s/ENVIRONMENT/$ENVIRONMENT/" "$NODEPOOL_TEMPLATE" | kubectl apply -f - 
                             fi
                         env:
                           - name: WORKFLOW_NAME
