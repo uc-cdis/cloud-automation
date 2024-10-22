@@ -35,7 +35,6 @@ jenkins-niaid
 EOF
 
 cat - > jenkins-envs-releases.txt <<EOF
-jenkins-new
 jenkins-new-1
 jenkins-new-2
 jenkins-new-3
