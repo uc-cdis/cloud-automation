@@ -249,6 +249,12 @@ else
   gen3_log_info "not deploying gen3-discovery-ai - no manifest entry for '.versions[\"gen3-discovery-ai\"]'"
 fi
 
+if g3k_manifest_lookup '.versions["gen3-user-data-library"]' 2> /dev/null; then
+  gen3 kube-setup-gen3-user-data-library &
+else
+  gen3_log_info "not deploying gen3-user-data-library - no manifest entry for '.versions[\"gen3-user-data-library\"]'"
+fi
+
 if g3k_manifest_lookup '.versions["ohdsi-atlas"]' && g3k_manifest_lookup '.versions["ohdsi-webapi"]' 2> /dev/null; then
   gen3 kube-setup-ohdsi &
 else
