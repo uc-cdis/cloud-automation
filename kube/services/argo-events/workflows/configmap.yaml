@@ -12,7 +12,7 @@ data:
     spec:
       amiFamily: AL2
       amiSelectorTerms:
-      - name: EKS-FIPS*
+      - name: 1-31-EKS-FIPS*
         owner: "143731057154"
       blockDeviceMappings:
       - deviceName: /dev/xvda
