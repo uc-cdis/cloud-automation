@@ -38,7 +38,7 @@ data:
         Name: eks-ENVIRONMENT-workflow-karpenter
         gen3service: argo-workflows
         gen3username: GEN3_USERNAME
-        gen3teamname: "GEN3_TEAMNAME"
+        gen3teamproject: "GEN3_TEAMNAME"
         karpenter.sh/discovery: ENVIRONMENT
         purpose: workflow
         workflowname: WORKFLOW_NAME
