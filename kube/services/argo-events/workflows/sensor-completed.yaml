@@ -51,12 +51,12 @@ spec:
                         args:
                           - "-c"
                           - |
-                            if kubectl get ec2nodeclass workflow-$WORKFLOW_NAME >/dev/null 2>&1; then
-                              kubectl delete ec2nodeclass workflow-$WORKFLOW_NAME
-                            fi
-
                             if kubectl get nodepool workflow-$WORKFLOW_NAME >/dev/null 2>&1; then
                               kubectl delete nodepool workflow-$WORKFLOW_NAME
+                            fi
+
+                            if kubectl get ec2nodeclass workflow-$WORKFLOW_NAME >/dev/null 2>&1; then
+                              kubectl delete ec2nodeclass workflow-$WORKFLOW_NAME
                             fi
                         env:
                           - name: WORKFLOW_NAME
