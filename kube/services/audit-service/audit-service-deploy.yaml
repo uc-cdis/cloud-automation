@@ -94,6 +94,10 @@ spec:
             readOnly: true
             mountPath: "/src/audit-service-config.yaml"
             subPath: "audit-service-config.yaml"
+          - name: "config-volume"
+            readOnly: true
+            mountPath: "/audit/audit-service-config.yaml"
+            subPath: "audit-service-config.yaml"
         resources:
           requests:
             cpu: 100m
@@ -109,6 +113,10 @@ spec:
               readOnly: true
               mountPath: "/src/audit-service-config.yaml"
               subPath: "audit-service-config.yaml"
+            - name: "config-volume"
+              readOnly: true
+              mountPath: "/audit/audit-service-config.yaml"
+              subPath: "audit-service-config.yaml"
           resources:
             limits:
               cpu: 0.8
@@ -117,4 +125,4 @@ spec:
           args:
             - "-c"
             - |
-              /env/bin/alembic upgrade head
+              poetry run alembic upgrade head || /env/bin/alembic upgrade head
