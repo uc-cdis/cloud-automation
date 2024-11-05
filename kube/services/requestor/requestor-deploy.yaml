@@ -91,6 +91,10 @@ spec:
             readOnly: true
             mountPath: "/src/requestor-config.yaml"
             subPath: "requestor-config.yaml"
+          - name: "config-volume"
+            readOnly: true
+            mountPath: "/requestor/requestor-config.yaml"
+            subPath: "requestor-config.yaml"
         resources:
           requests:
             cpu: 100m
@@ -106,6 +110,10 @@ spec:
               readOnly: true
               mountPath: "/src/requestor-config.yaml"
               subPath: "requestor-config.yaml"
+            - name: "config-volume"
+              readOnly: true
+              mountPath: "/requestor/requestor-config.yaml"
+              subPath: "requestor-config.yaml"
           resources:
             limits:
               cpu: 0.8
@@ -114,4 +122,4 @@ spec:
           args:
             - "-c"
             - |
-              /env/bin/alembic upgrade head
+              poetry run alembic upgrade head || /env/bin/alembic upgrade head
