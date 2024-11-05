@@ -85,7 +85,7 @@ For example - `gen3 help aws` opens `aws.md`
 * [utility vm](../tf_files/aws/modules/utility-vm/README.md)
 * [explorer infrastructure](https://github.com/uc-cdis/cdis-wiki/blob/master/dev/gen3/data_explorer/README.md)
 * [automation for gcp](../tf_files/gcp/commons/README.md)
-* [gcp bucket access flows for DCF](https://github.com/uc-cdis/fence/blob/master/docs/google_architecture.md)
+* [gcp bucket access flows for DCF](https://github.com/uc-cdis/fence/blob/master/docs/additional_documentation/google_architecture.md)
 * [authn and authz with fence](https://github.com/uc-cdis/fence/blob/master/README.md)
 * [jenkins](../kube/services/jenkins/README.md)
 * [jupyterhub configuration](../kube/services/jupyterhub/README.md)
