@@ -117,6 +117,7 @@ spec:
             readOnly: true
             mountPath: /src/.env
             subPath: metadata.env
+          # Added an additional volume mount for new images using the /<app-name> directory, while retaining the 'src' mount for backward compatibility.
           - name: config-volume-g3auto
             readOnly: true
             mountPath: /mds/.env
@@ -144,6 +145,7 @@ spec:
               readOnly: true
               mountPath: /src/.env
               subPath: metadata.env
+            # Added an additional volume mount for new images using the /<app-name> directory, while retaining the 'src' mount for backward compatibility.
             - name: config-volume-g3auto
               readOnly: true
               mountPath: /mds/.env
@@ -156,5 +158,6 @@ spec:
           args:
             - "-c"
             - |
+              # Managing virtual environments via poetry instead of python since the AL base image update, but retaining backwards compatibility 
               poetry run alembic upgrade head || /env/bin/alembic upgrade head
 
