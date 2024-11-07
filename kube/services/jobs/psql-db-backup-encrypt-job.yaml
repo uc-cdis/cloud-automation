@@ -38,8 +38,20 @@ spec:
                   key: environment
             - name: JENKINS_HOME
               value: "devterm"
+            - name: slackWebHook
+              valueFrom:
+                configMapKeyRef:
+                  name: global
+                  key: slack_alarm_webhook
+                  optional: true 
             - name: GEN3_HOME
               value: /home/ubuntu/cloud-automation
+            - name: SKIP_DBS
+              valueFrom:
+                configMapKeyRef:
+                  name: dbbackup-exclude-list
+                  key: skip_dbs
+                  optional: true
           command: [ "/bin/bash" ]
           args:
             - "-c"
@@ -50,6 +62,9 @@ spec:
               # Requirements:
               # 1. PGP public key must be available as a variable in the script.
               # 2. The job needs the necessary permissions to read secrets, config maps from the target namespace.
+              # 3. Databases to skip can be provided using a ConfigMap called `dbbackup-exclude-list` containing a comma-separated list of databases under the key `skip_dbs`.
+              #  Example command to create the ConfigMap:
+              #  kubectl create configmap dbbackup-exclude-list --from-literal=skip_dbs="arborist-bak,wts-bak"              
 
               source "${GEN3_HOME}/gen3/lib/utils.sh"
               gen3_load "gen3/gen3setup"
@@ -58,10 +73,18 @@ spec:
               namespace=$(gen3 api namespace)
               environment=$(gen3 api environment)
               hostname=$(gen3 api hostname)
-              default_databases=($(gen3 db services))
+              
+              # Fetch and filter databases
+              databases=$(gen3 db services | grep -v -E "$(echo "${SKIP_DBS}" | sed 's/, */|/g' )")
+
+
+              # Log skipped databases
+              for db in ${SKIP_DBS//,/ }; do
+                gen3_log_info "Skipping backup for database: $db"
+              done
+              
               date_str=$(date -u +%y%m%d_%H%M%S)
-              databases=("${default_databases[@]}")
-              gen3_log_info "Databases to be backed up: ${databases[@]}"
+              gen3_log_info "Databases to be backed up: ${databases}"
 
               # Define backup directory structure
               BACKUP_DIR="/home/ubuntu/backup"
@@ -69,7 +92,6 @@ spec:
               ENV_NS_DIR="${HOST_DIR}/${environment}-${namespace}"
               DATE_DIR="${ENV_NS_DIR}/${date_str}"
               mkdir -p "${DATE_DIR}"
-
               # PGP public key
               PUBLIC_KEY="-----BEGIN PGP PUBLIC KEY BLOCK-----
 
@@ -138,6 +160,14 @@ spec:
               # Import the public key
               echo "$PUBLIC_KEY" | gpg --import
 
+              # Validate Slack webhook
+              if [[ -n "${slackWebHook}" && "${slackWebHook}" == https* ]]; then
+                slack=true
+              else
+                echo "WARNING: slackWebHook is not set or invalid; not sending alerts to Slack"
+                slack=false
+              fi
+
               # Function to encrypt a database with PGP public key
               function encrypt_database() {
                 local db_name=$1
@@ -153,7 +183,7 @@ spec:
               }
 
               # Loop through each service to back up and encrypt the database
-              for database in "${databases[@]}"; do
+              for database in $databases; do
                 for secret_name in "${database}-creds creds.json" "$database-g3auto dbcreds.json"; do
                   creds=$(gen3 secrets decode $secret_name 2>/dev/null)
                   # Extracting service credentials
@@ -166,7 +196,7 @@ spec:
                     break
                   fi
                 done
-                
+
                 # Verify credentials are extracted
                 if [ -z "$db_hostname" ] || [ -z "$db_username" ] || [ -z "$db_password" ] || [ -z "$db_database" ]; then
                   gen3_log_err "Failed to extract database credentials for $database"
@@ -206,6 +236,9 @@ spec:
               # Logging the failed backups
               if [ -n "$failed_backups" ]; then
                 gen3_log_info "Failed backups:\n$failed_backups"
+                if [ "$slack" = true ]; then
+                    curl -X POST --data-urlencode "payload={\"text\": \"*Backup failed* for psql-db-backup-encrypt on ${hostname}  Cluster: ${environment} Namespace: ${namespace} at $(date).\nFailed backups: ${failed_backups}\"}" $slackWebHook
+                fi
               fi
 
               # Sleep for 600 seconds to allow the user to check the logs
@@ -219,6 +252,5 @@ spec:
       volumes:
         - name: s3-volume
           persistentVolumeClaim:
-            claimName: s3-pvc-db-backups              
+            claimName: s3-pvc-db-backups
       restartPolicy: Never
-      

@@ -1,6 +1,7 @@
 name: Build Squid images
 
 on: 
+  workflow_dispatch:
   push:
     paths:
       - .github/workflows/image_build_push_squid.yaml
