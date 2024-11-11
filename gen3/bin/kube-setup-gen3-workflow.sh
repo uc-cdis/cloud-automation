@@ -7,7 +7,7 @@ setup_funnel_infra() {
   helm repo update ohsu
 
   local namespace="$(gen3 db namespace)"
-  helm upgrade --install funnel ohsu/funnel --namespace $namespace
+  helm upgrade --install funnel ohsu/funnel --namespace $namespace --version 0.1.9
 }
 
 setup_gen3_workflow_infra() {
@@ -28,9 +28,10 @@ setup_gen3_workflow_infra() {
   # setup config file that gen3-workflow consumes
   local secretsFolder="$(gen3_secrets_folder)/g3auto/gen3workflow"
   if [[ ! -f "$secretsFolder/gen3-workflow-config.yaml" ]]; then
+    manifestPath=$(g3k_manifest_path)
+    hostname="$(g3k_config_lookup ".global.hostname" "$manifestPath")"
     cat - > "$secretsFolder/gen3-workflow-config.yaml" <<EOM
-# Server
-
+HOSTNAME: $hostname
 DEBUG: false
 EOM
   fi
