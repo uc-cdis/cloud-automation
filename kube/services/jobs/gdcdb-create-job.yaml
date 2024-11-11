@@ -57,7 +57,7 @@ spec:
               creds = json.load(open('/var/www/sheepdog/creds.json', 'r'))
               print('declare -A db_creds')
               for key in ['db_host', 'db_username', 'db_password', 'db_database']:
-                  print("db_creds['%s']='%s'" % (key, creds[key]))
+                print("db_creds['%s']='%s'" % (key, creds[key]))
               EOM
               )
               #
