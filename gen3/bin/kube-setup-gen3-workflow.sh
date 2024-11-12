@@ -43,8 +43,6 @@ if g3k_manifest_lookup .versions.funnel 2> /dev/null; then
     gen3_log_err "kube-setup-gen3-workflow bailing out - failed to set up funnel infrastructure"
     exit 1
   fi
-  gen3 roll funnel
-  g3kubectl apply -f "${GEN3_HOME}/kube/services/funnel/funnel-service.yml"
   gen3_log_info "The funnel service has been deployed onto the kubernetes cluster."
 else
   gen3_log_warn "not deploying funnel - no manifest entry for .versions.funnel. The gen3-workflow service may not work!"
