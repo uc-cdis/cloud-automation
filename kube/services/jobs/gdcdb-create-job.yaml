@@ -51,7 +51,7 @@ spec:
             - "-c"
             # Script always succeeds if it runs (echo exits with 0)  
             - |
-              eval $(python 2> /dev/null <<EOM
+              eval $((command -v python &> /dev/null && python || poetry run python) <<EOM
               import json
 
               creds = json.load(open('/var/www/sheepdog/creds.json', 'r'))
@@ -64,10 +64,18 @@ spec:
               # sheepdog sets up core data model now,
               # but suffers from a race condition doing it ...
               #
-              echo datamodel_postgres_admin create-all -U "${db_creds[db_username]}" -P XXXXXXX -H "${db_creds[db_host]}" -D "${db_creds[db_database]}"
-              datamodel_postgres_admin create-all -U "${db_creds[db_username]}" -P "${db_creds[db_password]}" -H "${db_creds[db_host]}" -D "${db_creds[db_database]}"
-              
-              echo python /sheepdog/bin/setup_transactionlogs.py --user "${db_creds[db_username]}"  --password XXXXX --host "${db_creds[db_host]}" --database "${db_creds[db_database]}"
-              python /sheepdog/bin/setup_transactionlogs.py --user "${db_creds[db_username]}"  --password "${db_creds[db_password]}" --host "${db_creds[db_host]}" --database "${db_creds[db_database]}"
+
+              if command -v python &> /dev/null; then
+                echo datamodel_postgres_admin create-all -U "${db_creds[db_username]}" -P XXXXXXX -H "${db_creds[db_host]}" -D "${db_creds[db_database]}"
+                datamodel_postgres_admin create-all -U "${db_creds[db_username]}" -P "${db_creds[db_password]}" -H "${db_creds[db_host]}" -D "${db_creds[db_database]}"
+                echo python /sheepdog/bin/setup_transactionlogs.py --user "${db_creds[db_username]}"  --password XXXXX --host "${db_creds[db_host]}" --database "${db_creds[db_database]}"
+                python /sheepdog/bin/setup_transactionlogs.py --user "${db_creds[db_username]}" --password "${db_creds[db_password]}" --host "${db_creds[db_host]}" --database "${db_creds[db_database]}"
+
+              else
+                echo poetry run datamodel_postgres_admin create-all -U "${db_creds[db_username]}" -P XXXXXXX -H "${db_creds[db_host]}" -D "${db_creds[db_database]}"
+                poetry run datamodel_postgres_admin create-all -U "${db_creds[db_username]}" -P "${db_creds[db_password]}" -H "${db_creds[db_host]}" -D "${db_creds[db_database]}"
+                echo poetry run python /sheepdog/bin/setup_transactionlogs.py --user "${db_creds[db_username]}"  --password XXXXX --host "${db_creds[db_host]}" --database "${db_creds[db_database]}"
+                poetry run python /sheepdog/bin/setup_transactionlogs.py --user "${db_creds[db_username]}" --password "${db_creds[db_password]}" --host "${db_creds[db_host]}" --database "${db_creds[db_database]}"
+              fi
               echo "Exit code: $?"
       restartPolicy: Never
