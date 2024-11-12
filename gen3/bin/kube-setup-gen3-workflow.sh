@@ -2,16 +2,81 @@ source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
 setup_funnel_infra() {
-  gen3_log_info "setting up funnel"
+  gen3_log_info "Setting up funnel"
   helm repo add ohsu https://ohsu-comp-bio.github.io/helm-charts
   helm repo update ohsu
 
-  local namespace="$(gen3 db namespace)"
+  namespace="$(gen3 db namespace)"
   helm upgrade --install funnel ohsu/funnel --namespace $namespace --version 0.1.9
 }
 
 setup_gen3_workflow_infra() {
-  gen3_log_info "setting up gen3-workflow"
+  gen3_log_info "Setting up gen3-workflow"
+
+  # grant the gen3-workflow service account the AWS access the service needs
+  saName="gen3-workflow-sa"
+  gen3_log_info Setting up service account $saName
+  policy=$( cat <<EOM
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Sid": "ManageIamUsers",
+			"Effect": "Allow",
+			"Action": [
+				"iam:CreateUser",
+				"iam:TagUser",
+				"iam:AttachUserPolicy",
+				"iam:CreateAccessKey",
+				"iam:ListAccessKeys",
+				"iam:DeleteAccessKey"
+			],
+			"Resource": [
+				"arn:aws:iam::*:user/gen3wf-*"
+			]
+		},
+		{
+			"Sid": "ManageIamPolicies",
+			"Effect": "Allow",
+			"Action": [
+				"iam:CreatePolicy",
+				"iam:TagPolicy",
+				"iam:ListPolicies",
+				"iam:CreatePolicyVersion",
+				"iam:ListPolicyVersions",
+				"iam:DeletePolicyVersion"
+			],
+			"Resource": [
+				"arn:aws:iam::*:policy/gen3wf-*"
+			]
+		}
+	]
+}
+EOM
+)
+  roleName="$(gen3 api safe-name $saName)"
+  gen3 awsrole create $roleName $saName
+  policyName="$(gen3 api safe-name gen3-workflow-policy)"
+  policyInfo=$(gen3_aws_run aws iam create-policy --policy-name "$policyName" --policy-document "$policy" --description "Gen3-Workflow service access")
+  if [ -n "$policyInfo" ]; then
+    policyArn="$(jq -e -r '.["Policy"].Arn' <<< "$policyInfo")" || { gen3_log_err "Cannot get 'Policy.Arn' from output: $policyInfo"; return 1; }
+  else
+    gen3_log_info "Unable to create policy '$policyName'. Assume it already exists and create a new version to update the permissions..."
+    policyArn=$(gen3_aws_run aws iam list-policies --query "Policies[?PolicyName=='$policyName'].Arn" --output text)
+
+    # there can only be up to 5 versions, so delete old versions (except the current default one)
+    versions="$(gen3_aws_run aws iam list-policy-versions --policy-arn $policyArn | jq -r '.Versions[] | select(.IsDefaultVersion != true) | .VersionId')"
+    versions=(${versions}) # string to array
+    for v in "${versions[@]}"; do
+        gen3_log_info "Deleting old version '$v'"
+        gen3_aws_run aws iam delete-policy-version --policy-arn $policyArn --version-id $v
+    done
+
+    # create the new version
+    gen3_aws_run aws iam create-policy-version --policy-arn "$policyArn" --policy-document "$policy" --set-as-default
+  fi
+  gen3_log_info "Attaching policy '${policyName}' to role '${roleName}'"
+  gen3 awsrole attach-policy ${policyArn} --role-name ${roleName} --force-aws-cli || exit 1
 
   # create the gen3-workflow config file if it doesn't already exist
   # Note: `gen3_db_service_setup` doesn't allow '-' in the database name, so the db and secret
@@ -25,8 +90,7 @@ setup_gen3_workflow_infra() {
     gen3_log_err "skipping config file setup in non-adminvm environment"
     return 0
   fi
-  # setup config file that gen3-workflow consumes
-  local secretsFolder="$(gen3_secrets_folder)/g3auto/gen3workflow"
+  secretsFolder="$(gen3_secrets_folder)/g3auto/gen3workflow"
   if [[ ! -f "$secretsFolder/gen3-workflow-config.yaml" ]]; then
     manifestPath=$(g3k_manifest_path)
     hostname="$(g3k_config_lookup ".global.hostname" "$manifestPath")"

@@ -27,6 +27,7 @@ spec:
         GEN3_DATE_LABEL
         GEN3_HOSTNAME_LABEL
     spec:
+      serviceAccountName: gen3-workflow-sa
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
