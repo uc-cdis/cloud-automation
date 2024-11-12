@@ -28,7 +28,7 @@ COUNTRY="US"
 STATE="IL"
 CITY="Chicago"
 ORG="CTDS"
-EMAIL='support\@datacommons.io'
+EMAIL='support\@gen3.org'
 KEY_EXPIRE=365
 
 #OpenVPN

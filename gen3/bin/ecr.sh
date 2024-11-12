@@ -8,6 +8,7 @@ gen3_load "gen3/gen3setup"
 repoList=$(aws ecr describe-repositories | jq -r .repositories[].repositoryName)
 
 accountList=(
+433568766270
 053927701465
 199578515826
 222487244010

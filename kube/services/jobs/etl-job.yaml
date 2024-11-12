@@ -91,8 +91,10 @@ spec:
             subPath: user.yaml
         resources:
           limits:
-            cpu: 1
+            cpu: 2
             memory: 10Gi
+          requests:
+            cpu: 2
         command: ["/bin/bash" ]
         args:
           - "-c"

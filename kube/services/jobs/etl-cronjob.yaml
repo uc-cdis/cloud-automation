@@ -1,4 +1,4 @@
-apiVersion: batch/v1beta1
+apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: etl
@@ -95,8 +95,10 @@ spec:
                 subPath: user.yaml
               resources:
                 limits:
-                  cpu: 1
+                  cpu: 2
                   memory: 10Gi
+                requests:
+                  cpu: 2
               command: ["/bin/bash"]
               args:
                 - "-c"
