@@ -1,6 +1,6 @@
 # python2.7 microservice base image
 
-FROM alpine:3.16.9
+FROM alpine:3.20.3
 
 ENV DEBIAN_FRONTEND=noninteractive
 
