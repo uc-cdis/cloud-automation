@@ -52,7 +52,7 @@ spec:
         env:
           - name: "ENDPOINT"
             GEN3_ES_ENDPOINT
-        GEN3_ES_COMMAND
+        GEN3_ES_COMMAND|- -|
         GEN3_ES_ARGS|-args: ["-timeout", "180", "-verbose", "-listen", ":9200"]-|
         resources:
           requests:
