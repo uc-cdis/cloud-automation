@@ -60,7 +60,7 @@ spec:
                 print("db_creds['%s']='%s'" % (key, creds[key]))
               EOM
               )
-              echo datamodel_postgres_admin graph-create -U "${db_creds[db_username]}" -P XXXXXX -H "${db_creds[db_host]}" -D "${db_creds[db_database]}"
-              datamodel_postgres_admin graph-create -U "${db_creds[db_username]}" -P "${db_creds[db_password]}" -H "${db_creds[db_host]}" -D "${db_creds[db_database]}"
+              echo poetry run datamodel_postgres_admin graph-create -U "${db_creds[db_username]}" -P XXXXXX -H "${db_creds[db_host]}" -D "${db_creds[db_database]}"
+              poetry run datamodel_postgres_admin graph-create -U "${db_creds[db_username]}" -P "${db_creds[db_password]}" -H "${db_creds[db_host]}" -D "${db_creds[db_database]}"
               echo "Exit code: $?"
       restartPolicy: Never
