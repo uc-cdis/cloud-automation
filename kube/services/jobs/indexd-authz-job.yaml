@@ -83,7 +83,7 @@ spec:
             - |
               flags="--path /var/www/indexd/ --arborist-url http://arborist-service --user-yaml-path /var/www/indexd/user.yaml"
               if [[ "$USE_SHEEPDOG" == "true" ]]; then
-                db_uri=$(python - <<- EOF
+                db_uri=$(poetry run python - <<- EOF
               from base64 import b64decode
               import json
 
