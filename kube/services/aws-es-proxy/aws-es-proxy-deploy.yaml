@@ -48,13 +48,13 @@ spec:
       priorityClassName: aws-es-proxy-high-priority
       containers:
       - name: esproxy
-        GEN3_AWS-ES-PROXY_IMAGE|-image: quay.io/cdis/aws-es-proxy:v1.3.1-|
+        GEN3_AWS-ES-PROXY_IMAGE
         imagePullPolicy: Always
         ports:
         - containerPort: 9200
         env:
           - name: "ENDPOINT"
-            GEN3_ES_ENDPOINT|-value: http://es.internal.io-|
+            GEN3_ES_ENDPOINT
           - name: "AWS_ACCESS_KEY_ID"
             valueFrom:
               secretKeyRef:
@@ -69,8 +69,8 @@ spec:
           - name: "credentials"
             readOnly: true
             mountPath: "/root/.aws"
-        GEN3_ES-COMMAND
-        GEN3_ES-ARGS|-args: ["-timeout", "180", "-verbose", "-listen", ":9200"]-|
+        GEN3_ES_COMMAND|- -|
+        GEN3_ES_ARGS|-args: ["-timeout", "180", "-verbose", "-listen", ":9200"]-|
         resources:
           requests:
             cpu: 250m
