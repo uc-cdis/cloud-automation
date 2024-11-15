@@ -52,8 +52,8 @@ spec:
         env:
           - name: "ENDPOINT"
             GEN3_ES_ENDPOINT|-value: http://es.internal.io-|
-        command: ["/aws-es-proxy"]
-        args: ["-timeout", "180", "-verbose", "-listen", ":9200"]
+        GEN3_ES-COMMAND
+        GEN3_ES-ARGS|-args: ["-timeout", "180", "-verbose", "-listen", ":9200"]-|
         resources:
           requests:
             cpu: 250m

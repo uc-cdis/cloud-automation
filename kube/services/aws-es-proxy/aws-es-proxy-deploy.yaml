@@ -48,7 +48,7 @@ spec:
       priorityClassName: aws-es-proxy-high-priority
       containers:
       - name: esproxy
-        GEN3_AWS-ES-PROXY_IMAGE|-image: quay.io/cdis/aws-es-proxy:0.8-|
+        GEN3_AWS-ES-PROXY_IMAGE|-image: quay.io/cdis/aws-es-proxy:v1.3.1-|
         imagePullPolicy: Always
         ports:
         - containerPort: 9200
@@ -58,19 +58,19 @@ spec:
           - name: "AWS_ACCESS_KEY_ID"
             valueFrom:
               secretKeyRef:
-                name: "aws-es-proxy"
-                key: "aws_access_key_id"
+                name: aws-es-proxy
+                key: aws_access_key_id
           - name: "AWS_SECRET_ACCESS_KEY"
             valueFrom:
               secretKeyRef:
-                name: "aws-es-proxy"
-                key: "aws_secret_access_key"
+                name: aws-es-proxy
+                key: aws_secret_access_key
         volumeMounts:
           - name: "credentials"
             readOnly: true
             mountPath: "/root/.aws"
-        command: ["/aws-es-proxy"]
-        args: ["-timeout", "180", "-verbose", "-listen", ":9200"]
+        GEN3_ES-COMMAND
+        GEN3_ES-ARGS|-args: ["-timeout", "180", "-verbose", "-listen", ":9200"]-|
         resources:
           requests:
             cpu: 250m

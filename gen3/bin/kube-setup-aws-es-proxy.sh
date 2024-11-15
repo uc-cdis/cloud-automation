@@ -16,11 +16,20 @@ envname="$(gen3 api environment)"
 
 [[ -z "$GEN3_ROLL_ALL" ]] && gen3 kube-setup-secrets
 
+if g3k_config_lookup ".versions[\"aws-es-proxy\"]" < "$(g3k_manifest_path)" > /dev/null 2>&1; then
+  awsEsProxyVersion="$(g3k_config_lookup ".versions[\"aws-es-proxy\"]" < "$(g3k_manifest_path)")"
+  if [[ "$(echo $awsEsProxyVersion | tr -d 'v' | cut -d '.' -f 1)" == "0" ]]; then
+    if [[ "$(echo $awsEsProxyVersion | tr -d 'v' | cut -d '.' -f 2)" != "9" ]]; then
+      ES-COMMAND="./aws-es-proxy"    
+    fi
+    ES-ARGS="[\"-verbose\", \"-listen\", \":9200\", \"-endpoint\", \"https://$ES_ENDPOINT\"]"
+  fi
+fi
 if g3kubectl get secrets/aws-es-proxy > /dev/null 2>&1; then
   if [ "$esDomain" != "null" ]; then
     if ES_ENDPOINT="$(aws es describe-elasticsearch-domains --domain-names "${esDomain}"  --query "DomainStatusList[*].Endpoints" --output text)" \
         && [[ -n "${ES_ENDPOINT}" && -n "${esDomain}" ]]; then
-      gen3 roll aws-es-proxy GEN3_ES_ENDPOINT "https://${ES_ENDPOINT}"
+      gen3 roll aws-es-proxy GEN3_ES_ENDPOINT "https://${ES_ENDPOINT}" GEN3_ES-COMMAND "${ES_COMMAND}" GEN3_ES_ARGS "${ES_ARGS}"
       g3kubectl apply -f "${GEN3_HOME}/kube/services/aws-es-proxy/aws-es-proxy-priority-class.yaml"
       g3kubectl apply -f "${GEN3_HOME}/kube/services/aws-es-proxy/aws-es-proxy-service.yaml"
       gen3_log_info "kube-setup-aws-es-proxy" "The aws-es-proxy service has been deployed onto the k8s cluster."
