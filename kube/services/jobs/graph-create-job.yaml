@@ -51,7 +51,7 @@ spec:
             - "-c" 
             # Script always succeeds if it runs (echo exits with 0) 
             - |
-              eval $(python 2> /dev/null <<EOM
+              eval $(poetry run python 2> /dev/null <<EOM
               import json
 
               creds = json.load(open('/var/www/sheepdog/creds.json', 'r'))
