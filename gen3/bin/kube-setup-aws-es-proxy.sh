@@ -16,11 +16,27 @@ envname="$(gen3 api environment)"
 
 [[ -z "$GEN3_ROLL_ALL" ]] && gen3 kube-setup-secrets
 
+if g3k_config_lookup ".versions[\"aws-es-proxy\"]" < "$(g3k_manifest_path)" > /dev/null 2>&1; then
+  awsEsProxyVersion="$(g3k_config_lookup ".versions[\"aws-es-proxy\"]" < "$(g3k_manifest_path)" | cut -d ':' -f 2)"
+  if [[ "$(echo $awsEsProxyVersion | tr -d 'v' | cut -d '.' -f 1)" == "0" ]]; then
+    if [[ "$(echo $awsEsProxyVersion | tr -d 'v' | cut -d '.' -f 2)" != "9" ]]; then
+      kvlist=("GEN3_ES_COMMAND" "command: ["./aws-es-proxy"]")
+    fi
+    kvlist+=("GEN3_ES_ARGS" "args: [\"-verbose\",\"-listen\",\":9200\",\"-endpoint\",\"\$(ENDPOINT)\"]")
+  fi
+fi
 if g3kubectl get secrets/aws-es-proxy > /dev/null 2>&1; then
   if [ "$esDomain" != "null" ]; then
     if ES_ENDPOINT="$(aws es describe-elasticsearch-domains --domain-names "${esDomain}"  --query "DomainStatusList[*].Endpoints" --output text)" \
         && [[ -n "${ES_ENDPOINT}" && -n "${esDomain}" ]]; then
-      gen3 roll aws-es-proxy GEN3_ES_ENDPOINT "${ES_ENDPOINT}"
+      GEN3_ES_ENDPOINT="https://${ES_ENDPOINT}"
+      manifest="$XDG_RUNTIME_DIR/aws-es-proxy_$$.yaml"
+      echo "${kvlist[@]}"
+      g3k_kv_filter "${GEN3_HOME}/kube/services/aws-es-proxy/aws-es-proxy-deploy.yaml" "${kvlist[@]}" | tee $manifest
+      if ! (g3k_manifest_filter "$manifest" "" "GEN3_ES_ENDPOINT" "$GEN3_ES_ENDPOINT" | g3kubectl apply -f -); then
+        gen3_log_err "gen3_roll" "bailing out of roll $serviceName"
+        exit 1
+      fi
       g3kubectl apply -f "${GEN3_HOME}/kube/services/aws-es-proxy/aws-es-proxy-priority-class.yaml"
       g3kubectl apply -f "${GEN3_HOME}/kube/services/aws-es-proxy/aws-es-proxy-service.yaml"
       gen3_log_info "kube-setup-aws-es-proxy" "The aws-es-proxy service has been deployed onto the k8s cluster."
@@ -36,7 +52,14 @@ if g3kubectl get secrets/aws-es-proxy > /dev/null 2>&1; then
   elif [ "$es7" = false ]; then
     if ES_ENDPOINT="$(aws es describe-elasticsearch-domains --domain-names "${envname}"-gen3-metadata --query "DomainStatusList[*].Endpoints" --output text)" \
         && [[ -n "${ES_ENDPOINT}" && -n "${envname}" ]]; then
-      gen3 roll aws-es-proxy GEN3_ES_ENDPOINT "${ES_ENDPOINT}"
+      GEN3_ES_ENDPOINT="https://${ES_ENDPOINT}"
+      manifest="$XDG_RUNTIME_DIR/aws-es-proxy_$$.yaml"
+      echo "${kvlist[@]}"
+      g3k_kv_filter "${GEN3_HOME}/kube/services/aws-es-proxy/aws-es-proxy-deploy.yaml" "${kvlist[@]}" | tee $manifest
+      if ! (g3k_manifest_filter "$manifest" "" "GEN3_ES_ENDPOINT" "$GEN3_ES_ENDPOINT" | g3kubectl apply -f -); then
+        gen3_log_err "gen3_roll" "bailing out of roll $serviceName"
+        exit 1
+      fi
       g3kubectl apply -f "${GEN3_HOME}/kube/services/aws-es-proxy/aws-es-proxy-priority-class.yaml"
       g3kubectl apply -f "${GEN3_HOME}/kube/services/aws-es-proxy/aws-es-proxy-service.yaml"
       gen3_log_info "kube-setup-aws-es-proxy" "The aws-es-proxy service has been deployed onto the k8s cluster."
@@ -52,7 +75,14 @@ if g3kubectl get secrets/aws-es-proxy > /dev/null 2>&1; then
   else
     if ES_ENDPOINT="$(aws es describe-elasticsearch-domains --domain-names "${envname}"-gen3-metadata-2 --query "DomainStatusList[*].Endpoints" --output text)" \
         && [[ -n "${ES_ENDPOINT}" && -n "${envname}" ]]; then
-      gen3 roll aws-es-proxy GEN3_ES_ENDPOINT "${ES_ENDPOINT}"
+      GEN3_ES_ENDPOINT="https://${ES_ENDPOINT}"
+      manifest="$XDG_RUNTIME_DIR/aws-es-proxy_$$.yaml"
+      echo "${kvlist[@]}"
+      g3k_kv_filter "${GEN3_HOME}/kube/services/aws-es-proxy/aws-es-proxy-deploy.yaml" "${kvlist[@]}" | tee $manifest
+      if ! (g3k_manifest_filter "$manifest" "" "GEN3_ES_ENDPOINT" "$GEN3_ES_ENDPOINT" | g3kubectl apply -f -); then
+        gen3_log_err "gen3_roll" "bailing out of roll $serviceName"
+        exit 1
+      fi
       g3kubectl apply -f "${GEN3_HOME}/kube/services/aws-es-proxy/aws-es-proxy-priority-class.yaml"
       g3kubectl apply -f "${GEN3_HOME}/kube/services/aws-es-proxy/aws-es-proxy-service.yaml"
       gen3_log_info "kube-setup-aws-es-proxy" "The aws-es-proxy service has been deployed onto the k8s cluster."
@@ -68,32 +98,32 @@ if g3kubectl get secrets/aws-es-proxy > /dev/null 2>&1; then
   fi
   gen3 job cron es-garbage '@daily'
 else
-    gen3_log_info "kube-setup-aws-es-proxy" "No secret detected, attempting IRSA setup"
-    deploy=true
+  gen3_log_info "kube-setup-aws-es-proxy" "No secret detected, attempting IRSA setup"
+  deploy=true
 
-    # Let's pre-calculate all the info we need about the cluster, so we can just pass it on later
-    if [ "$esDomain" != "null" ] && [ -n "$esDomain" ]; then
-      ES_ENDPOINT="$(aws es describe-elasticsearch-domains --domain-names "${esDomain}" --query "DomainStatusList[*].Endpoints" --output text)"
-      ES_ARN="$(aws es describe-elasticsearch-domains --domain-names "${esDomain}" --query "DomainStatusList[*].ARN" --output text)"
-    elif [ "$es7" = true ]; then
-      if [ -n "$envname" ]; then
-        ES_ENDPOINT="$(aws es describe-elasticsearch-domains --domain-names "${envname}"-gen3-metadata-2 --query "DomainStatusList[*].Endpoints" --output text)" 
-        ES_ARN="$(aws es describe-elasticsearch-domains --domain-names "${envname}"-gen3-metadata-2 --query "DomainStatusList[*].ARN" --output text)"
-      else
-        deploy=false
-      fi
+  # Let's pre-calculate all the info we need about the cluster, so we can just pass it on later
+  if [ "$esDomain" != "null" ] && [ -n "$esDomain" ]; then
+    GEN3_ES_ENDPOINT="$(aws es describe-elasticsearch-domains --domain-names "${esDomain}" --query "DomainStatusList[*].Endpoints" --output text)"
+    GEN3_ES_ARN="$(aws es describe-elasticsearch-domains --domain-names "${esDomain}" --query "DomainStatusList[*].ARN" --output text)"
+  elif [ "$es7" = true ]; then
+    if [ -n "$envname" ]; then
+      GEN3_ES_ENDPOINT="$(aws es describe-elasticsearch-domains --domain-names "${envname}"-gen3-metadata-2 --query "DomainStatusList[*].Endpoints" --output text)"
+      GEN3_ES_ARN="$(aws es describe-elasticsearch-domains --domain-names "${envname}"-gen3-metadata-2 --query "DomainStatusList[*].ARN" --output text)"
     else
-      if [ -n "$envname" ]; then
-        ES_ENDPOINT="$(aws es describe-elasticsearch-domains --domain-names "${envname}"-gen3-metadata --query "DomainStatusList[*].Endpoints" --output text)" 
-        ES_ARN="$(aws es describe-elasticsearch-domains --domain-names "${envname}"-gen3-metadata --query "DomainStatusList[*].ARN" --output text)"
-      else
-        deploy=false
-      fi
+      deploy=false
     fi
-     # Let's only do setup stuff if we're going to want to deploy... otherwise, we take the CI env actions
-    if [ "$deploy" = "true" ]; then
-      # Put that ARN into a template we get from terraform
-      policyjson=$(cat <<POLICY
+  else
+    if [ -n "$envname" ]; then
+      GEN3_ES_ENDPOINT="$(aws es describe-elasticsearch-domains --domain-names "${envname}"-gen3-metadata --query "DomainStatusList[*].Endpoints" --output text)"
+      GEN3_ES_ARN="$(aws es describe-elasticsearch-domains --domain-names "${envname}"-gen3-metadata --query "DomainStatusList[*].ARN" --output text)"
+    else
+      deploy=false
+    fi
+  fi
+    # Let's only do setup stuff if we're going to want to deploy... otherwise, we take the CI env actions
+  if [ "$deploy" = "true" ]; then
+    # Put that ARN into a template we get from terraform
+    policyjson=$(cat <<POLICY
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -110,34 +140,40 @@ else
 POLICY
 )
 
-      # Creating the role
-      roleName="$(gen3 api safe-name es-access)"
-      saName="esproxy-sa"
-      policyName="$(gen3 api safe-name es-access-policy)"
+    # Creating the role
+    roleName="$(gen3 api safe-name es-access)"
+    saName="esproxy-sa"
+    policyName="$(gen3 api safe-name es-access-policy)"
 
-      gen3 awsrole create "$roleName" "$saName"
-      policyArn=$(gen3_aws_run aws iam list-policies --query "Policies[?PolicyName=='$policyName'].Arn" --output text)
+    gen3 awsrole create "$roleName" "$saName"
+    policyArn=$(gen3_aws_run aws iam list-policies --query "Policies[?PolicyName=='$policyName'].Arn" --output text)
 
-      if [ -n "$policyArn" ]; then
-        echo "No need to create policy, it already exists" 
-      else
-        gen3_aws_run aws iam create-policy --policy-name "$policyName" --policy-document "$policyjson" --description "Allow access to the given ElasticSearch cluster"
-      fi 
-      
-      # Now we need some info on the policy, so we can attach the role and the plicy
-      policyArn=$(gen3_aws_run aws iam list-policies --query "Policies[?PolicyName=='$policyName'].Arn" --output text)
-      gen3 awsrole attach-policy "${policyArn}" --role-name "${roleName}" --force-aws-cli || exit 1
-
-      g3k_manifest_filter "${GEN3_HOME}/kube/services/aws-es-proxy/aws-es-proxy-deploy-irsa.yaml" "" GEN3_ES_ENDPOINT "${ES_ENDPOINT}" | g3kubectl apply -f - 
-      # Then we have to do the whole setup... just copy and modify from above
-      if [ "$es7" = true ]; then
-        g3kubectl apply -f "${GEN3_HOME}/kube/services/aws-es-proxy/aws-es-proxy-priority-class.yaml"
-      fi
-      g3kubectl apply -f "${GEN3_HOME}/kube/services/aws-es-proxy/aws-es-proxy-service.yaml"
-      gen3_log_info "kube-setup-aws-es-proxy" "The aws-es-proxy service has been deployed onto the k8s cluster."
+    if [ -n "$policyArn" ]; then
+      echo "No need to create policy, it already exists"
     else
-      gen3_log_info "kube-setup-aws-es-proxy" "Not deploying aws-es-proxy, no endpoint to hook it up."
-      gen3 kube-setup-networkpolicy service aws-es-proxy
-      g3kubectl patch deployment "aws-es-proxy-deployment" -p  '{"spec":{"template":{"metadata":{"labels":{"netvpc":"yes"}}}}}' || true
+      gen3_aws_run aws iam create-policy --policy-name "$policyName" --policy-document "$policyjson" --description "Allow access to the given ElasticSearch cluster"
     fi
+
+    # Now we need some info on the policy, so we can attach the role and the plicy
+    policyArn=$(gen3_aws_run aws iam list-policies --query "Policies[?PolicyName=='$policyName'].Arn" --output text)
+    gen3 awsrole attach-policy "${policyArn}" --role-name "${roleName}" --force-aws-cli || exit 1
+
+    manifest="$XDG_RUNTIME_DIR/aws-es-proxy_$$.yaml"
+    echo "${kvlist[@]}"
+    g3k_kv_filter "${GEN3_HOME}/kube/services/aws-es-proxy/aws-es-proxy-deploy-irsa.yaml" "${kvlist[@]}" | tee $manifest
+    if ! (g3k_manifest_filter "$manifest" "" "GEN3_ES_ENDPOINT" "$GEN3_ES_ENDPOINT" | g3kubectl apply -f -); then
+      gen3_log_err "gen3_roll" "bailing out of roll $serviceName"
+      exit 1
+    fi
+    # Then we have to do the whole setup... just copy and modify from above
+    if [ "$es7" = true ]; then
+      g3kubectl apply -f "${GEN3_HOME}/kube/services/aws-es-proxy/aws-es-proxy-priority-class.yaml"
+    fi
+    g3kubectl apply -f "${GEN3_HOME}/kube/services/aws-es-proxy/aws-es-proxy-service.yaml"
+    gen3_log_info "kube-setup-aws-es-proxy" "The aws-es-proxy service has been deployed onto the k8s cluster."
+  else
+    gen3_log_info "kube-setup-aws-es-proxy" "Not deploying aws-es-proxy, no endpoint to hook it up."
+    gen3 kube-setup-networkpolicy service aws-es-proxy
+    g3kubectl patch deployment "aws-es-proxy-deployment" -p  '{"spec":{"template":{"metadata":{"labels":{"netvpc":"yes"}}}}}' || true
   fi
+fi
