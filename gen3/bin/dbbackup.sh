@@ -191,12 +191,12 @@ metadata:
 rules:
 - apiGroups: [""]
   resources: ["secrets"]
-  verbs: ["get", "watch", "list"]
+  verbs: ["get", "watch", "list", "create", "delete", "patch", "update"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: psql-db-copy-rolebinding
+  name: psql-db-copy-rolebinding-${namespace}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -279,7 +279,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: dbencrypt-rolebinding
+  name: dbencrypt-rolebinding-${namespace}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole

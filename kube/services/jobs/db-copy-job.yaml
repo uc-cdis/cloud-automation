@@ -1,0 +1,145 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-copy
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+        job: db-copy-job
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND
+      serviceAccountName: psql-db-copy-sa
+      containers:
+        - name: pgdump
+          image: quay.io/cdis/awshelper:master
+          imagePullPolicy: Always
+          env:
+            - name: gen3Env
+              valueFrom:
+                configMapKeyRef:
+                  name: global
+                  key: environment
+            - name: JENKINS_HOME
+              value: "devterm"
+            - name: GEN3_HOME
+              value: /home/ubuntu/cloud-automation
+            - name: db_hostname
+              GEN3_DB_HOSTNAME
+            - name: db_username
+              GEN3_DB_USERNAME
+            - name: db_password
+              GEN3_DB_PASSWORD
+            - name: db_database
+              GEN3_DB_DATABASE
+            - name: aurora_hostname
+              GEN3_AURORA_HOSTNAME
+          command: [ "/bin/bash" ]
+          args:
+            - "-c"
+            - |
+              source "${GEN3_HOME}/gen3/lib/utils.sh"
+              gen3_load "gen3/gen3setup"
+
+              if [ -z "$db_hostname" ] || [ -z "$db_username" ] || [ -z "$db_password" ] || [ -z "$db_database" ]; then
+                  gen3_log_err "Failed to extract database credentials for $database"
+                  failed_migrations="${failed_migrations}\nDatabase: $database, Error: Failed to extract credentials"
+                  continue
+              fi
+
+              # Check source database accessibility
+              PGPASSWORD=${db_password} pg_isready -h $db_hostname -U "$db_username" -d "$db_database"
+              if [ $? -ne 0 ]; then
+                  gen3_log_err "Cannot connect to source database $db_database at $db_hostname. Skipping database $database."
+                  failed_migrations="${failed_migrations}\nDatabase: $database, Error: Cannot connect to source database at $db_hostname"
+                  continue
+              fi
+
+              # Define db_user and db_name variables with replaced hyphens
+              db_user="$(echo $database | tr '-' '_')_user_$(echo $namespace | tr '-' '_')"
+              db_name="$(echo $database | tr '-' '_')_$(echo $namespace | tr '-' '_')_${date_str}"
+
+              # Truncate identifiers if necessary
+              db_user=$(truncate_identifier $db_user)
+              db_name=$(truncate_identifier $db_name)
+
+              # Try to connect to the Aurora database with the extracted credentials.
+              # If the connection is successful, it means the user already exists.
+              # If not, create the user.
+
+              PGPASSWORD=${db_password} psql -h $aurora_host_name -U "$db_user" -d postgres -c "\q"
+              if [ $? -eq 0 ]; then
+                gen3_log_info "User $db_user, password already exists"
+              else
+                gen3 psql aurora -c "SET password_encryption  = 'scram-sha-256';CREATE USER \"$db_user\" WITH PASSWORD '$db_password' CREATEDB"
+                if [ $? -ne 0 ]; then
+                  gen3_log_err "Failed to create user for $database"
+                  failed_migrations="${failed_migrations}\nDatabase: $database, Error: Failed to create user"
+                  continue
+                else
+                  gen3_log_info "Database user $db_user created successfully"
+                fi
+              fi
+
+              if [ "$database" != "peregrine" ]; then
+                  # Create the database with a unique name by appending namespace and date.
+                  create_database_with_retry $db_name
+                  if [ $? -ne 0 ]; then
+                      gen3_log_err "Failed to create database for $database"
+                      failed_migrations="${failed_migrations}\nDatabase: $database, Error: Failed to create database"
+                      continue
+                  else
+                    gen3_log_info "Database $db_name created successfully"
+                    if [ "$database" == "sheepdog" ]; then
+                      sheepdog_db_name=$db_name
+                    fi
+                  fi
+
+                  # Backup the current database and restore it to the newly created database.
+                  if gen3 db backup $database | PGPASSWORD=${db_password} psql -h $aurora_host_name -U "$db_user" -d "$db_name"; then
+                    gen3_log_info "Database $database restored successfully to $db_name"
+                    new_resources="${new_resources}\nSource_Database: $db_database Source_Host: $db_hostname Source_User: $db_username Restored_Database: $db_name User: $db_user"
+                  else
+                    gen3_log_err "Failed to backup and restore database for $database"
+                    failed_migrations="${failed_migrations}\nDatabase: $database, Error: Failed to backup and restore database"
+                  fi
+              fi
+
+              if [ "$database" == "peregrine" ]; then
+                  if [ -n "$sheepdog_db_name" ]; then
+                    gen3 psql aurora -d "$sheepdog_db_name" -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO \"$db_user\""
+                    if [ $? -ne 0 ]; then
+                      gen3_log_err "Failed to grant access to sheepdog tables for peregrine user"
+                      failed_migrations="${failed_migrations}\nDatabase: $database, Error: Failed to grant access to sheepdog tables for peregrine user"
+                      continue
+                    else
+                      gen3_log_info "Access to sheepdog tables granted successfully for peregrine user"
+                      new_resources="${new_resources}\nUser: $db_user with access to sheepdog database $sheepdog_db_name"
+                    fi
+                  else
+                    gen3_log_err "Sheepdog database not found for granting permissions to peregrine user"
+                    failed_migrations="${failed_migrations}\nDatabase: $database, Error: Sheepdog database not found for granting permissions"
+                  fi
+              fi
+
+              kubectl create secret generic "psql-copy-result-${db_database}-${date_str}" --from-literal=result="Source_Database: $db_database Source_Host: $db_hostname Source_User: $db_username Restored_Database: $db_name User: $db_user" -o json --dry-run=client | jq '.metadata.labels |= {"job":"copy-job-'${date_str}'}' | kubectl apply -f-
+              echo "Secret saved to psql-copy-result-${db_database}-${date_str}"
+      restartPolicy: Never
