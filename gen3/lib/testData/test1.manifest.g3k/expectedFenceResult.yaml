@@ -27,11 +27,11 @@ spec:
         authprovider: "yes"
         # uses explicit proxy and AWS APIs
         netnolimit: "yes"
+        hostname: null
         public: "yes"
         userhelper: "yes"
         tags.datadoghq.com/service: "fence"
         tags.datadoghq.com/env: null
-        hostname: null
         tags.datadoghq.com/version: 'master'
         date: "1579711361"
     spec:
