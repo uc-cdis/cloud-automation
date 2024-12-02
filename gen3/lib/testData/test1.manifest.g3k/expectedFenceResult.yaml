@@ -17,6 +17,9 @@ spec:
       maxUnavailable: 0
   template:
     metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /metrics
       labels:
         app: fence
         release: production
@@ -28,6 +31,7 @@ spec:
         userhelper: "yes"
         tags.datadoghq.com/service: "fence"
         tags.datadoghq.com/env: null
+        hostname: null
         tags.datadoghq.com/version: 'master'
         date: "1579711361"
     spec:
