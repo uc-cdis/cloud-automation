@@ -97,7 +97,7 @@ RUN sed -i 's/python3/python3.9/' /usr/bin/lsb_release && \
     sed -i 's/python3/python3.9/' /usr/bin/add-apt-repository
 
 # install aws cli, poetry, pytest, etc.
-RUN set -xe && python3.9 -m pip install --upgrade pip setuptools && python3.9 -m pip install awscli --upgrade && python3.9 -m pip install pytest --upgrade && python3.9 -m pip install poetry && python3.9 -m pip install PyYAML --upgrade && python3.9 -m pip install lxml --upgrade && python3.9 -m pip install yq --upgrade && python3.9 -m pip install datadog --upgrade
+RUN set -xe && python3.9 -m pip install --upgrade pip setuptools && python3.9 -m pip install awscli --upgrade && python3.9 -m pip install pytest --upgrade && python3.9 -m pip install poetry && python3.9 -m pip install PyYAML --upgrade && python3.9 -m pip install lxml --upgrade && python3.9 -m pip install yq --upgrade 
 
 # install terraform
 RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.15/terraform_0.11.15_linux_amd64.zip \
