@@ -93,7 +93,6 @@ spec:
               if [[ -n "$START_DID" ]]; then
                 flags="$flags --start-did $START_DID"
               fi
-
               if [[ -n "$BATCH_SIZE" ]]; then
                 flags="$flags --batch-size $BATCH_SIZE"
               fi
