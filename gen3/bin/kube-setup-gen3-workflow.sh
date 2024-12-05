@@ -7,7 +7,7 @@ setup_funnel_infra() {
   helm repo update ohsu
 
   namespace="$(gen3 db namespace)"
-  helm upgrade --install funnel ohsu/funnel --namespace $namespace --version 0.1.9
+  helm upgrade --install funnel ohsu/funnel --namespace $namespace --version 0.1.11
 }
 
 setup_gen3_workflow_infra() {
@@ -16,42 +16,59 @@ setup_gen3_workflow_infra() {
   # grant the gen3-workflow service account the AWS access the service needs
   saName="gen3-workflow-sa"
   gen3_log_info Setting up service account $saName
+  # TODO remove key stuff from policy if not needed anymore
   policy=$( cat <<EOM
 {
-	"Version": "2012-10-17",
-	"Statement": [
+"Version": "2012-10-17",
+"Statement": [
+  {
+    "Sid": "ManageIamUsers",
+    "Effect": "Allow",
+    "Action": [
+      "iam:CreateUser",
+      "iam:TagUser",
+      "iam:AttachUserPolicy",
+      "iam:CreateAccessKey",
+      "iam:ListAccessKeys",
+      "iam:DeleteAccessKey"
+    ],
+    "Resource": [
+      "arn:aws:iam::*:user/gen3wf-*"
+    ]
+    },
+    {
+      "Sid": "ManageIamPolicies",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreatePolicy",
+        "iam:TagPolicy",
+        "iam:ListPolicies",
+        "iam:CreatePolicyVersion",
+        "iam:ListPolicyVersions",
+        "iam:DeletePolicyVersion"
+      ],
+      "Resource": [
+        "arn:aws:iam::*:policy/gen3wf-*"
+      ]
+    },
 		{
-			"Sid": "ManageIamUsers",
-			"Effect": "Allow",
-			"Action": [
-				"iam:CreateUser",
-				"iam:TagUser",
-				"iam:AttachUserPolicy",
-				"iam:CreateAccessKey",
-				"iam:ListAccessKeys",
-				"iam:DeleteAccessKey"
-			],
-			"Resource": [
-				"arn:aws:iam::*:user/gen3wf-*"
-			]
-		},
-		{
-			"Sid": "ManageIamPolicies",
-			"Effect": "Allow",
-			"Action": [
-				"iam:CreatePolicy",
-				"iam:TagPolicy",
-				"iam:ListPolicies",
-				"iam:CreatePolicyVersion",
-				"iam:ListPolicyVersions",
-				"iam:DeletePolicyVersion"
-			],
-			"Resource": [
-				"arn:aws:iam::*:policy/gen3wf-*"
-			]
-		}
+		  "Sid": "ManageS3Buckets",
+      "Effect": "Allow",
+      "Action": [
+        "s3:ListBucket",
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::gen3wf-*",
+        "arn:aws:s3:::gen3wf-*/*"
+      ]
+    }
 	]
 }
+
+
 EOM
 )
   roleName="$(gen3 api safe-name $saName)"
@@ -94,9 +111,13 @@ EOM
   if [[ ! -f "$secretsFolder/gen3-workflow-config.yaml" ]]; then
     manifestPath=$(g3k_manifest_path)
     hostname="$(g3k_config_lookup ".global.hostname" "$manifestPath")"
+    roleInfo="$(aws iam get-role --role-name "$roleName")" || return 1
+    roleArn="$(jq -e -r .Role.Arn <<< "$roleInfo")"
+    # encryption_key="$(random_alphanumeric 32 | base64)"
     cat - > "$secretsFolder/gen3-workflow-config.yaml" <<EOM
 HOSTNAME: $hostname
 DEBUG: false
+S3_ENDPOINTS_AWS_ROLE_ARN: $roleArn
 EOM
   fi
   gen3 secrets sync 'setup gen3workflow-g3auto secrets'
