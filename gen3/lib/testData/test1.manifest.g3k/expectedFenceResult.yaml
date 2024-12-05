@@ -17,6 +17,9 @@ spec:
       maxUnavailable: 0
   template:
     metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /metrics
       labels:
         app: fence
         release: production
@@ -24,6 +27,7 @@ spec:
         authprovider: "yes"
         # uses explicit proxy and AWS APIs
         netnolimit: "yes"
+        hostname: null
         public: "yes"
         userhelper: "yes"
         tags.datadoghq.com/service: "fence"
