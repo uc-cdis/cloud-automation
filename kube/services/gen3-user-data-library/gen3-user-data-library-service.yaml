@@ -1,0 +1,21 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: gen3-user-data-library-service
+spec:
+  selector:
+    app: gen3-user-data-library
+    release: production
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
+      name: http
+      nodePort: null
+    - protocol: TCP
+      port: 443
+      targetPort: 443
+      name: https
+      nodePort: null
+  type: ClusterIP
+
