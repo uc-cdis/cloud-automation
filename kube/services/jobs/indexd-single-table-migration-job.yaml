@@ -76,7 +76,7 @@ spec:
               if [[ -n "$START_DID" ]]; then
                 flags="$flags --start-did $START_DID"
               fi
-              time python /indexd/bin/migrate_to_single_table.py $flags
+              time poetry run python /indexd/bin/migrate_to_single_table.py $flags
               echo "Exit code: $?"
       restartPolicy: Never
 
