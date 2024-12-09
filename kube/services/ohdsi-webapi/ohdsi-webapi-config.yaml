@@ -56,7 +56,7 @@ stringData:
   security_oauth_callback_urlResolver: query
 
   security_ohdsi_custom_authorization_mode: teamproject
-  security_ohdsi_custom_authorization_url: $ARBORIST_URL/auth/mapping
+  security_ohdsi_custom_authorization_url: $ARBORIST_URL/auth/request
 
   logging_level_root: info
   logging_level_org_ohdsi: info
