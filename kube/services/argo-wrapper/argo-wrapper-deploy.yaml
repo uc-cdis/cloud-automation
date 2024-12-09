@@ -18,7 +18,6 @@ spec:
     metadata:
       labels:
         app: argo-wrapper
-        tags.datadoghq.com/service: "argo-wrapper"
         netnolimit: "yes"
         public: "yes"
         GEN3_ENV_LABEL
