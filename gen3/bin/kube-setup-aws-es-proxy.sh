@@ -8,7 +8,6 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 
-# Deploy Datadog with argocd if flag is set in the manifest path
 manifestPath=$(g3k_manifest_path)
 es7="$(jq -r ".[\"global\"][\"es7\"]" < "$manifestPath" | tr '[:upper:]' '[:lower:]')"
 esDomain="$(jq -r ".[\"global\"][\"esDomain\"]" < "$manifestPath" | tr '[:upper:]' '[:lower:]')"
