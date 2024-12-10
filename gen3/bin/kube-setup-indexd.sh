@@ -6,6 +6,9 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 
+manifestPath=$(g3k_manifest_path)
+singleTable="$(jq -r ".[\"global\"][\"indexd_single_table\"]" < "$manifestPath" | tr '[:upper:]' '[:lower:]')"
+
 [[ -z "$GEN3_ROLL_ALL" ]] && gen3 kube-setup-secrets
 
 if [[ ! -f "$(gen3_secrets_folder)/.rendered_indexd_userdb" ]]; then
@@ -19,8 +22,12 @@ if [[ ! -f "$(gen3_secrets_folder)/.rendered_indexd_userdb" ]]; then
 fi
 
 g3kubectl delete secrets/indexd-secret > /dev/null 2>&1 || true;
-g3kubectl create secret generic indexd-secret --from-file=local_settings.py="${GEN3_HOME}/apis_configs/indexd_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
-  
+if "$singleTable" = true; then
+    g3kubectl create secret generic indexd-secret --from-file=local_settings.py="${GEN3_HOME}/apis_configs/indexd_multi_table/indexd_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
+else
+    g3kubectl create secret generic indexd-secret --from-file=local_settings.py="${GEN3_HOME}/apis_configs/indexd_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
+fi
+
 gen3 roll indexd
 g3kubectl apply -f "${GEN3_HOME}/kube/services/indexd/indexd-service.yaml"
 gen3 roll indexd-canary || true
