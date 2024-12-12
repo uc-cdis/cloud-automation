@@ -1,8 +1,0 @@
-cluster_check: true
-init_config:
-instances:
-  - dbm: true
-    host: 
-    port: 5432
-    username: datadog
-    password: 
