@@ -39,13 +39,13 @@ RUN apt-get update && apt-get upgrade -y \
       gettext-base
 
 #can remove once https://github.com/yaml/pyyaml/issues/724 is solved
-RUN pip install pyyaml==5.3.1
+RUN pip install pyyaml==6.0.1 --break-system-packages
 
-RUN  python3 -m pip install --upgrade pip \
-    && python3 -m pip install --upgrade setuptools \
-    && python3 -m pip install -U crcmod \
-    && python3 -m pip install --upgrade yq \
-    && python3 -m pip install --upgrade 'gen3>4'
+# RUN  python3 -m pip install pip --upgrade --break-system-packages
+RUN  python3 -m pip install --upgrade setuptools --break-system-packages \
+    && python3 -m pip install -U crcmod --break-system-packages \
+    && python3 -m pip install --upgrade yq --break-system-packages \
+    && python3 -m pip install --upgrade 'gen3>4' --break-system-packages
 
 # aws cli v2
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
@@ -57,7 +57,7 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
 RUN export CLOUD_SDK_REPO="cloud-sdk" && \
     echo "deb https://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" > /etc/apt/sources.list.d/google-cloud-sdk.list && \
     curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
-    curl -sL https://deb.nodesource.com/setup_14.x | bash - && \
+    curl -sL https://deb.nodesource.com/setup_16.x | bash - && \
     apt-get update && \
     apt-get install -y kubectl && \
     apt-get install -y --no-install-recommends nodejs && \
@@ -79,8 +79,7 @@ RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.15/
 RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.12.31/terraform_0.12.31_linux_amd64.zip \
    && unzip /tmp/terraform.zip -d /tmp && mv /tmp/terraform /usr/local/bin/terraform12 && /bin/rm /tmp/terraform.zip
 
-RUN useradd -m -s /bin/bash ubuntu && \
-    ( echo "ubuntu:gen3" | chpasswd )
+RUN echo "ubuntu:gen3" | chpasswd
 
 RUN npm install elasticdump -g
 
