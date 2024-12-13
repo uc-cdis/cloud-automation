@@ -27,6 +27,7 @@ spec:
         authprovider: "yes"
         # uses explicit proxy and AWS APIs
         netnolimit: "yes"
+        hostname: null
         public: "yes"
         userhelper: "yes"
         service: "fence"
