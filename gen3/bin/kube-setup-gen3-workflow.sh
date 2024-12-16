@@ -55,6 +55,7 @@ setup_gen3_workflow_infra() {
 		  "Sid": "ManageS3Buckets",
       "Effect": "Allow",
       "Action": [
+        "s3:CreateBucket",
         "s3:ListBucket",
         "s3:GetObject",
         "s3:PutObject",
@@ -67,8 +68,6 @@ setup_gen3_workflow_infra() {
     }
 	]
 }
-
-
 EOM
 )
   roleName="$(gen3 api safe-name $saName)"
@@ -111,13 +110,25 @@ EOM
   if [[ ! -f "$secretsFolder/gen3-workflow-config.yaml" ]]; then
     manifestPath=$(g3k_manifest_path)
     hostname="$(g3k_config_lookup ".global.hostname" "$manifestPath")"
-    roleInfo="$(aws iam get-role --role-name "$roleName")" || return 1
-    roleArn="$(jq -e -r .Role.Arn <<< "$roleInfo")"
     # encryption_key="$(random_alphanumeric 32 | base64)"
+    if [[ ! -f "$secretsFolder/dbcreds.json" ]]; then
+      if ! gen3 db setup gen3workflow; then
+        gen3_log_err "Failed setting up database for gen3-workflow service"
+        return 1
+      fi
+    fi
+    if [[ ! -f "$secretsFolder/dbcreds.json" ]]; then
+      gen3_log_err "dbcreds not present in Gen3Secrets/"
+      return 1
+    fi
     cat - > "$secretsFolder/gen3-workflow-config.yaml" <<EOM
 HOSTNAME: $hostname
 DEBUG: false
-S3_ENDPOINTS_AWS_ROLE_ARN: $roleArn
+
+DB_HOST: $(jq -r .db_host < "$secretsFolder/dbcreds.json")
+DB_USER: $(jq -r .db_username < "$secretsFolder/dbcreds.json")
+DB_PASSWORD: $(jq -r .db_password < "$secretsFolder/dbcreds.json")
+DB_DATABASE: $(jq -r .db_database < "$secretsFolder/dbcreds.json")
 EOM
   fi
   gen3 secrets sync 'setup gen3workflow-g3auto secrets'
