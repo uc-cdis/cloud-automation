@@ -1,0 +1,7 @@
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: indexd-single-table-migration-priority
+value: 100000  # High value for high priority
+globalDefault: false
+description: "Priority class for Indexd migration job"

@@ -2,9 +2,9 @@
 FROM quay.io/cdis/python:3.10-buster
 
 # https://github.com/nginxinc/docker-nginx/blob/f958fbacada447737319e979db45a1da49123142/mainline/debian/Dockerfile
-ENV NGINX_VERSION   1.21.1
-ENV NJS_VERSION     0.6.1
-ENV PKG_RELEASE     1~buster
+ENV NGINX_VERSION=1.21.1
+ENV NJS_VERSION=0.6.1
+ENV PKG_RELEASE=1~buster
 
 RUN set -x \
 # create nginx user/group first, to be consistent throughout docker variants
@@ -126,7 +126,7 @@ RUN apt-get update && apt-get install -y supervisor \
 COPY supervisord.ini /etc/supervisor.d/supervisord.ini
 
 # Which uWSGI .ini file should be used, to make it customizable
-ENV UWSGI_INI /app/uwsgi.ini
+ENV UWSGI_INI=/app/uwsgi.ini
 
 # By default, disable uwsgi cheaper mode and run 2 processes.
 # If UWSGI_CHEAPER=N and UWSGI_PROCESSES=M, N is the min and M is the max
@@ -138,16 +138,16 @@ ENV UWSGI_PROCESSES=2
 # By default, allow unlimited file sizes, modify it to limit the file sizes
 # To have a maximum of 1 MB (Nginx's default) change the line to:
 # ENV NGINX_MAX_UPLOAD 1m
-ENV NGINX_MAX_UPLOAD 0
+ENV NGINX_MAX_UPLOAD=0
 
 # By default, Nginx will run a single worker process, setting it to auto
 # will create a worker for each CPU core
-ENV NGINX_WORKER_PROCESSES 1
+ENV NGINX_WORKER_PROCESSES=1
 
 # By default, Nginx listens on port 80.
 # To modify this, change LISTEN_PORT environment variable.
 # (in a Dockerfile or with an option for `docker run`)
-ENV LISTEN_PORT 80
+ENV LISTEN_PORT=80
 
 # Copy the entrypoint that will generate Nginx additional configs
 COPY entrypoint.sh /entrypoint.sh
