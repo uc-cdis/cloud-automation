@@ -7,7 +7,20 @@ setup_funnel_infra() {
   helm repo update ohsu
 
   namespace="$(gen3 db namespace)"
-  helm upgrade --install funnel ohsu/funnel --namespace $namespace --version 0.1.11
+  version="$(g3k_manifest_lookup .versions.funnel)"
+  helm upgrade --install funnel ohsu/funnel --namespace $namespace --version $version
+
+  # NOTE: this config is needed until funnel supports per-user buckets:
+  # funnel.conf
+    # AmazonS3:
+    #   Key: <KEY>
+    #   Secret: <SECRET>
+    #   Disabled: false
+
+    # Kubernetes:
+    #   Bucket: <BUCKET>
+    #   Region: <REGION>
+  # helm upgrade --install funnel ohsu/funnel --values funnel.conf
 }
 
 setup_gen3_workflow_infra() {
@@ -73,12 +86,12 @@ EOM
   roleName="$(gen3 api safe-name $saName)"
   gen3 awsrole create $roleName $saName
   policyName="$(gen3 api safe-name gen3-workflow-policy)"
-  policyInfo=$(gen3_aws_run aws iam create-policy --policy-name "$policyName" --policy-document "$policy" --description "Gen3-Workflow service access")
+  policyInfo="$(gen3_aws_run aws iam create-policy --policy-name "$policyName" --policy-document "$policy" --description "Gen3-Workflow service access")"
   if [ -n "$policyInfo" ]; then
     policyArn="$(jq -e -r '.["Policy"].Arn' <<< "$policyInfo")" || { gen3_log_err "Cannot get 'Policy.Arn' from output: $policyInfo"; return 1; }
   else
     gen3_log_info "Unable to create policy '$policyName'. Assume it already exists and create a new version to update the permissions..."
-    policyArn=$(gen3_aws_run aws iam list-policies --query "Policies[?PolicyName=='$policyName'].Arn" --output text)
+    policyArn="$(gen3_aws_run aws iam list-policies --query "Policies[?PolicyName=='$policyName'].Arn" --output text)"
 
     # there can only be up to 5 versions, so delete old versions (except the current default one)
     versions="$(gen3_aws_run aws iam list-policy-versions --policy-arn $policyArn | jq -r '.Versions[] | select(.IsDefaultVersion != true) | .VersionId')"
@@ -108,7 +121,7 @@ EOM
   fi
   secretsFolder="$(gen3_secrets_folder)/g3auto/gen3workflow"
   if [[ ! -f "$secretsFolder/gen3-workflow-config.yaml" ]]; then
-    manifestPath=$(g3k_manifest_path)
+    manifestPath="$(g3k_manifest_path)"
     hostname="$(g3k_config_lookup ".global.hostname" "$manifestPath")"
     # encryption_key="$(random_alphanumeric 32 | base64)"
     if [[ ! -f "$secretsFolder/dbcreds.json" ]]; then
