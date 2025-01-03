@@ -110,7 +110,6 @@ RUN cp cloud-automation/Docker/awshelper/sshdStart.sh /opt/usersshd/ \
     && cp cloud-automation/Docker/awshelper/sshd_config /opt/usersshd/
 
 RUN cd ./cloud-automation \
-    && npm ci \
     && cat ./Docker/awshelper/bashrc_suffix.sh >> ~/.bashrc
 
 RUN export DEB_PYTHON_INSTALL_LAYOUT=deb && export POETRY_VERSION=1.1.15 && curl -sSL https://install.python-poetry.org | python3 -
