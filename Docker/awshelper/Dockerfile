@@ -57,7 +57,6 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
 RUN export CLOUD_SDK_REPO="cloud-sdk" && \
     echo "deb https://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" > /etc/apt/sources.list.d/google-cloud-sdk.list && \
     curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
-    curl -sL https://deb.nodesource.com/setup_16.x | bash - && \
     apt-get update && \
     apt-get install -y kubectl && \
     apt-get install -y --no-install-recommends nodejs && \
