@@ -80,8 +80,6 @@ RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.12.31/
 
 RUN echo "ubuntu:gen3" | chpasswd
 
-RUN npm install elasticdump -g
-
 # Setup scripts to run sshd for wetty - see kube/services/tty
 RUN mkdir -p /opt/usersshd \
     && chown -R ubuntu: /opt/usersshd \
