@@ -119,7 +119,10 @@ if [[ "$creds" != null ]]; then
     echo ${i} >> "$credsFile"
   done
   g3kubectl delete secret aws-es-proxy || true
-  g3kubectl create secret generic aws-es-proxy "--from-file=credentials=${credsFile}" --from-literal=aws_access_key_id=$(cat creds.json| jq -r .es.aws_access_key_id) --from-literal=aws_secret_access_key=$(cat creds.json| jq -r .es.aws_secret_access_key)
+  g3kubectl create secret generic aws-es-proxy \
+  "--from-file=credentials=${credsFile}" \
+  --from-literal=aws_access_key_id=$(cat creds.json | jq -r .es.aws_access_key_id) \
+  --from-literal=aws_secret_access_key=$(cat creds.json | jq -r .es.aws_secret_access_key)
 else
   echo "WARNING: creds.json does not include AWS elastic search credentials - not initializing aws-es-proxy secret"
 fi
