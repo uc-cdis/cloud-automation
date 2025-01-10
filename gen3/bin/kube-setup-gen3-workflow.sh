@@ -78,6 +78,17 @@ setup_gen3_workflow_infra() {
         "arn:aws:s3:::gen3wf-*",
         "arn:aws:s3:::gen3wf-*/*"
       ]
+    },
+    {
+      "Sid": "CreateNextflowBatchWorkspaces",
+      "Effect": "Allow",
+      "Action": [
+          "kms:CreateKey",
+          "kms:CreateAlias",
+          "kms:DescribeKey",
+          "kms:TagResource"
+      ],
+      "Resource": "*"
     }
 	]
 }
