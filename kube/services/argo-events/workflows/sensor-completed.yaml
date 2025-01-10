@@ -51,12 +51,12 @@ spec:
                         args:
                           - "-c"
                           - |
-                            if kubectl get awsnodetemplate workflow-$WORKFLOW_NAME >/dev/null 2>&1; then
-                              kubectl delete awsnodetemplate workflow-$WORKFLOW_NAME
+                            if kubectl get nodepool workflow-$WORKFLOW_NAME >/dev/null 2>&1; then
+                              kubectl delete nodepool workflow-$WORKFLOW_NAME
                             fi
 
-                            if kubectl get provisioner workflow-$WORKFLOW_NAME >/dev/null 2>&1; then
-                              kubectl delete provisioners workflow-$WORKFLOW_NAME
+                            if kubectl get ec2nodeclass workflow-$WORKFLOW_NAME >/dev/null 2>&1; then
+                              kubectl delete ec2nodeclass workflow-$WORKFLOW_NAME
                             fi
                         env:
                           - name: WORKFLOW_NAME

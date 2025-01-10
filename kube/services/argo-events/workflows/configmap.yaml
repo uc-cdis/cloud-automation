@@ -4,119 +4,44 @@ metadata:
   name: karpenter-templates
   namespace: argo-events
 data:
-  provisioner.yaml: |
-    apiVersion: karpenter.sh/v1alpha5
-    kind: Provisioner
+  nodeclass.yaml: |
+    apiVersion: karpenter.k8s.aws/v1beta1
+    kind: EC2NodeClass
     metadata:
       name: workflow-WORKFLOW_NAME
     spec:
-      requirements:
-        - key: karpenter.sh/capacity-type
-          operator: In
-          values: ["on-demand"]
-        - key: kubernetes.io/arch
-          operator: In
-          values:
-          - amd64
-        - key: node.kubernetes.io/instance-type
-          operator: In
-          values:
-          - c6a.large
-          - c6a.xlarge
-          - c6a.2xlarge
-          - c6a.4xlarge
-          - c6a.8xlarge
-          - c6a.12xlarge
-          - c7a.large
-          - c7a.xlarge
-          - c7a.2xlarge
-          - c7a.4xlarge
-          - c7a.8xlarge
-          - c7a.12xlarge
-          - c6i.large
-          - c6i.xlarge
-          - c6i.2xlarge
-          - c6i.4xlarge
-          - c6i.8xlarge
-          - c6i.12xlarge
-          - c7i.large
-          - c7i.xlarge
-          - c7i.2xlarge
-          - c7i.4xlarge
-          - c7i.8xlarge
-          - c7i.12xlarge
-          - m6a.2xlarge
-          - m6a.4xlarge
-          - m6a.8xlarge
-          - m6a.12xlarge
-          - m6a.16xlarge
-          - m6a.24xlarge
-          - m7a.2xlarge
-          - m7a.4xlarge
-          - m7a.8xlarge
-          - m7a.12xlarge
-          - m7a.16xlarge
-          - m7a.24xlarge
-          - m6i.2xlarge
-          - m6i.4xlarge
-          - m6i.8xlarge
-          - m6i.12xlarge
-          - m6i.16xlarge
-          - m6i.24xlarge
-          - m7i.2xlarge
-          - m7i.4xlarge
-          - m7i.8xlarge
-          - m7i.12xlarge
-          - m7i.16xlarge
-          - m7i.24xlarge
-          - r7iz.2xlarge
-          - r7iz.4xlarge
-          - r7iz.8xlarge
-          - r7iz.12xlarge
-          - r7iz.16xlarge
-          - r7iz.24xlarge
-      taints:
-        - key: role
-          value: WORKFLOW_NAME
-          effect: NoSchedule
-      labels:
-        role: WORKFLOW_NAME
-        purpose: workflow
-      limits:
-        resources:
-          cpu: 4000
-      providerRef:
-        name: workflow-WORKFLOW_NAME
-      # Kill nodes after 2 days to ensure they stay up to date
-      ttlSecondsUntilExpired: 172800
-      ttlSecondsAfterEmpty: 10
-
-  nodetemplate.yaml: |
-    apiVersion: karpenter.k8s.aws/v1alpha1
-    kind: AWSNodeTemplate
-    metadata:
-      name: workflow-WORKFLOW_NAME
-    spec:
-      amiSelector:
-        aws::name: EKS-FIPS*
-        aws::owners: "143731057154"
-      subnetSelector:
-        karpenter.sh/discovery: ENVIRONMENT
-      securityGroupSelector:
-        karpenter.sh/discovery: ENVIRONMENT-workflow
-      tags:
-        Environment: ENVIRONMENT
-        Name: eks-ENVIRONMENT-workflow-karpenter
-        karpenter.sh/discovery: ENVIRONMENT
-        workflowname: WORKFLOW_NAME
-        gen3username: GEN3_USERNAME
-        gen3service: argo-workflows
-        purpose: workflow
+      amiFamily: AL2
+      amiSelectorTerms:
+      - name: 1-31-EKS-FIPS*
+        owner: "143731057154"
+      blockDeviceMappings:
+      - deviceName: /dev/xvda
+        ebs:
+          deleteOnTermination: true
+          encrypted: true
+          volumeSize: 100Gi
+          volumeType: gp2
       metadataOptions:
         httpEndpoint: enabled
         httpProtocolIPv6: disabled
         httpPutResponseHopLimit: 2
         httpTokens: optional
+      role: eks_ENVIRONMENT_workers_role
+      securityGroupSelectorTerms:
+      - tags:
+          karpenter.sh/discovery: ENVIRONMENT-workflow
+      subnetSelectorTerms:
+      - tags:
+          karpenter.sh/discovery: ENVIRONMENT
+      tags:
+        Environment: ENVIRONMENT
+        Name: eks-ENVIRONMENT-workflow-karpenter
+        gen3service: argo-workflows
+        gen3username: GEN3_USERNAME
+        gen3teamproject: "GEN3_TEAMNAME"
+        karpenter.sh/discovery: ENVIRONMENT
+        purpose: workflow
+        workflowname: WORKFLOW_NAME
       userData: |
         MIME-Version: 1.0
         Content-Type: multipart/mixed; boundary="BOUNDARY"
@@ -133,10 +58,98 @@ data:
         sysctl -w fs.inotify.max_user_watches=12000
 
         --BOUNDARY--
-      blockDeviceMappings:
-        - deviceName: /dev/xvda
-          ebs:
-            volumeSize: 100Gi
-            volumeType: gp2
-            encrypted: true
-            deleteOnTermination: true
+
+  nodepool.yaml: |
+    apiVersion: karpenter.sh/v1beta1
+    kind: NodePool
+    metadata:
+      name: workflow-WORKFLOW_NAME
+    spec:
+      disruption:
+        consolidateAfter: 10s
+        consolidationPolicy: WhenEmpty
+        expireAfter: 48h0m0s
+      limits:
+        cpu: 4k
+      template:
+        metadata:
+          labels:
+            purpose: workflow
+            role: WORKFLOW_NAME
+        spec:
+          nodeClassRef:
+            name: workflow-WORKFLOW_NAME
+          requirements:
+          - key: karpenter.sh/capacity-type
+            operator: In
+            values:
+            - on-demand
+          - key: kubernetes.io/arch
+            operator: In
+            values:
+            - amd64
+          - key: node.kubernetes.io/instance-type
+            operator: In
+            values:
+            - c6a.large
+            - c6a.xlarge
+            - c6a.2xlarge
+            - c6a.4xlarge
+            - c6a.8xlarge
+            - c6a.12xlarge
+            - c7a.large
+            - c7a.xlarge
+            - c7a.2xlarge
+            - c7a.4xlarge
+            - c7a.8xlarge
+            - c7a.12xlarge
+            - c6i.large
+            - c6i.xlarge
+            - c6i.2xlarge
+            - c6i.4xlarge
+            - c6i.8xlarge
+            - c6i.12xlarge
+            - c7i.large
+            - c7i.xlarge
+            - c7i.2xlarge
+            - c7i.4xlarge
+            - c7i.8xlarge
+            - c7i.12xlarge
+            - m6a.2xlarge
+            - m6a.4xlarge
+            - m6a.8xlarge
+            - m6a.12xlarge
+            - m6a.16xlarge
+            - m6a.24xlarge
+            - m7a.2xlarge
+            - m7a.4xlarge
+            - m7a.8xlarge
+            - m7a.12xlarge
+            - m7a.16xlarge
+            - m7a.24xlarge
+            - m6i.2xlarge
+            - m6i.4xlarge
+            - m6i.8xlarge
+            - m6i.12xlarge
+            - m6i.16xlarge
+            - m6i.24xlarge
+            - m7i.2xlarge
+            - m7i.4xlarge
+            - m7i.8xlarge
+            - m7i.12xlarge
+            - m7i.16xlarge
+            - m7i.24xlarge
+            - r7iz.2xlarge
+            - r7iz.4xlarge
+            - r7iz.8xlarge
+            - r7iz.12xlarge
+            - r7iz.16xlarge
+            - r7iz.24xlarge
+          - key: kubernetes.io/os
+            operator: In
+            values:
+            - linux
+          taints:
+          - effect: NoSchedule
+            key: role
+            value: WORKFLOW_NAME

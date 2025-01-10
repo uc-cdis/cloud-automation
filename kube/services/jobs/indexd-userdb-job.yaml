@@ -74,7 +74,7 @@ spec:
             # Script always succeeds if it runs (echo exits with 0)
             # indexd image does not include jq, so use python 
             - |
-              eval $(python 2> /dev/null <<EOM
+              eval $( (python 2> /dev/null || poetry run python 2> /dev/null) <<EOM
               import json
 
               sheepdog_data = json.load(open('/var/www/indexd/sheepdog_creds.json', 'r'))
@@ -90,7 +90,7 @@ spec:
               EOM
               )
               for user in "${!user_db[@]}"; do
-                python /indexd/bin/index_admin.py create --username "$user" --password "${user_db[$user]}"
+                (python /indexd/bin/index_admin.py create --username "$user" --password "${user_db[$user]}" 2> /dev/null || poetry run python /indexd/bin/index_admin.py create --username "$user" --password "${user_db[$user]}")
               done
               echo "Exit code: $?"
       restartPolicy: Never
