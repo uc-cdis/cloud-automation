@@ -72,7 +72,10 @@ setup_gen3_workflow_infra() {
         "s3:ListBucket",
         "s3:GetObject",
         "s3:PutObject",
-        "s3:DeleteObject"
+        "s3:DeleteObject",
+        "s3:PutEncryptionConfiguration",
+        "s3:PutBucketPolicy",
+        "s3:PutLifecycleConfiguration"
       ],
       "Resource": [
         "arn:aws:s3:::gen3wf-*",
