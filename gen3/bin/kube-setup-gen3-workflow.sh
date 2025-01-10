@@ -80,7 +80,7 @@ setup_gen3_workflow_infra() {
       ]
     },
     {
-      "Sid": "CreateNextflowBatchWorkspaces",
+      "Sid": "ManageKMS",
       "Effect": "Allow",
       "Action": [
           "kms:CreateKey",
