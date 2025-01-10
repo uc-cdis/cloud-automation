@@ -1,4 +1,5 @@
 # Setup for running this migration https://github.com/uc-cdis/indexd/blob/master/docs/migration_to_single_table_indexd.md
+# Need to apply PriorityClass before running this job. Run kubectl apply -f indexd-single-table-migration-priority-class.yaml
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -9,6 +10,7 @@ spec:
       labels:
         app: gen3job
     spec:
+      priorityClassName: indexd-single-table-migration-priority  # Assigning the priority class
       affinity:
         nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -46,6 +48,12 @@ spec:
           env:
             - name: START_DID
               GEN3_START_DID|-value: ""-|
+            - name: BATCH_SIZE
+              GEN3_BATCH_SIZE|-value: ""-|
+            - name: OFFSET_VALUE
+              GEN3_OFFSET_VALUE|-value: ""-|
+            - name: USE_DEFAULT_CREDS
+              GEN3_USE_DEFAULT_CREDS|-value: "false"-|
           volumeMounts:
             - name: "config-volume"
               readOnly: true
@@ -72,11 +80,28 @@ spec:
           args:
             - "-c"
             - |
-              flags="--creds-path /var/www/indexd/creds_new.json"
+              $flags=""
+              
+              if [[ "$USE_DEFAULT_CREDS" == "false" ]]; then
+                echo "Using new creds"
+                flags="$flags --creds-file /var/www/indexd/creds_new.json"
+              else
+                echo "using default creds"
+                flags="$flags --creds-file /var/www/indexd/creds.json"
+              fi
+
               if [[ -n "$START_DID" ]]; then
                 flags="$flags --start-did $START_DID"
               fi
-              time poetry run python /indexd/bin/migrate_to_single_table.py $flags
+              if [[ -n "$BATCH_SIZE" ]]; then
+                flags="$flags --batch-size $BATCH_SIZE"
+              fi
+
+              if [[ -n "$OFFSET_VALUE" ]]; then
+                flags="$flags --start-offset $OFFSET_VALUE"
+              fi
+
+              time python /indexd/bin/migrate_to_single_table.py $flags
               echo "Exit code: $?"
       restartPolicy: Never
 

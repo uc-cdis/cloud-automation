@@ -1,0 +1,76 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: rds-snapshot-export
+spec:
+  backoffLimit: 0  # Disable retries
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      serviceAccountName: rds-snapshot-export-sa
+      containers:
+      - name: rds-snapshot-export
+        image: quay.io/cdis/awshelper:master
+        env:
+        - name: CLUSTER_NAME
+          GEN3_CLUSTER_NAME|-value: "aurora-cluster"-| # Default value, should be overwritten by the environment variable
+        command:
+        - /bin/bash
+        - -c
+        - |
+          set -e
+
+          echo "Fetching AWS Account ID..."
+          AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
+          echo "AWS_ACCOUNT_ID = $AWS_ACCOUNT_ID"
+
+          if [[ -z "$AWS_ACCOUNT_ID" ]]; then
+            echo "Error: Unable to determine AWS Account ID. Exiting."
+            exit 1
+          fi
+
+          echo "Using cluster name: $CLUSTER_NAME"
+          if [[ -z "$UPLOAD_BUCKET_NAME" ]]; then
+            UPLOAD_BUCKET_NAME="gen3-db-backups-encrypted-$AWS_ACCOUNT_ID"
+            echo "defaulting to BUCKET: $UPLOAD_BUCKET_NAME"
+          fi
+
+          echo "Determining AWS region for cluster: $CLUSTER_NAME..."
+          AWS_REGION=$(aws rds describe-db-clusters \
+            --db-cluster-identifier $CLUSTER_NAME \
+            --query "DBClusters[0].Endpoint" \
+            --output text 2>/dev/null | cut -d'.' -f3)
+
+          if [[ -z "$AWS_REGION" ]]; then
+            echo "Region not found for cluster: $CLUSTER_NAME. Falling back to us-east-1."
+            AWS_REGION="us-east-1"
+          fi
+
+          echo "Using bucket: $UPLOAD_BUCKET_NAME in region: $AWS_REGION"
+
+          echo "Finding the latest snapshot for cluster: $CLUSTER_NAME..."
+          LATEST_SNAPSHOT=$(aws rds describe-db-cluster-snapshots \
+            --db-cluster-identifier $CLUSTER_NAME \
+            --snapshot-type automated \
+            --query "sort_by(DBClusterSnapshots, &SnapshotCreateTime)[-1].DBClusterSnapshotIdentifier" \
+            --output text)
+
+          if [[ -z "$LATEST_SNAPSHOT" ]]; then
+            echo "No snapshots found for cluster: $CLUSTER_NAME"
+            exit 1
+          fi
+          # Generate a valid ExportTaskIdentifier
+          EXPORT_TASK_IDENTIFIER=$(echo "export-${LATEST_SNAPSHOT}" | tr -cd '[:alnum:]-' | sed 's/^-//' | sed 's/-$//')
+          echo "Starting export for snapshot: $LATEST_SNAPSHOT with identifier: $EXPORT_TASK_IDENTIFIER"
+          aws rds start-export-task \
+            --export-task-identifier "$EXPORT_TASK_IDENTIFIER" \
+            --source-arn "arn:aws:rds:$AWS_REGION:$AWS_ACCOUNT_ID:cluster-snapshot:$LATEST_SNAPSHOT" \
+            --s3-bucket-name "$UPLOAD_BUCKET_NAME" \
+            --iam-role-arn "arn:aws:iam::$AWS_ACCOUNT_ID:role/rds-s3-export-role" \
+            --kms-key-id alias/gen3-db-backups-kms-key || {
+            echo "Error: AWS CLI command failed. Exiting."
+            exit 1
+          }
+      restartPolicy: Never
