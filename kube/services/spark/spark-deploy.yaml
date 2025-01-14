@@ -87,9 +87,6 @@ spec:
           args: 
             - "-c"
             - |
-              # get /usr/local/share/ca-certificates/cdis-ca.crt into system bundle
-              ssh server sudo /etc/init.d/ssh start
-              update-ca-certificates
               python run_config.py
               hdfs namenode -format
               hdfs --daemon start namenode

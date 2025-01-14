@@ -13,10 +13,6 @@ setup_database() {
     gen3_log_info "gen3userdatalibrary-g3auto secret already configured"
     return 0
   fi
-  if [[ -n "$JENKINS_HOME" || ! -f "$(gen3_secrets_folder)/creds.json" ]]; then
-    gen3_log_err "skipping db setup in non-adminvm environment"
-    return 0
-  fi
   # Setup .env file that gen3-user-data-library service consumes
   if [[ ! -f "$secretsFolder/gen3-user-data-library.env" || ! -f "$secretsFolder/base64Authz.txt" ]]; then
     local secretsFolder="$(gen3_secrets_folder)/g3auto/gen3userdatalibrary"
