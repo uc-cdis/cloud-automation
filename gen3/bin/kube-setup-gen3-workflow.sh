@@ -8,7 +8,11 @@ setup_funnel_infra() {
 
   namespace="$(gen3 db namespace)"
   version="$(g3k_manifest_lookup .versions.funnel)"
-  helm upgrade --install funnel ohsu/funnel --namespace $namespace --version $version
+  if [ "$version" == "latest" ]; then
+  helm upgrade --install funnel ohsu/funnel --namespace $namespace
+  else
+    helm upgrade --install funnel ohsu/funnel --namespace $namespace --version $version
+  fi
 
   # NOTE: this config is needed until funnel supports per-user buckets:
   # funnel.conf

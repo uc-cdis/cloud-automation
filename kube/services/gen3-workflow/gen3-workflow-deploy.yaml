@@ -93,9 +93,9 @@ spec:
         resources:
           requests:
             cpu: 100m
-            memory: 100Mi
+            memory: 1Gi
           limits:
-            memory: 300Mi
+            memory: 1Gi
       # initContainers:
       #   - name: gen3-workflow-db-migrate
       #     GEN3_REQUESTOR_IMAGE
