@@ -1,7 +1,7 @@
 # Build from root of cloud-automation/ repo:
 #   docker build -f Docker/awshelper/Dockerfile 
 #
-FROM ubuntu:24.04
+FROM quay.io/cdis/ubuntu:22.10
 
 ENV DEBIAN_FRONTEND=noninteractive
 
