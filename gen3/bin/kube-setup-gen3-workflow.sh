@@ -91,6 +91,7 @@ setup_gen3_workflow_infra() {
       "Effect": "Allow",
       "Action": [
           "kms:CreateKey",
+          "kms:GenerateDataKey",
           "kms:CreateAlias",
           "kms:DescribeKey",
           "kms:TagResource"
