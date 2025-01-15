@@ -109,22 +109,24 @@ if [[ -z "$fenceIndexdPassword" || "null" == "$fenceIndexdPassword" ]]; then
   /bin/rm -rf .rendered_indexd_userdb
 fi
 
-# update aws-es-proxy secrets
-if ! g3kubectl get secrets/aws-es-proxy > /dev/null 2>&1; then
-  credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
-  creds=$(jq -r ".es|tostring" < creds.json |sed -e 's/[{-}]//g' -e 's/"//g' -e 's/:/=/g')
-  if [[ "$creds" != null ]]; then
-    echo "[default]" > "$credsFile"
-    IFS=',' read -ra CREDS <<< "$creds"
-    for i in "${CREDS[@]}"; do
-      echo ${i} >> "$credsFile"
-    done
-    g3kubectl create secret generic aws-es-proxy "--from-file=credentials=${credsFile}"
-  else
-    echo "WARNING: creds.json does not include AWS elastic search credentials - not initializing aws-es-proxy secret"
-  fi
-  rm "$credsFile"
+
+credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
+creds=$(jq -r ".es|tostring" < creds.json |sed -e 's/[{-}]//g' -e 's/"//g' -e 's/:/=/g')
+if [[ "$creds" != null ]]; then
+  echo "[default]" > "$credsFile"
+  IFS=',' read -ra CREDS <<< "$creds"
+  for i in "${CREDS[@]}"; do
+    echo ${i} >> "$credsFile"
+  done
+  g3kubectl delete secret aws-es-proxy || true
+  g3kubectl create secret generic aws-es-proxy \
+  "--from-file=credentials=${credsFile}" \
+  --from-literal=aws_access_key_id=$(cat creds.json | jq -r .es.aws_access_key_id) \
+  --from-literal=aws_secret_access_key=$(cat creds.json | jq -r .es.aws_secret_access_key)
+else
+  echo "WARNING: creds.json does not include AWS elastic search credentials - not initializing aws-es-proxy secret"
 fi
+rm "$credsFile"
 
 # We also want to update the metadata-config secret if such manifest file exists
 # So that metadata-aggregate-sync can run more seamlessly
@@ -336,3 +338,4 @@ if ! g3kubectl get secrets/grafana-admin > /dev/null 2>&1; then
   fi
   rm -f "${credsFile}"
 fi
+
