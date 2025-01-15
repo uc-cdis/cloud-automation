@@ -39,6 +39,9 @@ spec:
         - name: creds-json-volume
           secret:
             secretName: "dcf-dataservice-json-secret"
+        - name: project-map-volume
+          configMap:
+            name: project-map-manifest
       containers:
       - name: datareplicate
         GEN3_DATAREPLICATE_IMAGE
@@ -78,11 +81,14 @@ spec:
           - name: "creds-json-volume"
             mountPath: "/secrets/dcf_dataservice_credentials.json"
             subPath: "dcf_dataservice_credentials.json"
+          - name: "project-map-volume"
+            mountPath: "/dcf-dataservice/GDC_project_map.json"
+            subPath: "GDC_project_map.json"
         command: ["/bin/bash" ]
         args: 
           - "-c"
           - |
-            cat /secrets/dcf_dataservice_settings > ./scripts/settings.py
+            cat /secrets/dcf_dataservice_settings > ./dcfdataservice/settings.py
             gcloud auth activate-service-account --key-file=/secrets/google_service_account_creds
             export GOOGLE_APPLICATION_CREDENTIALS=/secrets/google_service_account_creds
             export http_proxy='http://cloud-proxy.internal.io:3128'
@@ -97,7 +103,7 @@ spec:
             fi
             if [[ "$type" == "active" || "$type" == "legacy" ]]; then
               rand_str="$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 5 | head -n 1)"
-              python dataflow_pipeline.py  --runner DataflowRunner --project $PROJECT --job_name dcf-dataservice --autoscaling_algorithm NONE --num_worker $MAX_WORKERS --maxNumWorkers $MAX_WORKERS --staging_location gs://$LOG_BUCKET/$RELEASE/staging --temp_location gs://$LOG_BUCKET/$RELEASE/temp --output gs://$LOG_BUCKET/$RELEASE/$type/output_$rand_str --setup_file ./setup.py --input $MANIFEST_FILE --global_config "{\"release\": \"$RELEASE/$type\", \"log_bucket\": \"$LOG_BUCKET\"}" --requirements_file requirements.txt --extra_package indexclient-1.6.0.zip --requirements_file scripts/requirements.txt
+              python dataflow_pipeline.py  --runner DataflowRunner --project $PROJECT --job_name dcf-dataservice --autoscaling_algorithm NONE --num_worker $MAX_WORKERS --maxNumWorkers $MAX_WORKERS --staging_location gs://$LOG_BUCKET/$RELEASE/staging --temp_location gs://$LOG_BUCKET/$RELEASE/temp --output gs://$LOG_BUCKET/$RELEASE/$type/output_$rand_str --setup_file ./setup.py --input $MANIFEST_FILE --global_config "{\"release\": \"$RELEASE/$type\", \"log_bucket\": \"$LOG_BUCKET\"}" --requirements_file requirements.txt --extra_package indexclient-1.6.0.zip --requirements_file dcfdataservice/requirements.txt
             else
               echo "Neither active nor legacy manifest is provided. Please check the manifest name!!!"
             fi
