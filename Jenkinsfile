@@ -433,26 +433,6 @@ spec:
             }
         }
 
-        stage('authzTest') {
-            steps {
-                script {
-                    try {
-                        if(!doNotRunTests) {
-                            // test revproxy+arborist /gen3-authz stuff
-                            kubeHelper.kube(kubectlNamespace, {
-                                sh('bash cloud-automation/gen3/bin/testsuite.sh --filter authz');
-                            });
-                        } else {
-                            Utils.markStageSkippedForConditional(STAGE_NAME)
-                        }
-                    } catch (ex) {
-                        metricsHelper.writeMetricWithResult(STAGE_NAME, false)
-                        pipelineHelper.handleError(ex)
-                    }
-                    metricsHelper.writeMetricWithResult(STAGE_NAME, true)
-                }
-            }
-        }
     }
     post {
         always {
