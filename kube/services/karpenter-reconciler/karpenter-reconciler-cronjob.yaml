@@ -40,7 +40,7 @@ spec:
                   elif [ "$ENVIRONMENT" = "va-testing" ]; then
                     ENVIRONMENT_TYPE_CODE="testing"
                   else
-                    ENVIRONMENT_TYPE_CODE="environment"
+                    ENVIRONMENT_TYPE_CODE="$ENVIRONMENT"
                   fi
 
                   if [ -z "$NODEPOOL_TEMPLATE" ]; then
