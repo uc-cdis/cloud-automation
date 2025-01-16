@@ -394,7 +394,7 @@ gen3_db_namespace() {
 #
 # Given a gen3 server name, determine the RDS instance id
 #
-gen3_db_server_rds_id() {
+gen3_db_server_aurora_cluster() {
   local address
   local serverInfo
 
@@ -406,7 +406,7 @@ gen3_db_server_rds_id() {
     gen3_log_err "unable to determine address for $@"
     return 1
   fi
-  aws rds describe-db-instances | jq -e -r --arg address "$address" '.DBInstances[] | select(.Endpoint.Address==$address) | .DBInstanceIdentifier'
+  aws rds describe-db-instances | jq -e -r --arg address "$address" '.DBInstances[] | select(.Endpoint.Address==$address) | .DBClusterIdentifier'
 }
 
 #
@@ -431,7 +431,7 @@ gen3_db_snapshot_take() {
     dryRun=true
   fi
   local instanceId
-  if ! instanceId="$(gen3_db_server_rds_id "$serverName")"; then
+  if ! instanceId="$(gen3_db_server_aurora_cluster "$serverName")"; then
     gen3_log_err "failed to find rds instance id for server: $serverName"
     return 1
   fi
@@ -439,7 +439,7 @@ gen3_db_snapshot_take() {
   if [[ "$dryRun" == true ]]; then
     gen3_log_info "dryrun mode - not taking snapshot"
   else
-    aws rds create-db-snapshot --db-snapshot-identifier "$snapshotId" --db-instance-identifier "$instanceId"
+    aws rds create-db-cluster-snapshot --db-cluster-snapshot-identifier "$snapshotId" --db-cluster-identifier "$instanceId"
   fi
 }
 
@@ -457,11 +457,11 @@ gen3_db_snapshot_list() {
     return 1
   fi
   local instanceId
-  if ! instanceId="$(gen3_db_server_rds_id "$serverName")"; then
+  if ! instanceId="$(gen3_db_server_aurora_cluster "$serverName")"; then
     gen3_log_err "failed to find rds instance id for server: $serverName"
     return 1
   fi
-  aws rds describe-db-snapshots --db-instance-identifier "$instanceId"
+  aws rds describe-db-cluster-snapshots --db-cluster-identifier "$instanceId"
 }
 
 
