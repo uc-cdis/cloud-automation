@@ -78,6 +78,9 @@ else
       if [ -n "$envname" ]; then
         ES_ENDPOINT="$(aws es describe-elasticsearch-domains --domain-names "${envname}"-gen3-metadata --query "DomainStatusList[*].Endpoints" --output text)" 
         ES_ARN="$(aws es describe-elasticsearch-domains --domain-names "${envname}"-gen3-metadata --query "DomainStatusList[*].ARN" --output text)"
+      else
+        deploy=false
+      fi
     else
       if [ -n "$envname" ]; then
         ES_ENDPOINT="$(aws es describe-elasticsearch-domains --domain-names "${envname}"-gen3-metadata-2 --query "DomainStatusList[*].Endpoints" --output text)" 
