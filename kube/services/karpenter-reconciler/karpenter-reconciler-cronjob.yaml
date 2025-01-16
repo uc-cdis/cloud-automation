@@ -33,6 +33,8 @@ spec:
                 - "-c"
                 - |
                   #!/bin/bash
+                  ENVIRONMENT=$(kubectl -n default get configmap global -o jsonpath="{.data.environment}")
+
                   if [ "$ENVIRONMENT" = "vhdcprod" ]; then
                     ENVIRONMENT_TYPE_CODE="production"
                   elif [ "$ENVIRONMENT" = "va-testing" ]; then
@@ -48,8 +50,6 @@ spec:
                   if [ -z "$NODECLASS_TEMPLATE" ]; then
                     NODECLASS_TEMPLATE="/manifests/nodeclass.yaml"
                   fi
-
-                  ENVIRONMENT=$(kubectl -n default get configmap global -o jsonpath="{.data.environment}")
 
                   WORKFLOWS=$(kubectl get workflows -n argo -o=jsonpath='{range .items[*]}{.metadata.name}{" "}{.metadata.labels.gen3username}{" "}{.metadata.labels.gen3teamproject}{"\n"}')
 
