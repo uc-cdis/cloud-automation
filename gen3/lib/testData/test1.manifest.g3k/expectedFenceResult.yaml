@@ -29,8 +29,8 @@ spec:
         netnolimit: "yes"
         public: "yes"
         userhelper: "yes"
-        service: "fence"
         env: null
+        hostname: null
         version: 'master'
         date: "1579711361"
     spec:
