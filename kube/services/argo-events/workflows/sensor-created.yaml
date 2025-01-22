@@ -64,6 +64,13 @@ spec:
                           - "-c"
                           - |
                             #!/bin/bash
+                            if [ "$ENVIRONMENT" = "vhdcprod" ]; then
+                              ENVIRONMENT_TYPE_CODE="production"
+                            elif [ "$ENVIRONMENT" = "va-testing" ]; then
+                              ENVIRONMENT_TYPE_CODE="testing"
+                            else
+                              ENVIRONMENT_TYPE_CODE="$ENVIRONMENT"
+                            fi
 
                             if [ -z "$NODEPOOL_TEMPLATE" ]; then
                               NODEPOOL_TEMPLATE="/manifests/nodepool.yaml"
@@ -74,11 +81,11 @@ spec:
                             fi
 
                             if ! kubectl get ec2nodeclass workflow-$WORKFLOW_NAME >/dev/null 2>&1; then
-                              sed -e "s/WORKFLOW_NAME/$WORKFLOW_NAME/" -e "s/GEN3_USERNAME/$GEN3_USERNAME/" -e "s/GEN3_TEAMNAME/$GEN3_TEAMNAME/" -e "s/ENVIRONMENT/$ENVIRONMENT/" "$NODECLASS_TEMPLATE" | kubectl apply -f - 
+                              sed -e "s/ENVIRONMENT_TYPE_CODE/$ENVIRONMENT_TYPE_CODE/" -e "s/WORKFLOW_NAME/$WORKFLOW_NAME/" -e "s/GEN3_USERNAME/$GEN3_USERNAME/" -e "s/GEN3_TEAMNAME/$GEN3_TEAMNAME/" -e "s/ENVIRONMENT/$ENVIRONMENT/" "$NODECLASS_TEMPLATE" | kubectl apply -f - 
                             fi
 
                             if ! kubectl get nodepool workflow-$WORKFLOW_NAME >/dev/null 2>&1; then
-                              sed -e "s/WORKFLOW_NAME/$WORKFLOW_NAME/" -e "s/GEN3_USERNAME/$GEN3_USERNAME/" -e "s/GEN3_TEAMNAME/$GEN3_TEAMNAME/" -e "s/ENVIRONMENT/$ENVIRONMENT/" "$NODEPOOL_TEMPLATE" | kubectl apply -f - 
+                              sed -e "s/ENVIRONMENT_TYPE_CODE/$ENVIRONMENT_TYPE_CODE/" -e "s/WORKFLOW_NAME/$WORKFLOW_NAME/" -e "s/GEN3_USERNAME/$GEN3_USERNAME/" -e "s/GEN3_TEAMNAME/$GEN3_TEAMNAME/" -e "s/ENVIRONMENT/$ENVIRONMENT/" "$NODEPOOL_TEMPLATE" | kubectl apply -f - 
                             fi
                         env:
                           - name: WORKFLOW_NAME

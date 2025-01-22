@@ -42,6 +42,9 @@ data:
         karpenter.sh/discovery: ENVIRONMENT
         purpose: workflow
         workflowname: WORKFLOW_NAME
+        "vadc:cost-type": user-based-variable
+        "vadc:usage-type": user-infrastructure
+        "vadc:environment-type": "ENVIRONMENT_TYPE_CODE"
       userData: |
         MIME-Version: 1.0
         Content-Type: multipart/mixed; boundary="BOUNDARY"
