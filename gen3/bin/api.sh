@@ -68,7 +68,9 @@ gen3_access_token() {
   if [ "$skip_cache" != "true" ]; then
     gen3_access_token_from_cache "$username" && return 0
   fi
-  g3kubectl exec -c fence $(gen3 pod fence) -- fence-create token-create --scopes openid,user,fence,data,credentials,google_service_account --type access_token --exp ${exp} --username ${username} | tail -1 | gen3_access_token_to_cache "$username"
+  # Adding a fallback to `poetry run fence-create` to cater to fence containers with amazon linux.
+  g3kubectl exec -c fence $(gen3 pod fence) -- fence-create token-create --scopes openid,user,fence,data,credentials,google_service_account --type access_token --exp ${exp} --username ${username} | tail -1 | gen3_access_token_to_cache "$username" || \
+    g3kubectl exec -c fence $(gen3 pod fence) -- poetry run fence-create token-create --scopes openid,user,fence,data,credentials,google_service_account --type access_token --exp ${exp} --username ${username} | tail -1 | gen3_access_token_to_cache "$username"
 }
 
 #

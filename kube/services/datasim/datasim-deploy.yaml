@@ -188,7 +188,10 @@ spec:
               sleepTime=10
               # retry loop
               while [[ $count -lt 3 && $success == false ]]; do
-                if fence-create --path fence token-create --type access_token --username $SUBMISSION_USER  --scopes openid,user,test-client --exp 36000 > "$tempFile"; then
+                if (
+                  fence-create --path fence token-create --type access_token --username $SUBMISSION_USER  --scopes openid,user,test-client --exp 36000 || \
+                    poetry run fence-create --path fence token-create --type access_token --username $SUBMISSION_USER  --scopes openid,user,test-client --exp 36000 
+                ) > "$tempFile"; then
                   echo "fence-create success!"
                   tail -1 "$tempFile" > /mnt/shared/access_token.txt
                   # base64 --decode complains about invalid characters - don't know why
