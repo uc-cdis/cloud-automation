@@ -257,10 +257,10 @@ spec:
           - |
             echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
             poetry run python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml || python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
-            if fence-create migrate --help > /dev/null 2>&1; then
+            if (fence-create migrate --help || poetry run fence-create migrate --help) > /dev/null 2>&1; then
               if ! grep -E 'ENABLE_DB_MIGRATION"?: *false' /var/www/fence/fence-config.yaml; then
                 echo "Running db migration: fence-create migrate"
-                fence-create migrate
+                fence-create migrate || poetry run fence-create migrate
               else
                 echo "Db migration disabled in fence-config"
               fi

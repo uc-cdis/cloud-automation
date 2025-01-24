@@ -5,9 +5,15 @@ create_client_and_secret() {
     local hostname=$(gen3 api hostname)
     local client_name="cedar_ingest_client"
     gen3_log_info "kube-setup-cedar-wrapper" "creating fence ${client_name} for $hostname"
+
+# Adding a fallback to `poetry run fence-create` to cater to fence containers with amazon linux.
     # delete any existing fence cedar clients
-    g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-delete --client ${client_name} > /dev/null 2>&1
-    local secrets=$(g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-create --client ${client_name} --grant-types client_credentials | tail -1)
+    g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-delete --client ${client_name} > /dev/null 2>&1 || \
+        g3kubectl exec -c fence $(gen3 pod fence) -- poetry run fence-create client-delete --client ${client_name} > /dev/null 2>&1
+    local secrets=$(
+        (g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-create --client ${client_name} --grant-types client_credentials | tail -1) 2>/dev/null || \
+            g3kubectl exec -c fence $(gen3 pod fence) -- poetry run fence-create client-create --client ${client_name} --grant-types client_credentials | tail -1
+    )
     # secrets looks like ('CLIENT_ID', 'CLIENT_SECRET')
     if [[ ! $secrets =~ (\'(.*)\', \'(.*)\') ]]; then
         gen3_log_err "kube-setup-cedar-wrapper" "Failed generating ${client_name}"
@@ -36,7 +42,10 @@ setup_creds() {
     fi
 
     local client_name="cedar_ingest_client"
-    local client_list=$(g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-list)
+    local client_list=$(
+        (g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-list) 2>/dev/null || \
+            g3kubectl exec -c fence $(gen3 pod fence) -- poetry run fence-create client-list
+    )
     local client_count=$(echo "$client_list=" | grep -cE "'name':.*'${client_name}'")
     gen3_log_info "CEDAR client count = ${client_count}"
 

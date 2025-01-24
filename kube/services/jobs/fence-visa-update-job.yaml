@@ -113,7 +113,7 @@ spec:
                 create_command+=" --concurrency $CONCURRENCY"
             fi
 
-            $create_command
+            $create_command || poetry run $create_command
             exitcode=$?
 
             if [ "${slackWebHook}" != 'None' ]; then

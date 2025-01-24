@@ -8,12 +8,20 @@ new_client() {
   local hostname=$(gen3 api hostname)
   superset_hostname="superset.${hostname}"
   gen3_log_info "kube-setup-superset" "creating fence oidc client for $superset_hostname"
-  local secrets=$(g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-create --client superset --urls https://${superset_hostname}/oauth-authorized/fence --username superset | tail -1)
+  # Adding a fallback to `poetry run fence-create` to cater to fence containers with amazon linux.
+  local secrets=$(
+    (g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-create --client superset --urls https://${superset_hostname}/oauth-authorized/fence --username superset | tail -1) 2>/dev/null || \
+        g3kubectl exec -c fence $(gen3 pod fence) -- poetry run fence-create client-create --client superset --urls https://${superset_hostname}/oauth-authorized/fence --username superset | tail -1
+  )
   # secrets looks like ('CLIENT_ID', 'CLIENT_SECRET')
   if [[ ! $secrets =~ (\'(.*)\', \'(.*)\') ]]; then
       # try delete client
-      g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-delete --client superset > /dev/null 2>&1
-      secrets=$(g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-create --client superset --urls https://${superset_hostname}/oauth-authorized/fence --username superset | tail -1)
+      g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-delete --client superset > /dev/null 2>&1 || \
+        g3kubectl exec -c fence $(gen3 pod fence) -- poetry run fence-create client-delete --client superset > /dev/null 2>&1
+      secrets=$(
+        (g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-create --client superset --urls https://${superset_hostname}/oauth-authorized/fence --username superset | tail -1) 2>/dev/null || \
+            g3kubectl exec -c fence $(gen3 pod fence) -- poetry run fence-create client-create --client superset --urls https://${superset_hostname}/oauth-authorized/fence --username superset | tail -1
+      )
       if [[ ! $secrets =~ (\'(.*)\', \'(.*)\') ]]; then
           gen3_log_err "kube-setup-superset" "Failed generating oidc client for superset: $secrets"
           return 1

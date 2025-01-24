@@ -192,7 +192,7 @@ spec:
                 create_command+=" --access-logs-bucket $ACCESS_LOGS_BUCKET"
             fi
 
-            fence-create ${create_command}
+            fence-create ${create_command} || poetry run fence-create ${create_command}
 
             if [[ $? != 0 ]]; then
               echo "WARNING: non zero exit code: $?"

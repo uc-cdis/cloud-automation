@@ -70,9 +70,9 @@ spec:
             echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
             poetry run python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml || python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
             if [[ "$slackWebHook" =~ ^http ]]; then
-              fence-create client-delete-expired --slack-webhook $slackWebHook --warning-days 7
+              fence-create client-delete-expired --slack-webhook $slackWebHook --warning-days 7 || poetry run fence-create client-delete-expired --slack-webhook $slackWebHook --warning-days 7
             else
-              fence-create client-delete-expired
+              fence-create client-delete-expired || poetry run fence-create client-delete-expired
             fi
             exit $?
       restartPolicy: Never
