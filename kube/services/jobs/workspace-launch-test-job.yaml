@@ -89,14 +89,14 @@ spec:
                 fi
               fi
               echo "generate access token"
-              echo "fence-create --path fence token-create --type access_token --username $TEST_OPERATOR --scopes openid,user,test-client,credential,data --exp $TOKEN_EXPIRATION"
+              echo "fence-create --path fence token-create --type access_token --username $TEST_OPERATOR --scopes openid,user,test-client,credentials,data --exp $TOKEN_EXPIRATION"
               tempFile="$(mktemp -p /tmp token.txt_XXXXXX)"
               success=false
               count=0
               sleepTime=10
               # retry loop
               while [[ $count -lt 3 && $success == false ]]; do
-                if fence-create --path fence token-create --type access_token --username $TEST_OPERATOR --scopes openid,user,test-client,credential,data --exp $TOKEN_EXPIRATION > "$tempFile"; then
+                if fence-create --path fence token-create --type access_token --username $TEST_OPERATOR --scopes openid,user,test-client,credentials,data --exp $TOKEN_EXPIRATION > "$tempFile"; then
                   echo "fence-create success!"
                   tail -1 "$tempFile" > /mnt/shared/access_token.txt
                   # base64 --decode complains about invalid characters - don't know why
@@ -120,7 +120,9 @@ spec:
         env:
           - name: COMMONS_URL
             GEN3_COMMONS_URL|-value: ""-|
-        image: quay.io/cdis/awshelper:master
+          - name: NOTEBOOK
+            GEN3_NOTEBOOK|-value: ""-|
+        image: quay.io/cdis/awshelper:chore_heal-workspaces-test
         imagePullPolicy: Always
         volumeMounts:
           - name: shared-data
@@ -150,8 +152,14 @@ spec:
               python3 -m pip3 install requests
               python3 -m pip3 install logging
 
+              flags= "--commons-url $COMMONS_URL --access-token $ACCESS_TOKEN"
+
+              if [[ -n "$NOTEBOOK" ]]; then
+                flags="$flags --notebook $NOTEBOOK"
+              fi
+
               echo "Running cloud-automation/files/scripts/workspaces_launch_test.py ..."
-              python3 cloud-automation/files/scripts/workspaces_launch_test.py --commons-url $COMMONS_URL --access-token $ACCESS_TOKEN
+              python3 ~/cloud-automation/files/scripts/workspaces_launch_test.py $flags
               echo "Exit code: $?"
 
       restartPolicy: Never
