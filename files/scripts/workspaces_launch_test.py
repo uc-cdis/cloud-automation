@@ -18,7 +18,7 @@ def parse_args():
     )
     parser.add_argument(
         "--commons-url",
-        dest="COMMONS_URL",
+        dest="commons_url",
         help="Specify the Commons URL to test"
     )
     parser.add_argument(
