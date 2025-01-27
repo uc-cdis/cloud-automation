@@ -9,7 +9,7 @@ workspace_internal_url = "http://workspace-token-service"
 
 def main():
     args = parse_args()
-    tester = WorkspaceLaunchTest(commons_url=args.COMMONS_URL, access_token=args.access_token)
+    tester = WorkspaceLaunchTest(commons_url=args.commons_url, access_token=args.access_token)
     tester.start_workspace_launch_test()
 
 def parse_args():
