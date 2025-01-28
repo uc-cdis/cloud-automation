@@ -152,13 +152,13 @@ spec:
               python3 -m pip3 install requests
               python3 -m pip3 install logging
 
-              flags= "--commons-url $COMMONS_URL --access-token $ACCESS_TOKEN"
+              flags="--commons-url $COMMONS_URL --access-token $ACCESS_TOKEN"
 
               if [[ -n "$NOTEBOOK" ]]; then
                 flags="$flags --notebook $NOTEBOOK"
               fi
 
-              echo "Running cloud-automation/files/scripts/workspaces_launch_test.py ..."
+              echo "Running cloud-automation/files/scripts/workspaces_launch_test.py $flags..."
               python3 ~/cloud-automation/files/scripts/workspaces_launch_test.py $flags
               echo "Exit code: $?"
 

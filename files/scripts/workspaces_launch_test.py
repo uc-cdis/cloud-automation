@@ -6,6 +6,7 @@ import logging
 import requests
 
 workspace_internal_url = "http://workspace-token-service"
+logging.basicConfig(level=logging.INFO, format='%(message)s')
 
 def main():
     args = parse_args()
@@ -34,17 +35,6 @@ def parse_args():
 
     return parser.parse_args()
 
-
-class StructuredMessage:
-    def __init__(self, message, /, **kwargs):
-        self.message = message
-        self.kwargs = kwargs
-
-    def __str__(self):
-        return '%s >>> %s' % (self.message, json.dumps(self.kwargs))
-
-_ = StructuredMessage
-logging.basicConfig(level=logging.INFO, format='%(message)s')
 
 class WorkspaceLaunchTest:
     def __init__(self, commons_url, access_token, notebook="(Generic, Limited Gen3-licensed) Stata Notebook"):
@@ -123,16 +113,19 @@ class WorkspaceLaunchTest:
             error_msg = f"Couldn't terminate workspace with error : {e}"
             logging.error(error_msg)
             self.reason_for_failure = error_msg
+
+        json_result = {
+            "start_time": self.start_time,
+            "end_time": self.end_time,
+            "duration": self.end_time - self.start_time,
+            "result": self.launch_status,
+            "reason_for_failure": self.reason_for_failure,
+            "status_response": self.status_response
+        }
+        json_result = json.dumps(json_result)
+        logging.info("Result:")
+        logging.info(json_result)
         
-        logging.info(_(
-            "Result: ", 
-            start_time = self.start_time,
-            end_time = self.end_time, 
-            duration = self.end_time - self.start_time, 
-            result = self.launch_status, 
-            reason_for_failure = self.reason_for_failure,
-            status_response = self.status_response)
-            )
 
     def monitor_workspace_status(self, interval=10):
         status_url = self.commons_url + "/lw-workspace/status"
@@ -146,10 +139,8 @@ class WorkspaceLaunchTest:
                 logging.error(error_msg)
                 self.reason_for_failure = error_msg
 
-            logging.info(_(
-                "Launch Response:",
-                status_response = status_response.json()
-            ))
+            logging.info("Launch Response:")
+            logging.info(json.dumps(status_response.json()))
 
             if status_response.json()["status"] == "Running":
                 self.launch_status = "Running"
