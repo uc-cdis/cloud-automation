@@ -6,25 +6,29 @@ setup_funnel_infra() {
   helm repo add ohsu https://ohsu-comp-bio.github.io/helm-charts
   helm repo update ohsu
 
+  # NOTE: to update once Funnel supports per-user bucket credentials
+  cat - > "$secretsFolder/funnel.conf" <<EOM
+AmazonS3:
+  Key: PLACEHOLDER
+  Secret: PLACEHOLDER
+  Disabled: false
+
+Kubernetes:
+  Bucket: PLACEHOLDER
+  Region: us-east-1
+
+Logger:
+  # Logging levels: debug, info, error
+  Level: info
+EOM
+
   namespace="$(gen3 db namespace)"
   version="$(g3k_manifest_lookup .versions.funnel)"
   if [ "$version" == "latest" ]; then
-  helm upgrade --install funnel ohsu/funnel --namespace $namespace
+    helm upgrade --install funnel ohsu/funnel --namespace $namespace --values "$secretsFolder/funnel.conf"
   else
-    helm upgrade --install funnel ohsu/funnel --namespace $namespace --version $version
+    helm upgrade --install funnel ohsu/funnel --namespace $namespace --values "$secretsFolder/funnel.conf" --version $version
   fi
-
-  # NOTE: this config is needed until funnel supports per-user buckets:
-  # funnel.conf
-    # AmazonS3:
-    #   Key: <KEY>
-    #   Secret: <SECRET>
-    #   Disabled: false
-
-    # Kubernetes:
-    #   Bucket: <BUCKET>
-    #   Region: <REGION>
-  # helm upgrade --install funnel ohsu/funnel --values funnel.conf
 }
 
 setup_gen3_workflow_infra() {
@@ -33,41 +37,10 @@ setup_gen3_workflow_infra() {
   # grant the gen3-workflow service account the AWS access the service needs
   saName="gen3-workflow-sa"
   gen3_log_info Setting up service account $saName
-  # TODO remove key stuff from policy if not needed anymore
   policy=$( cat <<EOM
 {
-"Version": "2012-10-17",
-"Statement": [
-  {
-    "Sid": "ManageIamUsers",
-    "Effect": "Allow",
-    "Action": [
-      "iam:CreateUser",
-      "iam:TagUser",
-      "iam:AttachUserPolicy",
-      "iam:CreateAccessKey",
-      "iam:ListAccessKeys",
-      "iam:DeleteAccessKey"
-    ],
-    "Resource": [
-      "arn:aws:iam::*:user/gen3wf-*"
-    ]
-    },
-    {
-      "Sid": "ManageIamPolicies",
-      "Effect": "Allow",
-      "Action": [
-        "iam:CreatePolicy",
-        "iam:TagPolicy",
-        "iam:ListPolicies",
-        "iam:CreatePolicyVersion",
-        "iam:ListPolicyVersions",
-        "iam:DeletePolicyVersion"
-      ],
-      "Resource": [
-        "arn:aws:iam::*:policy/gen3wf-*"
-      ]
-    },
+  "Version": "2012-10-17",
+  "Statement": [
 		{
 		  "Sid": "ManageS3Buckets",
       "Effect": "Allow",
@@ -155,7 +128,7 @@ EOM
     fi
     cat - > "$secretsFolder/gen3-workflow-config.yaml" <<EOM
 HOSTNAME: $hostname
-DEBUG: false
+APP_DEBUG: false
 
 DB_HOST: $(jq -r .db_host < "$secretsFolder/dbcreds.json")
 DB_USER: $(jq -r .db_username < "$secretsFolder/dbcreds.json")
