@@ -243,6 +243,13 @@ else
   gen3_log_info "not deploying dicom-viewer - no manifest entry for '.versions[\"dicom-viewer\"]'"
 fi
 
+if g3k_manifest_lookup '.versions["ohif-viewer"]' 2> /dev/null || g3k_manifest_lookup '.versions["orthanc"]' 2> /dev/null; then
+  gen3 kube-setup-dicom &
+else
+  gen3_log_info "not deploying - no manifest entry for '.versions[\"ohif-viewer\"]' or '.versions[\"orthanc\"]'"
+fi
+
+
 if g3k_manifest_lookup '.versions["gen3-discovery-ai"]' 2> /dev/null; then
   gen3 kube-setup-gen3-discovery-ai &
 else

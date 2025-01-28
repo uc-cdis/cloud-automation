@@ -59,7 +59,7 @@ test_s3_info() {
   }
 
   ! gen3_s3_info bogus-bucket; because $? "when bucket doesn't exist it should fail"
-  policies=$(gen3_s3_info real-bucket); because $? "when bucket and policies exist it should succeed" 
+  policies=$(gen3_s3_info real-bucket-ci); because $? "when bucket and policies exist it should succeed" 
   readOnly="$(echo $policies | jq '."read-only"')"
   readWrite="$(echo $policies | jq '."read-write"')"
   [[ "$readOnly" != "{}" && "$readOnly" != "null" && "$readOnly" != "" ]]; because $? "when bucket and policies exist the result should include read-only policy"
