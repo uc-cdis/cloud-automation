@@ -212,6 +212,7 @@ spec:
               exitcode=$?
             else
               output=$(mktemp "/tmp/fence-create-output_XXXXXX")
+              set -o pipefail
               if [[ -f /mnt/shared/user.yaml && "$ONLY_DBGAP" != "true" ]]; then
                 echo "Running fence-create dbgap-sync with user.yaml - see $output"
                 time (
@@ -225,6 +226,7 @@ spec:
                     poetry run fence-create sync --arborist http://arborist-service --sync_from_dbgap "True" --projects /var/www/fence/projects.yaml 2>&1 | tee "$output"
                 )
               fi
+              set +o pipefail
               exitcode="${PIPESTATUS[0]}"
               echo "$output"
               # Echo what files we are seeing on dbgap ftp to Slack
