@@ -10,10 +10,13 @@ create_client_and_secret() {
     # delete any existing fence cedar clients
     g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-delete --client ${client_name} > /dev/null 2>&1 || \
         g3kubectl exec -c fence $(gen3 pod fence) -- poetry run fence-create client-delete --client ${client_name} > /dev/null 2>&1
+    
+    set -o pipefail
     local secrets=$(
         (g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-create --client ${client_name} --grant-types client_credentials | tail -1) 2>/dev/null || \
             g3kubectl exec -c fence $(gen3 pod fence) -- poetry run fence-create client-create --client ${client_name} --grant-types client_credentials | tail -1
     )
+    set +o pipefail
     # secrets looks like ('CLIENT_ID', 'CLIENT_SECRET')
     if [[ ! $secrets =~ (\'(.*)\', \'(.*)\') ]]; then
         gen3_log_err "kube-setup-cedar-wrapper" "Failed generating ${client_name}"

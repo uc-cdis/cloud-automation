@@ -29,6 +29,7 @@ if ! g3kubectl describe secret pelicanservice-g3auto | grep config.json > /dev/n
     hostname=$(gen3 api hostname)
     gen3_log_info "kube-setup-sower-jobs" "creating fence oidc client for $hostname"
     # Adding a fallback to `poetry run fence-create` to cater to fence containers with amazon linux.
+    set -o pipefail
     secrets=$(
       (g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-create --client pelican-export-job --grant-types client_credentials | tail -1) 2>/dev/null || \
         g3kubectl exec -c fence $(gen3 pod fence) -- poetry run fence-create client-create --client pelican-export-job --grant-types client_credentials | tail -1
@@ -47,6 +48,7 @@ if ! g3kubectl describe secret pelicanservice-g3auto | grep config.json > /dev/n
             return 1
         fi
     fi
+    set +o pipefail
     pelican_export_client_id="${BASH_REMATCH[2]}"
     pelican_export_client_secret="${BASH_REMATCH[3]}"
 

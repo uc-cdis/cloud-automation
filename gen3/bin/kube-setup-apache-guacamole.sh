@@ -12,7 +12,7 @@ new_client() {
   gen3_log_info "kube-setup-apache-guacamole" "creating fence oidc client for Apache Guacamole"
   local fence_client="guacamole"
   # Adding a fallback to `poetry run fence-create` to cater to fence containers with amazon linux.
-  
+  set -o pipefail
   local secrets=$(
     (g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-create --client $fence_client --urls https://${hostname}/guac/guacamole/#/ --username guacamole --auto-approve --public --external --allowed-scopes openid profile email user | tail -1) 2>/dev/null || \
       g3kubectl exec -c fence $(gen3 pod fence) -- poetry run fence-create client-create --client $fence_client --urls https://${hostname}/guac/guacamole/#/ --username guacamole --auto-approve --public --external --allowed-scopes openid profile email user | tail -1
@@ -31,6 +31,7 @@ new_client() {
           return 1
       fi
   fi
+  set +o pipefail
   local FENCE_CLIENT_ID="${BASH_REMATCH[2]}"
   local FENCE_CLIENT_SECRET="${BASH_REMATCH[3]}"
   gen3_log_info "create guacamole-secret"

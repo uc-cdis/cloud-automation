@@ -12,6 +12,7 @@ setup_config() {
   if [[ ! -f "$secretsFolder/config.json" ]]; then
     local hostname=$(gen3 api hostname)
     gen3_log_info "kube-setup-metadata-delete-expired-objects-job" "creating fence oidc client for $hostname"
+    set -o pipefail
     # Adding a fallback to `poetry run fence-create` to cater to fence containers with amazon linux.
     local secrets=$(
       (g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-create --client metadata-delete-expired-objects-job --grant-types client_credentials | tail -1) 2>/dev/null || \
@@ -33,6 +34,7 @@ setup_config() {
             return 1
         fi
     fi
+    set +o pipefail
     local client_id="${BASH_REMATCH[2]}"
     local client_secret="${BASH_REMATCH[3]}"
 

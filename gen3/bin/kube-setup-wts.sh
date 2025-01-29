@@ -15,6 +15,7 @@ new_client() {
   local hostname=$(gen3 api hostname)
   gen3_log_info "kube-setup-wts" "creating fence oidc client for $hostname"
   # Adding a fallback to `poetry run fence-create` to cater to fence containers with amazon linux.
+  set -o pipefail
   local secrets=$(
     (g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-create --client wts --urls "https://${hostname}/wts/oauth2/authorize" --username wts --auto-approve | tail -1) 1>/dev/null || \
       g3kubectl exec -c fence $(gen3 pod fence) -- poetry run fence-create client-create --client wts --urls "https://${hostname}/wts/oauth2/authorize" --username wts --auto-approve | tail -1
@@ -33,6 +34,7 @@ new_client() {
           return 1
       fi
   fi
+  set +o pipefail
   local client_id="${BASH_REMATCH[2]}"
   local client_secret="${BASH_REMATCH[3]}"
   local encryption_key="$(random_alphanumeric 32 | base64)"
