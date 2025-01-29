@@ -128,6 +128,12 @@ class WorkspaceLaunchTest:
         
 
     def monitor_workspace_status(self, interval=10):
+        """
+        In an interval of given time (in seconds) hit the workspace status endpoint to monitor the status of the workspace
+
+        Args:
+            interval (int, optional): Interval (in seconds) to hit the options endpoint. Defaults to 10 seconds.
+        """
         status_url = self.commons_url + "/lw-workspace/status"
 
         while True:

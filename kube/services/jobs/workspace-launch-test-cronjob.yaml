@@ -1,3 +1,7 @@
+# To run: gen3 job run workspace-launch-test-cronjob COMMONS_URL <commons base url> NOTEBOOK <NOTEBOOK name>
+# example: gen3 job run workspace-launch-test-cronjob COMMONS_URL https://qa-heal.planx-pla.net NOTEBOOK '(Generic) Jupyter Lab Notebook with R Kernel'
+# If NOTEBOOK isn't provided, it defaults to '(Generic) Jupyter Lab Notebook with R Kernel'
+
 apiVersion: batch/v1
 kind: CronJob
 metadata:
