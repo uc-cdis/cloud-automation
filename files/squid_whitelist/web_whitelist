@@ -82,7 +82,6 @@ gopkg.in
 grafana.com
 grafana.github.io
 helm.elastic.co
-helm.localstack.cloud
 http.us.debian.org
 ifconfig.io
 ingress.coralogix.us
@@ -93,6 +92,7 @@ kubecost.github.io
 kubernetes.github.io
 kubernetes-sigs.github.io
 lib.stat.cmu.edu
+localstack.github.io
 login.mathworks.com
 login.microsoftonline.com
 maven.restlet.org
