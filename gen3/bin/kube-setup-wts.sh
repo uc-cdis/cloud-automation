@@ -14,12 +14,20 @@ gen3_load "gen3/lib/kube-setup-init"
 new_client() {
   local hostname=$(gen3 api hostname)
   gen3_log_info "kube-setup-wts" "creating fence oidc client for $hostname"
-  local secrets=$(g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-create --client wts --urls "https://${hostname}/wts/oauth2/authorize" --username wts --auto-approve | tail -1)
+  # Adding a fallback to `poetry run fence-create` to cater to fence containers with amazon linux.
+  local secrets=$(
+    (g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-create --client wts --urls "https://${hostname}/wts/oauth2/authorize" --username wts --auto-approve | tail -1) 1>/dev/null || \
+      g3kubectl exec -c fence $(gen3 pod fence) -- poetry run fence-create client-create --client wts --urls "https://${hostname}/wts/oauth2/authorize" --username wts --auto-approve | tail -1
+  )
   # secrets looks like ('CLIENT_ID', 'CLIENT_SECRET')
   if [[ ! $secrets =~ (\'(.*)\', \'(.*)\') ]]; then
       # try delete client
-      g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-delete --client wts > /dev/null 2>&1
-      secrets=$(g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-create --client wts --urls "https://${hostname}/wts/oauth2/authorize" --username wts --auto-approve | tail -1)
+      g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-delete --client wts > /dev/null 2>&1 || \
+        g3kubectl exec -c fence $(gen3 pod fence) -- poetry run  fence-create client-delete --client wts > /dev/null 2>&1
+      secrets=$(
+        (g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-create --client wts --urls "https://${hostname}/wts/oauth2/authorize" --username wts --auto-approve | tail -1) 1>/dev/null || \
+              g3kubectl exec -c fence $(gen3 pod fence) -- poetry run fence-create client-create --client wts --urls "https://${hostname}/wts/oauth2/authorize" --username wts --auto-approve | tail -1
+      )
       if [[ ! $secrets =~ (\'(.*)\', \'(.*)\') ]]; then
           gen3_log_err "kube-setup-wts" "Failed generating oidc client for workspace token service: $secrets"
           return 1

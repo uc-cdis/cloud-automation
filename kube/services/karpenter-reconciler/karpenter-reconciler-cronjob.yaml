@@ -33,6 +33,16 @@ spec:
                 - "-c"
                 - |
                   #!/bin/bash
+                  ENVIRONMENT=$(kubectl -n default get configmap global -o jsonpath="{.data.environment}")
+
+                  if [ "$ENVIRONMENT" = "vhdcprod" ]; then
+                    ENVIRONMENT_TYPE_CODE="production"
+                  elif [ "$ENVIRONMENT" = "va-testing" ]; then
+                    ENVIRONMENT_TYPE_CODE="testing"
+                  else
+                    ENVIRONMENT_TYPE_CODE="$ENVIRONMENT"
+                  fi
+
                   if [ -z "$NODEPOOL_TEMPLATE" ]; then
                     NODEPOOL_TEMPLATE="/manifests/provisioner.yaml"
                   fi
@@ -40,8 +50,6 @@ spec:
                   if [ -z "$NODECLASS_TEMPLATE" ]; then
                     NODECLASS_TEMPLATE="/manifests/nodeclass.yaml"
                   fi
-
-                  ENVIRONMENT=$(kubectl -n default get configmap global -o jsonpath="{.data.environment}")
 
                   WORKFLOWS=$(kubectl get workflows -n argo -o=jsonpath='{range .items[*]}{.metadata.name}{" "}{.metadata.labels.gen3username}{" "}{.metadata.labels.gen3teamproject}{"\n"}')
 
@@ -62,12 +70,12 @@ spec:
                     if [ ! -z "$workflow_name" ]; then
                       if ! kubectl get ec2nodeclass workflow-$workflow_name >/dev/null 2>&1; then
                         echo "No awsnodetemplate found for ${workflow_name}, creating one"
-                        sed -e "s/WORKFLOW_NAME/$workflow_name/" -e "s/GEN3_TEAMNAME/$workflow_team/" -e "s/GEN3_USERNAME/$workflow_user/" -e "s/ENVIRONMENT/$ENVIRONMENT/" "$NODECLASS_TEMPLATE" | kubectl apply -f -
+                        sed -e "s/ENVIRONMENT_TYPE_CODE/$ENVIRONMENT_TYPE_CODE/" -e "s/WORKFLOW_NAME/$workflow_name/" -e "s/GEN3_TEAMNAME/$workflow_team/" -e "s/GEN3_USERNAME/$workflow_user/" -e "s/ENVIRONMENT/$ENVIRONMENT/" "$NODECLASS_TEMPLATE" | kubectl apply -f -
                       fi
 
                       if ! kubectl get nodepool workflow-$workflow_name >/dev/null 2>&1; then
                         echo "No provisioner found for ${workflow_name}, creating one"
-                        sed -e "s/WORKFLOW_NAME/$workflow_name/" -e "s/GEN3_TEAMNAME/$workflow_team/" -e "s/GEN3_USERNAME/$workflow_user/" -e "s/ENVIRONMENT/$ENVIRONMENT/" "$NODEPOOL_TEMPLATE" | kubectl apply -f -
+                        sed -e "s/ENVIRONMENT_TYPE_CODE/$ENVIRONMENT_TYPE_CODE/" -e "s/WORKFLOW_NAME/$workflow_name/" -e "s/GEN3_TEAMNAME/$workflow_team/" -e "s/GEN3_USERNAME/$workflow_user/" -e "s/ENVIRONMENT/$ENVIRONMENT/" "$NODEPOOL_TEMPLATE" | kubectl apply -f -
 
                       fi
                     fi
