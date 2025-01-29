@@ -114,7 +114,7 @@ spec:
           - |
             echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
             poetry run python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml || python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
-            fence-create google-manage-account-access
+            fence-create google-manage-account-access || poetry run fence-create google-manage-account-access
             if [[ $? != 0 ]]; then
               echo "WARNING: non zero exit code: $?"
             fi
