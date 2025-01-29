@@ -144,6 +144,7 @@ class WorkspaceLaunchTest:
 
             if status_response.json()["status"] == "Running":
                 self.launch_status = "Running"
+                self.status_response = status_response.json()
                 break
 
             time.sleep(interval)

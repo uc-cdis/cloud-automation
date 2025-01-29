@@ -122,7 +122,7 @@ spec:
             GEN3_COMMONS_URL|-value: ""-|
           - name: NOTEBOOK
             GEN3_NOTEBOOK|-value: ""-|
-        image: quay.io/cdis/awshelper:chore_heal-workspaces-test
+        image: quay.io/cdis/awshelper:master
         imagePullPolicy: Always
         volumeMounts:
           - name: shared-data
