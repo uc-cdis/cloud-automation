@@ -1,9 +1,49 @@
 # Build from root of cloud-automation/ repo:
 #   docker build -f Docker/awshelper/Dockerfile 
 #
-FROM quay.io/cdis/ubuntu:22.04
+FROM quay.io/cdis/ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
+
+# Set environment variables for OpenSSL and FIPS
+ENV OPENSSL_VERSION=3.0.8
+ENV FIPS_DIR=/usr/local/ssl/fipsmodule
+
+# Install dependencies
+RUN apt-get update && apt-get upgrade -y && \
+    apt-get install -y \
+      build-essential \
+      wget \
+      libssl-dev \
+      zlib1g-dev \
+      && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Download and extract OpenSSL source
+WORKDIR /tmp
+RUN wget https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz && \
+    tar -xzvf openssl-$OPENSSL_VERSION.tar.gz && \
+    rm openssl-$OPENSSL_VERSION.tar.gz
+
+# Configure and build OpenSSL with FIPS support
+WORKDIR /tmp/openssl-$OPENSSL_VERSION
+RUN ./Configure enable-fips --prefix=/usr/local/ssl --openssldir=/usr/local/ssl && \
+    make -j$(nproc) && \
+    make install
+
+# Set environment variables for the runtime linker and OpenSSL
+ENV LD_LIBRARY_PATH=/usr/local/ssl/lib
+ENV PATH=/usr/local/ssl/bin:$PATH
+ENV OPENSSL_CONF=/usr/local/ssl/ssl/openssl.cnf
+
+# Verify OpenSSL installation and FIPS support
+RUN openssl version && \
+    openssl fipsinstall -out $FIPS_DIR/fipsmodule.cnf -module /usr/local/ssl/lib/ossl-modules/fips.so && \
+    echo "[openssl_init]\nproviders = fips\n" > /usr/local/ssl/ssl/openssl.cnf && \
+    echo "FIPS mode enabled"
+
+# Clean up
+WORKDIR /
+RUN rm -rf /tmp/openssl-$OPENSSL_VERSION
 
 RUN apt-get update && apt-get upgrade -y \
     && apt-get install -y \
@@ -39,13 +79,13 @@ RUN apt-get update && apt-get upgrade -y \
       gettext-base
 
 #can remove once https://github.com/yaml/pyyaml/issues/724 is solved
-RUN pip install pyyaml==5.3.1
+RUN pip install pyyaml==6.0.1 --break-system-packages
 
-RUN  python3 -m pip install --upgrade pip \
-    && python3 -m pip install --upgrade setuptools \
-    && python3 -m pip install -U crcmod \
-    && python3 -m pip install --upgrade yq \
-    && python3 -m pip install --upgrade 'gen3>4'
+# RUN  python3 -m pip install pip --upgrade --break-system-packages
+RUN  python3 -m pip install --upgrade setuptools --break-system-packages \
+    && python3 -m pip install -U crcmod --break-system-packages \
+    && python3 -m pip install --upgrade yq --break-system-packages \
+    && python3 -m pip install --upgrade 'gen3>4' --break-system-packages
 
 # aws cli v2
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
@@ -57,7 +97,6 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
 RUN export CLOUD_SDK_REPO="cloud-sdk" && \
     echo "deb https://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" > /etc/apt/sources.list.d/google-cloud-sdk.list && \
     curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
-    curl -sL https://deb.nodesource.com/setup_14.x | bash - && \
     apt-get update && \
     apt-get install -y kubectl && \
     apt-get install -y --no-install-recommends nodejs && \
@@ -79,10 +118,7 @@ RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.15/
 RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.12.31/terraform_0.12.31_linux_amd64.zip \
    && unzip /tmp/terraform.zip -d /tmp && mv /tmp/terraform /usr/local/bin/terraform12 && /bin/rm /tmp/terraform.zip
 
-RUN useradd -m -s /bin/bash ubuntu && \
-    ( echo "ubuntu:gen3" | chpasswd )
-
-RUN npm install elasticdump -g
+RUN echo "ubuntu:gen3" | chpasswd
 
 # Setup scripts to run sshd for wetty - see kube/services/tty
 RUN mkdir -p /opt/usersshd \
@@ -114,7 +150,6 @@ RUN cp cloud-automation/Docker/awshelper/sshdStart.sh /opt/usersshd/ \
     && cp cloud-automation/Docker/awshelper/sshd_config /opt/usersshd/
 
 RUN cd ./cloud-automation \
-    && npm ci \
     && cat ./Docker/awshelper/bashrc_suffix.sh >> ~/.bashrc
 
 RUN export DEB_PYTHON_INSTALL_LAYOUT=deb && export POETRY_VERSION=1.1.15 && curl -sSL https://install.python-poetry.org | python3 -
