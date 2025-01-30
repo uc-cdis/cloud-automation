@@ -1,7 +1,7 @@
 # Build from root of cloud-automation/ repo:
 #   docker build -f Docker/awshelper/Dockerfile 
 #
-FROM quay.io/cdis/ubuntu:24.10
+FROM quay.io/cdis/ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -11,7 +11,6 @@ ENV OPENSSL_FORCE_FIPS_MODE=0
 # Verify that OPENSSL_FORCE_FIPS_MODE is set correctly
 RUN echo "OPENSSL_FORCE_FIPS_MODE=$OPENSSL_FORCE_FIPS_MODE"
 
-# Install base packages
 RUN apt-get update && apt-get upgrade -y \
     && apt-get install -y \
       apt-utils \
@@ -43,15 +42,13 @@ RUN apt-get update && apt-get upgrade -y \
       unzip \
       vim \
       wget \
-      gettext-base \
-      haveged \
-    && systemctl enable haveged \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+      gettext-base
 
-# Can remove once https://github.com/yaml/pyyaml/issues/724 is solved
+#can remove once https://github.com/yaml/pyyaml/issues/724 is solved
 RUN pip install pyyaml==6.0.1 --break-system-packages
 
-RUN python3 -m pip install --upgrade setuptools --break-system-packages \
+# RUN  python3 -m pip install pip --upgrade --break-system-packages
+RUN  python3 -m pip install --upgrade setuptools --break-system-packages \
     && python3 -m pip install -U crcmod --break-system-packages \
     && python3 -m pip install --upgrade yq --break-system-packages \
     && python3 -m pip install --upgrade 'gen3>4' --break-system-packages
@@ -62,7 +59,7 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
     && ./aws/install \
     && /bin/rm -rf awscliv2.zip ./aws
 
-# From https://hub.docker.com/r/google/cloud-sdk/~/dockerfile/
+# From  https://hub.docker.com/r/google/cloud-sdk/~/dockerfile/
 RUN export CLOUD_SDK_REPO="cloud-sdk" && \
     echo "deb https://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" > /etc/apt/sources.list.d/google-cloud-sdk.list && \
     curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
@@ -75,12 +72,12 @@ RUN export CLOUD_SDK_REPO="cloud-sdk" && \
     rm -rf /var/lib/apt/lists/* /var/log/*
 
 # Install postgres 13 client
-RUN curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg && \
+RUN curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc| gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg && \
     echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" | tee  /etc/apt/sources.list.d/pgdg.list && \
     apt-get update && \
     apt-get install -y postgresql-client-13
 
-# Install terraform
+# install terraform
 RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.15/terraform_0.11.15_linux_amd64.zip \
    && unzip /tmp/terraform.zip -d /usr/local/bin && /bin/rm /tmp/terraform.zip
 
@@ -102,13 +99,17 @@ RUN mkdir /var/run/sshd \
 
 EXPOSE 2222
 
-# Switch to user ubuntu
+#-------------
+
 USER ubuntu
 WORKDIR /home/ubuntu
 
-# Install and set up gen3
+#
+# install and set up gen3
+#
 COPY --chown=ubuntu:ubuntu . cloud-automation/
 
+# COPY generates files owned by root regardless of USER
 RUN /bin/rm -rf ./cloud-automation/node_modules
 
 RUN cp cloud-automation/Docker/awshelper/sshdStart.sh /opt/usersshd/ \
@@ -122,9 +123,8 @@ RUN export DEB_PYTHON_INSTALL_LAYOUT=deb && export POETRY_VERSION=1.1.15 && curl
 RUN git config --global user.email gen3 \
     && git config --global user.name gen3
 
-# Smoke test
+# smoke test
 RUN export GEN3_HOME="$HOME/cloud-automation" \
     && bash -c 'source "$GEN3_HOME/gen3/gen3setup.sh" && gen3 help'
 
 CMD /bin/bash
-
