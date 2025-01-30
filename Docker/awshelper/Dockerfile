@@ -5,6 +5,12 @@ FROM quay.io/cdis/ubuntu:24.10
 
 ENV DEBIAN_FRONTEND=noninteractive
 
+# Workaround for OpenSSL FIPS mode issue
+ENV OPENSSL_FORCE_FIPS_MODE=0
+
+# Verify that OPENSSL_FORCE_FIPS_MODE is set correctly
+RUN echo "OPENSSL_FORCE_FIPS_MODE=$OPENSSL_FORCE_FIPS_MODE"
+
 # Install base packages
 RUN apt-get update && apt-get upgrade -y \
     && apt-get install -y \
