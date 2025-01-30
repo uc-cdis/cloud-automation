@@ -48,10 +48,6 @@ RUN apt-get update && apt-get upgrade -y \
     && systemctl enable haveged \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Ensure proper OpenSSL installation
-RUN apt-get update && apt-get install -y openssl=3.0.13-0ubuntu3.4 libssl-dev \
-    && openssl version && openssl rand -hex 16
-
 # Can remove once https://github.com/yaml/pyyaml/issues/724 is solved
 RUN pip install pyyaml==6.0.1 --break-system-packages
 
