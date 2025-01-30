@@ -6,7 +6,7 @@ FROM quay.io/cdis/ubuntu:24.04
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Set environment variables for OpenSSL and FIPS
-ENV OPENSSL_VERSION=3.0.8
+ENV OPENSSL_VERSION=3.0.13
 ENV FIPS_DIR=/usr/local/ssl/fipsmodule
 
 # Install dependencies
@@ -16,6 +16,9 @@ RUN apt-get update && apt-get upgrade -y && \
       wget \
       libssl-dev \
       zlib1g-dev \
+      perl \
+      cmake \
+      ninja-build \
       && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Download and extract OpenSSL source
@@ -28,7 +31,12 @@ RUN wget https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz && \
 WORKDIR /tmp/openssl-$OPENSSL_VERSION
 RUN ./Configure enable-fips --prefix=/usr/local/ssl --openssldir=/usr/local/ssl && \
     make -j$(nproc) && \
-    make install
+    make install_sw install_ssldirs
+
+# Install the FIPS module
+RUN /usr/local/ssl/bin/openssl fipsinstall \
+    -module /usr/local/ssl/lib/ossl-modules/fips.so \
+    -out /usr/local/ssl/fipsmodule.cnf
 
 # Set environment variables for the runtime linker and OpenSSL
 ENV LD_LIBRARY_PATH=/usr/local/ssl/lib
@@ -37,7 +45,7 @@ ENV OPENSSL_CONF=/usr/local/ssl/ssl/openssl.cnf
 
 # Verify OpenSSL installation and FIPS support
 RUN openssl version && \
-    openssl fipsinstall -out $FIPS_DIR/fipsmodule.cnf -module /usr/local/ssl/lib/ossl-modules/fips.so && \
+    cat /usr/local/ssl/fipsmodule.cnf && \
     echo "[openssl_init]\nproviders = fips\n" > /usr/local/ssl/ssl/openssl.cnf && \
     echo "FIPS mode enabled"
 
