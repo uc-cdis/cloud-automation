@@ -28,20 +28,12 @@ if ! g3kubectl describe secret pelicanservice-g3auto | grep config.json > /dev/n
     # setup fence OIDC client with client_credentials grant for access to MDS API
     hostname=$(gen3 api hostname)
     gen3_log_info "kube-setup-sower-jobs" "creating fence oidc client for $hostname"
-    # Adding a fallback to `poetry run fence-create` to cater to fence containers with amazon linux.
-    secrets=$(
-      (g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-create --client pelican-export-job --grant-types client_credentials | tail -1) 2>/dev/null || \
-        g3kubectl exec -c fence $(gen3 pod fence) -- poetry run fence-create client-create --client pelican-export-job --grant-types client_credentials | tail -1
-    )
+    secrets=$(g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-create --client pelican-export-job --grant-types client_credentials | tail -1)
     # secrets looks like ('CLIENT_ID', 'CLIENT_SECRET')
     if [[ ! $secrets =~ (\'(.*)\', \'(.*)\') ]]; then
         # try delete client
-        g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-delete --client pelican-export-job > /dev/null 2>&1 || \
-        g3kubectl exec -c fence $(gen3 pod fence) -- poetry run fence-create client-delete --client pelican-export-job > /dev/null 2>&1
-        secrets=$(
-          (g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-create --client pelican-export-job --grant-types client_credentials | tail -1) 2>/dev/null || \
-                g3kubectl exec -c fence $(gen3 pod fence) -- poetry run fence-create client-create --client pelican-export-job --grant-types client_credentials | tail -1
-        )
+        g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-delete --client pelican-export-job > /dev/null 2>&1
+        secrets=$(g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-create --client pelican-export-job --grant-types client_credentials | tail -1)
         if [[ ! $secrets =~ (\'(.*)\', \'(.*)\') ]]; then
             gen3_log_err "kube-setup-sower-jobs" "Failed generating oidc client: $secrets"
             return 1
