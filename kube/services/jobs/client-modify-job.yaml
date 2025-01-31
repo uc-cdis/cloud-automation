@@ -119,17 +119,17 @@ spec:
           - |
 
             echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"         
-            poetry run python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml || python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
+            python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
 
             #need a way to grab all the clients. 
 
             echo Starting to collect client list     
 
-            CLIENT_LIST=$((fence-create client-list || poetry run fence-create client-list) | grep "'name'")
+            CLIENT_LIST=$(fence-create client-list | grep "'name'")
             CLIENT_LIST=${CLIENT_LIST//"'name': "/}
             CLIENT_LIST=${CLIENT_LIST//"'"/}
             CLIENT_LIST=${CLIENT_LIST//","/}
-            CLIENT_LIST=($(echo $CLIENT_LIST | xargs))
+            CLIENT_LIST=($(echo $CLIENT_LIST | tr " "))
 
             if [[ -z "$FIELD_NAME" ]]; then
                 echo Cannot update field. FIELD_NAME variable must be sepcified.
@@ -151,7 +151,7 @@ spec:
 
             for index in "${!CLIENT_LIST[@]}"
             do
-                $create_command --client ${CLIENT_LIST[index]} || poetry run $create_command --client ${CLIENT_LIST[index]}
+                $create_command --client ${CLIENT_LIST[index]}
             done
 
             if [[ $? != 0 ]]; then
