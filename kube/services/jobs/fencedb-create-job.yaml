@@ -48,28 +48,14 @@ spec:
           - "-c"
           # Script always succeeds if it runs (echo exits with 0)
           - |
-            eval $(
-            if poetry run python 2> /dev/null <<EOM
-                import json
+            eval $(python 2> /dev/null <<EOM
+            import json
 
-                creds = json.load(open('/var/www/fence/creds.json', 'r'))
-                print('declare -A db_creds')
-                for key in ['db_host', 'db_username', 'db_password', 'db_database']:
-                  print("db_creds['%s']='%s'" % (key, creds[key]))
-                EOM
-            then
-                echo "Executed with Poetry successfully."
-            else
-                echo "Poetry failed, falling back to system Python."
-                python 2> /dev/null <<EOM
-                import json
-
-                creds = json.load(open('/var/www/fence/creds.json', 'r'))
-                print('declare -A db_creds')
-                for key in ['db_host', 'db_username', 'db_password', 'db_database']:
-                  print("db_creds['%s']='%s'" % (key, creds[key]))
-                EOM
-            fi
+            creds = json.load(open('/var/www/fence/creds.json', 'r'))
+            print('declare -A db_creds')
+            for key in ['db_host', 'db_username', 'db_password', 'db_database']:
+              print("db_creds['%s']='%s'" % (key, creds[key]))
+            EOM
             )
             userdatamodel-init --username "${db_creds[db_username]}" --password "${db_creds[db_password]}" --host "${db_creds[db_host]}" --db "${db_creds[db_database]}"
             echo "Exit code: $?"
