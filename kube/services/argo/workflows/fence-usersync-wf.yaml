@@ -204,7 +204,7 @@ spec:
             echo "${ADD_DBGAP}"
             echo "${ONLY_DBGAP}"
             echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
-            poetry run python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml || python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
+            python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
             echo 'options use-vc' >> /etc/resolv.conf
             let count=0
             while [[ ! -f /mnt/shared/user.yaml && $count -lt 50 ]]; do
@@ -215,10 +215,7 @@ spec:
             if [[ "$SYNC_FROM_DBGAP" != True && "$ADD_DBGAP" != "true" ]]; then
               if [[ -f /mnt/shared/user.yaml ]]; then
                 echo "running fence-create"
-                time (
-                  fence-create sync --arborist http://arborist-service --yaml /mnt/shared/user.yaml || \
-                    poetry run fence-create sync --arborist http://arborist-service --yaml /mnt/shared/user.yaml
-                )
+                time fence-create sync --arborist http://arborist-service --yaml /mnt/shared/user.yaml
               else
                 echo "/mnt/shared/user.yaml did not appear within timeout :-("
                 false  # non-zero exit code
@@ -228,16 +225,10 @@ spec:
               output=$(mktemp "/tmp/fence-create-output_XXXXXX")
               if [[ -f /mnt/shared/user.yaml && "$ONLY_DBGAP" != "true" ]]; then
                 echo "Running fence-create dbgap-sync with user.yaml - see $output"
-                time (
-                  fence-create sync --arborist http://arborist-service --sync_from_dbgap "True" --projects /var/www/fence/projects.yaml --yaml /mnt/shared/user.yaml 2>&1 | tee "$output" || \
-                    poetry run fence-create sync --arborist http://arborist-service --sync_from_dbgap "True" --projects /var/www/fence/projects.yaml --yaml /mnt/shared/user.yaml 2>&1 | tee "$output"
-                )
+                time fence-create sync --arborist http://arborist-service --sync_from_dbgap "True" --projects /var/www/fence/projects.yaml --yaml /mnt/shared/user.yaml 2>&1 | tee "$output"
               else
                 echo "Running fence-create dbgap-sync without user.yaml - see $output"
-                time (
-                  fence-create sync --arborist http://arborist-service --sync_from_dbgap "True" --projects /var/www/fence/projects.yaml 2>&1 | tee "$output" || \
-                    poetry run fence-create sync --arborist http://arborist-service --sync_from_dbgap "True" --projects /var/www/fence/projects.yaml 2>&1 | tee "$output"
-                )
+                time fence-create sync --arborist http://arborist-service --sync_from_dbgap "True" --projects /var/www/fence/projects.yaml 2>&1 | tee "$output"
               fi
               exitcode="${PIPESTATUS[0]}"
               echo "$output"

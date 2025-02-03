@@ -165,7 +165,7 @@ spec:
           - "-c"
           - |
             echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
-            poetry run python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml || python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
+            python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
             if [[ -z "$UNIQUE_BUCKET_NAME" ]]; then
                 echo Cannot create bucket. UNIQUE_BUCKET_NAME variable must be specified.
                 exit 1 # terminate and indicate error
@@ -192,7 +192,7 @@ spec:
                 create_command+=" --access-logs-bucket $ACCESS_LOGS_BUCKET"
             fi
 
-            fence-create ${create_command} || poetry run fence-create ${create_command}
+            fence-create ${create_command}
 
             if [[ $? != 0 ]]; then
               echo "WARNING: non zero exit code: $?"

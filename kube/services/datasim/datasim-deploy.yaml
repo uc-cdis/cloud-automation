@@ -171,7 +171,7 @@ spec:
             - "-c"
             - |
               echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
-              poetry run python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml || python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
+              python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
               if [ -f /fence/jwt-keys.tar ]; then
                 cd /fence
                 tar xvf jwt-keys.tar
@@ -188,10 +188,7 @@ spec:
               sleepTime=10
               # retry loop
               while [[ $count -lt 3 && $success == false ]]; do
-                if (
-                  fence-create --path fence token-create --type access_token --username $SUBMISSION_USER  --scopes openid,user,test-client --exp 36000 || \
-                    poetry run fence-create --path fence token-create --type access_token --username $SUBMISSION_USER  --scopes openid,user,test-client --exp 36000 
-                ) > "$tempFile"; then
+                if fence-create --path fence token-create --type access_token --username $SUBMISSION_USER  --scopes openid,user,test-client --exp 36000 > "$tempFile"; then
                   echo "fence-create success!"
                   tail -1 "$tempFile" > /mnt/shared/access_token.txt
                   # base64 --decode complains about invalid characters - don't know why

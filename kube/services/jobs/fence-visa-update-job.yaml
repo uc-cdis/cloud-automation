@@ -96,7 +96,7 @@ spec:
           - "-c"
           - |
             echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
-            poetry run python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml || python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
+            python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
 
             create_command="fence-create update-visas"
 
@@ -113,7 +113,7 @@ spec:
                 create_command+=" --concurrency $CONCURRENCY"
             fi
 
-            $create_command || poetry run $create_command
+            $create_command
             exitcode=$?
 
             if [ "${slackWebHook}" != 'None' ]; then

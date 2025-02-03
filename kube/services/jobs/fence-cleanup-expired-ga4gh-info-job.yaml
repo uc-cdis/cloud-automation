@@ -61,8 +61,8 @@ spec:
           - "-c"
           - |
             echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
-            poetry run python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml || python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
-            fence-create cleanup-expired-ga4gh-information || poetry run fence-create cleanup-expired-ga4gh-information
+            python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
+            fence-create cleanup-expired-ga4gh-information
             if [[ $? != 0 ]]; then
               echo "WARNING: non zero exit code: $?"
             fi

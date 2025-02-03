@@ -218,14 +218,9 @@ create_gs_bucket() {
   echo "Start creating gs bucket ...."
 
   if [[ $public == "controlled" ]]; then
-    # Adding a fallback to `poetry run fence-create` to cater to fence containers with amazon linux.
-    g3kubectl exec -c fence $(get_pod fence) -- fence-create google-bucket-create --unique-name $bucket_name --storage-class MULTI_REGIONAL --public False --project-auth-id $phsid --access-logs-bucket dcf-logs || \
-    g3kubectl exec -c fence $(get_pod fence) -- poetry run fence-create google-bucket-create --unique-name $bucket_name --storage-class MULTI_REGIONAL --public False --project-auth-id $phsid --access-logs-bucket dcf-logs
-
+    g3kubectl exec -c fence $(get_pod fence) -- fence-create google-bucket-create --unique-name $bucket_name --storage-class MULTI_REGIONAL --public False --project-auth-id $phsid --access-logs-bucket dcf-logs
   elif [[ $public == "public" ]]; then
-    # Adding a fallback to `poetry run fence-create` to cater to fence containers with amazon linux.
-    g3kubectl exec -c fence $(get_pod fence) -- fence-create google-bucket-create --unique-name $bucket_name --storage-class MULTI_REGIONAL --public True --access-logs-bucket dcf-logs || \
-    g3kubectl exec -c fence $(get_pod fence) -- poetry run fence-create google-bucket-create --unique-name $bucket_name --storage-class MULTI_REGIONAL --public True --access-logs-bucket dcf-logs
+    g3kubectl exec -c fence $(get_pod fence) -- fence-create google-bucket-create --unique-name $bucket_name --storage-class MULTI_REGIONAL --public True --access-logs-bucket dcf-logs
   else
     echo "Can not create the bucket. $public is not supported"
     exit 1
