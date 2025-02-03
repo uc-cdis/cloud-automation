@@ -1,3 +1,7 @@
+"""
+You can run this script by running the following command: 
+python3 workspaces_launch_test.py --commons-url https://qa-heal.planx-pla.net --images "(Generic) Jupyter Lab Notebook with R Kernel" "(Tutorials) Example Analysis Jupyter Lab Notebooks" --access-token eyJhbaccess.token
+"""
 import time
 import argparse
 import json
@@ -10,8 +14,8 @@ logging.basicConfig(level=logging.INFO, format='%(message)s')
 
 def main():
     args = parse_args()
-    tester = WorkspaceLaunchTest(commons_url=args.commons_url, access_token=args.access_token)
-    tester.start_workspace_launch_test()
+    tester = WorkspaceLaunchTest(commons_url=args.commons_url, access_token=args.access_token, images=args.images)
+    tester.initialize_workspace_launch_test()
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -28,16 +32,17 @@ def parse_args():
         help="User's access token. It should have the 'credentials' scope since the /launch api requires an access token that can use to get an api key.",
     )
     parser.add_argument(
-        "--notebook",
-        dest="notebook",
-        help="Type of notebook to launch for testing."
+        "--images",
+        nargs="+",
+        dest="images", 
+        help="Type of image to launch for testing."
     )
 
     return parser.parse_args()
 
 
 class WorkspaceLaunchTest:
-    def __init__(self, commons_url, access_token, notebook="(Generic, Limited Gen3-licensed) Stata Notebook"):
+    def __init__(self, commons_url, access_token, images=["(Generic, Limited Gen3-licensed) Stata image"]):
         self.commons_url = commons_url
         self.workspace_internal_url = workspace_internal_url
         self.token_expiration = 0
@@ -48,7 +53,7 @@ class WorkspaceLaunchTest:
         self.launch_status = "Workspace did not launch. Something went wrong before launch."
         self.reason_for_failure = None
         self.status_response = None
-        self.notebook = notebook 
+        self.images = images
         self.update_headers()
 
 
@@ -59,11 +64,23 @@ class WorkspaceLaunchTest:
         else:
             self.headers = {}
 
+    def get_info_for_image(self, image_name, options=None):
+        for option in options:
+            if option["name"] == image_name:
+                return option
+        return None
+            
 
-    def start_workspace_launch_test(self):
-        self.headers = {
-            "Authorization": f"Bearer {self.access_token}"
-        }
+    def initialize_workspace_launch_test(self):
+        """
+    
+        """
+        
+        test_image_ids_map = {} # list of tuples containing image name and image ids
+        
+        # self.headers = {
+        #     "Authorization": f"Bearer {self.access_token}"
+        # }
         # Get available workspace options
         options_url = self.commons_url + "/lw-workspace/options"
         try:
@@ -79,16 +96,45 @@ class WorkspaceLaunchTest:
         logging.info("Successfully found workspace options")
         logging.info(f"Found {len(options)} Workspace options: {options}")
 
-        workspace_id = options[0].get("id")
-        for option in options:
-            if option.get("name") == self.notebook:
-                workspace_id = option.get("id")
+        available_images = [option['name'] for option in options]
+
+        for image in self.images:
+            if image in available_images:
+                test_image_ids_map[image] = self.get_info_for_image(image, options)["id"]
+
+        logging.info(f"Images requested to test {self.images}")
+        logging.info(f"Images available to test {test_image_ids_map}")
+
+        unavailable_images = set(self.images) - set(available_images)
+        if len(unavailable_images) != 0:
+            logging.warning(f"The following requested images are not available: {unavailable_images}")
+
+        # Launch workspaces sequentially:
+        final_result = [] 
+        for image_name, id in test_image_ids_map.items():
+            logging.info(f"Testing image: {image_name}")
+            final_result.append(self.start_workspace_launch_test(image_name, id))
+            logging.info(f"Finished testing image: {image_name}")
+            logging.info("Waiting to launch next image...")
+            time.sleep(120)
+
+        
+        logging.info("Completed all launch tests...")
+        logging.info("Results:")
+        logging.info(json.dumps(final_result))
+
+    def start_workspace_launch_test(self, image_name, workspace_id):
+        # self.headers = {
+        #     "Authorization": f"Bearer {self.access_token}"
+        # }
+        # Get available workspace options
 
         # Launch workspace
         launch_url = self.commons_url + "/lw-workspace/launch" + "?id=" + workspace_id
         try:
             launch_response = requests.post(launch_url, headers=self.headers)
             self.start_time = time.time()
+            print(launch_response)
         except requests.exceptions.RequestException as e:
             error_msg = f"Couldn't launch workspace. Error code with error: {e}"
             logging.error(error_msg)
@@ -115,6 +161,8 @@ class WorkspaceLaunchTest:
             self.reason_for_failure = error_msg
 
         json_result = {
+            "iamge": image_name,
+            "workspace_id": workspace_id,
             "start_time": self.start_time,
             "end_time": self.end_time,
             "duration": self.end_time - self.start_time,
@@ -122,9 +170,7 @@ class WorkspaceLaunchTest:
             "reason_for_failure": self.reason_for_failure,
             "status_response": self.status_response
         }
-        json_result = json.dumps(json_result)
-        logging.info("Result:")
-        logging.info(json_result)
+        return json_result
         
 
     def monitor_workspace_status(self, interval=10):

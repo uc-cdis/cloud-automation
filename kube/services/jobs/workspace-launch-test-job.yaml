@@ -1,6 +1,6 @@
-# To run: gen3 job run workspace-launch-test COMMONS_URL <commons base url> NOTEBOOK <NOTEBOOK name>
-# example: gen3 job run workspace-launch-test COMMONS_URL https://qa-heal.planx-pla.net NOTEBOOK '(Generic) Jupyter Lab Notebook with R Kernel'
-# If NOTEBOOK isn't provided, it defaults to '(Generic) Jupyter Lab Notebook with R Kernel'
+# To run: gen3 job run workspace-launch-test COMMONS_URL <commons base url> IMAGE <IMAGE name>
+# example: gen3 job run workspace-launch-test COMMONS_URL https://qa-heal.planx-pla.net IMAGE '(Generic) Jupyter Lab Image with R Kernel'
+# If IMAGE isn't provided, it defaults to '(Generic) Jupyter Lab Image with R Kernel'
 
 apiVersion: batch/v1
 kind: Job
@@ -124,8 +124,8 @@ spec:
         env:
           - name: COMMONS_URL
             GEN3_COMMONS_URL|-value: ""-|
-          - name: NOTEBOOK
-            GEN3_NOTEBOOK|-value: ""-|
+          - name: IMAGES
+            GEN3_IMAGES|-value: ""-|
         image: quay.io/cdis/awshelper:master
         imagePullPolicy: Always
         volumeMounts:
@@ -158,8 +158,8 @@ spec:
 
               flags="--commons-url $COMMONS_URL --access-token $ACCESS_TOKEN"
 
-              if [[ -n "$NOTEBOOK" ]]; then
-                flags="$flags --notebook $NOTEBOOK"
+              if [[ -n "$IMAGES" ]]; then
+                flags="$flags --images $IMAGES"
               fi
 
               echo "Running cloud-automation/files/scripts/workspaces_launch_test.py $flags..."
