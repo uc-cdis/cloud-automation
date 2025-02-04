@@ -93,7 +93,7 @@ spec:
             name: "projects"
       containers:
       - name: usersync
-        GEN3_FENCE_IMAGE
+        GEN3_FENCE_MCRYPT_IMAGE|-GEN3_FENCE_IMAGE-|
         imagePullPolicy: Always
         env:
           - name: prometheus_multiproc_dir
