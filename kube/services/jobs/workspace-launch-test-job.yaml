@@ -1,6 +1,6 @@
-# To run: gen3 job run workspace-launch-test COMMONS_URL <commons base url> IMAGE <IMAGE name>
-# example: gen3 job run workspace-launch-test COMMONS_URL https://qa-heal.planx-pla.net IMAGE '(Generic) Jupyter Lab Image with R Kernel'
-# If IMAGE isn't provided, it defaults to '(Generic) Jupyter Lab Image with R Kernel'
+# To run: gen3 job run workspace-launch-test COMMONS_URL <commons base url> IMAGES <IMAGE name>
+# example: gen3 job run workspace-launch-test COMMONS_URL https://qa-heal.planx-pla.net IMAGES "(Generic) Jupyter Lab Notebook with R Kernel+(Tutorials) Example Analysis Jupyter Lab Notebooks"
+# If IMAGES isn't provided, it defaults to '(Generic) Jupyter Lab Image with R Kernel'
 
 apiVersion: batch/v1
 kind: Job

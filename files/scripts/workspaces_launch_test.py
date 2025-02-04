@@ -35,6 +35,7 @@ def parse_args():
     parser.add_argument(
         "--images",
         dest="images", 
+        nargs="*"
         help="Type of image to launch for testing."
     )
 
