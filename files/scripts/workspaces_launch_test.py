@@ -1,6 +1,7 @@
 """
 You can run this script by running the following command: 
-python3 workspaces_launch_test.py --commons-url https://qa-heal.planx-pla.net --images "(Generic) Jupyter Lab Notebook with R Kernel" "(Tutorials) Example Analysis Jupyter Lab Notebooks" --access-token eyJhbaccess.token
+python3 workspaces_launch_test.py --commons-url https://qa-heal.planx-pla.net --images "(Generic) Jupyter Lab Notebook with R Kernel+(Tutorials) Example Analysis Jupyter Lab Notebooks" --access-token eyJhbaccess.token
+Multiple image names should be separated by a plus (+) sign.
 """
 import time
 import argparse
@@ -14,7 +15,7 @@ logging.basicConfig(level=logging.INFO, format='%(message)s')
 
 def main():
     args = parse_args()
-    tester = WorkspaceLaunchTest(commons_url=args.commons_url, access_token=args.access_token, images=args.images)
+    tester = WorkspaceLaunchTest(commons_url=args.commons_url, access_token=args.access_token, images=args.images.split("+")) # Images passed from the kubernetes jobs is separated by a plus sign "+"
     tester.initialize_workspace_launch_test()
 
 def parse_args():
@@ -33,13 +34,11 @@ def parse_args():
     )
     parser.add_argument(
         "--images",
-        nargs="+",
         dest="images", 
         help="Type of image to launch for testing."
     )
 
     return parser.parse_args()
-
 
 class WorkspaceLaunchTest:
     def __init__(self, commons_url, access_token, images=["(Generic, Limited Gen3-licensed) Stata image"]):
@@ -72,15 +71,9 @@ class WorkspaceLaunchTest:
             
 
     def initialize_workspace_launch_test(self):
-        """
-    
-        """
         
         test_image_ids_map = {} # list of tuples containing image name and image ids
         
-        # self.headers = {
-        #     "Authorization": f"Bearer {self.access_token}"
-        # }
         # Get available workspace options
         options_url = self.commons_url + "/lw-workspace/options"
         try:
@@ -111,12 +104,18 @@ class WorkspaceLaunchTest:
 
         # Launch workspaces sequentially:
         final_result = [] 
+        number_of_images = len(test_image_ids_map)
+        number_of_runs = 0
+
         for image_name, id in test_image_ids_map.items():
             logging.info(f"Testing image: {image_name}")
             final_result.append(self.start_workspace_launch_test(image_name, id))
             logging.info(f"Finished testing image: {image_name}")
-            logging.info("Waiting to launch next image...")
-            time.sleep(120)
+            
+            number_of_runs += 1
+            if number_of_images != number_of_runs:
+                logging.info("Waiting to launch next image...")
+                time.sleep(120) 
 
         
         logging.info("Completed all launch tests...")
@@ -124,17 +123,13 @@ class WorkspaceLaunchTest:
         logging.info(json.dumps(final_result))
 
     def start_workspace_launch_test(self, image_name, workspace_id):
-        # self.headers = {
-        #     "Authorization": f"Bearer {self.access_token}"
-        # }
-        # Get available workspace options
 
         # Launch workspace
         launch_url = self.commons_url + "/lw-workspace/launch" + "?id=" + workspace_id
         try:
             launch_response = requests.post(launch_url, headers=self.headers)
+            launch_response.raise_for_status()
             self.start_time = time.time()
-            print(launch_response)
         except requests.exceptions.RequestException as e:
             error_msg = f"Couldn't launch workspace. Error code with error: {e}"
             logging.error(error_msg)
@@ -147,6 +142,19 @@ class WorkspaceLaunchTest:
 
         self.end_time = time.time()
         logging.info(f"Workspace took {self.end_time-self.start_time} seconds to initialize")
+
+        # proxy_url = self.commons_url + "/lw-workspace/proxy"
+        # try:
+        #     logging.info("Trying to connect to workspace via proxy endpoint")
+        #     proxy_response = requests.get(proxy_url, headers=self.headers)
+        #     proxy_response.raise_for_status()
+        #     print(proxy_response)
+        # except requests.exceptions.RequestException as e:
+        #     error_msg = f"Error connecting to workspace via proxy endpoint. Error: {e}"
+        
+        # logging.info("Connected to workspace via proxy endpoint")
+        # print(proxy_response.json())
+
 
         # Terminate active running workspace
         terminate_url = self.commons_url + "/lw-workspace/terminate"
