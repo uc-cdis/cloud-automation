@@ -38,6 +38,8 @@ function atob(input) {
   return output;
 }
 
+export default {userid, isCredentialsAllowed};
+
 /**
  * nginscript helper for parsing user out of JWT tokens.
  * We appear to have access to the 'access_token' variable
