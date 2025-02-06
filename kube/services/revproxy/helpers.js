@@ -282,4 +282,4 @@ function gen3_workspace_authorize_handler(req) {
   }
 }
 
-export default {userid, isCredentialsAllowed};
+export default {userid, isCredentialsAllowed, checkBlackList};
