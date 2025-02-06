@@ -96,21 +96,3 @@ spec:
             memory: 1Gi
           limits:
             memory: 1Gi
-      # initContainers:
-      #   - name: gen3-workflow-db-migrate
-      #     GEN3_REQUESTOR_IMAGE
-      #     imagePullPolicy: Always
-      #     volumeMounts:
-      #       - name: "config-volume"
-      #         readOnly: true
-      #         mountPath: "/src/gen3-workflow-config.yaml"
-      #         subPath: "gen3-workflow-config.yaml"
-      #     resources:
-      #       limits:
-      #         cpu: 0.8
-      #         memory: 512Mi
-      #     command: ["/bin/sh"]
-      #     args:
-      #       - "-c"
-      #       - |
-      #         /env/bin/alembic upgrade head

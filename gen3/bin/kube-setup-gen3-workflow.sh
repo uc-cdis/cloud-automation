@@ -45,8 +45,8 @@ setup_gen3_workflow_infra() {
 {
   "Version": "2012-10-17",
   "Statement": [
-		{
-		  "Sid": "ManageS3Buckets",
+    {
+      "Sid": "ManageS3Buckets",
       "Effect": "Allow",
       "Action": [
         "s3:CreateBucket",
@@ -75,7 +75,7 @@ setup_gen3_workflow_infra() {
       ],
       "Resource": "*"
     }
-	]
+  ]
 }
 EOM
 )
@@ -119,7 +119,6 @@ EOM
   if [[ ! -f "$secretsFolder/gen3-workflow-config.yaml" ]]; then
     manifestPath="$(g3k_manifest_path)"
     hostname="$(g3k_config_lookup ".global.hostname" "$manifestPath")"
-    # encryption_key="$(random_alphanumeric 32 | base64)"
     if [[ ! -f "$secretsFolder/dbcreds.json" ]]; then
       if ! gen3 db setup gen3workflow; then
         gen3_log_err "Failed setting up database for gen3-workflow service"
