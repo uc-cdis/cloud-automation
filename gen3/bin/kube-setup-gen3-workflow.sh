@@ -6,31 +6,32 @@ setup_funnel_infra() {
   helm repo add ohsu https://ohsu-comp-bio.github.io/helm-charts
   helm repo update ohsu
 
-#   # TODO add file below to secrets folder and don't recreate if already exists
-#   # NOTE: to update once Funnel supports per-user bucket credentials
-#   cat - > "$secretsFolder/funnel.conf" <<EOM
-# AmazonS3:
-#   Key: PLACEHOLDER
-#   Secret: PLACEHOLDER
-#   Disabled: false
+  secretsFolder="$(gen3_secrets_folder)/g3auto/gen3workflow"
+  if [[ ! -f "$secretsFolder/funnel.conf" ]]; then
+    # NOTE: to update once Funnel supports per-user bucket credentials
+    cat - > "$secretsFolder/funnel.conf" <<EOM
+AmazonS3:
+  Key: PLACEHOLDER
+  Secret: PLACEHOLDER
+  Disabled: false
 
-# Kubernetes:
-#   Bucket: PLACEHOLDER
-#   Region: us-east-1
+Kubernetes:
+  Bucket: PLACEHOLDER
+  Region: us-east-1
 
-# Logger:
-#   # Logging levels: debug, info, error
-#   Level: info
-# EOM
+Logger:
+  # Logging levels: debug, info, error
+  Level: info
+EOM
+    gen3 secrets sync 'setup gen3workflow-g3auto secrets'
+  fi
 
   namespace="$(gen3 db namespace)"
   version="$(g3k_manifest_lookup .versions.funnel)"
   if [ "$version" == "latest" ]; then
-    # helm upgrade --install funnel ohsu/funnel --namespace $namespace --values "$secretsFolder/funnel.conf"
-    helm upgrade --install funnel ohsu/funnel --namespace $namespace --values /home/pauline/funnel.conf
+    helm upgrade --install funnel ohsu/funnel --namespace $namespace --values "$secretsFolder/funnel.conf"
   else
-    # helm upgrade --install funnel ohsu/funnel --namespace $namespace --values "$secretsFolder/funnel.conf" --version $version
-    helm upgrade --install funnel ohsu/funnel --namespace $namespace --values /home/pauline/funnel.conf --version $version
+    helm upgrade --install funnel ohsu/funnel --namespace $namespace --values "$secretsFolder/funnel.conf" --version $version
   fi
 }
 
@@ -138,8 +139,8 @@ DB_USER: $(jq -r .db_username < "$secretsFolder/dbcreds.json")
 DB_PASSWORD: $(jq -r .db_password < "$secretsFolder/dbcreds.json")
 DB_DATABASE: $(jq -r .db_database < "$secretsFolder/dbcreds.json")
 EOM
-  fi
   gen3 secrets sync 'setup gen3workflow-g3auto secrets'
+  fi
 }
 
 if g3k_manifest_lookup .versions.funnel 2> /dev/null; then
