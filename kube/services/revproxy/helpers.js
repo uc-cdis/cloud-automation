@@ -38,7 +38,7 @@ function atob(input) {
   return output;
 }
 
-export default {userid, isCredentialsAllowed};
+
 
 /**
  * nginscript helper for parsing user out of JWT tokens.
@@ -281,3 +281,5 @@ function gen3_workspace_authorize_handler(req) {
     req.return(400, '{ "status": "redirect failed validation" }');
   }
 }
+
+export default {userid, isCredentialsAllowed};
