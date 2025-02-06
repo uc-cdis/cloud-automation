@@ -5,17 +5,35 @@ FROM quay.io/cdis/ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install OpenSSL 3.4.0 first (before other dependencies)
-RUN apt remove --purge -y openssl libssl-dev libssl3 && apt autoremove -y && apt update && \
-    mkdir -p /tmp/openssl-install && cd /tmp/openssl-install && \
-    wget -q \
-        https://launchpad.net/ubuntu/+source/openssl/3.4.0-1ubuntu2/+build/29859677/+files/libssl-dev_3.4.0-1ubuntu2_amd64.deb \
-        https://launchpad.net/ubuntu/+source/openssl/3.4.0-1ubuntu2/+build/29859677/+files/libssl-doc_3.4.0-1ubuntu2_all.deb \
-        https://launchpad.net/ubuntu/+source/openssl/3.4.0-1ubuntu2/+build/29859677/+files/libssl3t64_3.4.0-1ubuntu2_amd64.deb \
-        https://launchpad.net/ubuntu/+source/openssl/3.4.0-1ubuntu2/+build/29859677/+files/openssl-provider-legacy_3.4.0-1ubuntu2_amd64.deb \
-        https://launchpad.net/ubuntu/+source/openssl/3.4.0-1ubuntu2/+build/29859677/+files/openssl_3.4.0-1ubuntu2_amd64.deb && \
-    dpkg -i *.deb || (apt --fix-broken install -y && dpkg -i *.deb) && \
+# Ensure correct architecture
+RUN dpkg --print-architecture
+
+# Update APT and install base dependencies
+RUN apt-get update && apt-get upgrade -y \
+    && apt-get install -y --no-install-recommends \
+      wget \
+      curl \
+      ca-certificates
+
+# Install OpenSSL 3.4.0 for Both Architectures
+RUN mkdir -p /tmp/openssl-install && cd /tmp/openssl-install && \
+    arch=$(dpkg --print-architecture) && \
+    if [ "$arch" = "amd64" ]; then \
+        wget -q \
+          https://launchpad.net/ubuntu/+source/openssl/3.4.0-1ubuntu2/+build/29859677/+files/libssl-dev_3.4.0-1ubuntu2_amd64.deb \
+          https://launchpad.net/ubuntu/+source/openssl/3.4.0-1ubuntu2/+build/29859677/+files/libssl3t64_3.4.0-1ubuntu2_amd64.deb \
+          https://launchpad.net/ubuntu/+source/openssl/3.4.0-1ubuntu2/+build/29859677/+files/openssl-provider-legacy_3.4.0-1ubuntu2_amd64.deb \
+          https://launchpad.net/ubuntu/+source/openssl/3.4.0-1ubuntu2/+build/29859677/+files/openssl_3.4.0-1ubuntu2_amd64.deb; \
+    else \
+        wget -q \
+          https://launchpad.net/ubuntu/+source/openssl/3.4.0-1ubuntu2/+build/29859678/+files/libssl-dev_3.4.0-1ubuntu2_arm64.deb \
+          https://launchpad.net/ubuntu/+source/openssl/3.4.0-1ubuntu2/+build/29859678/+files/libssl3t64_3.4.0-1ubuntu2_arm64.deb \
+          https://launchpad.net/ubuntu/+source/openssl/3.4.0-1ubuntu2/+build/29859678/+files/openssl-provider-legacy_3.4.0-1ubuntu2_arm64.deb \
+          https://launchpad.net/ubuntu/+source/openssl/3.4.0-1ubuntu2/+build/29859678/+files/openssl_3.4.0-1ubuntu2_arm64.deb; \
+    fi && \
+    dpkg -i *.deb || apt-get -f install -y && dpkg -i *.deb && \
     rm -rf /tmp/openssl-install && rm -rf /var/lib/apt/lists/*
+
 
 RUN apt-get update && apt-get upgrade -y \
     && apt-get install -y \
