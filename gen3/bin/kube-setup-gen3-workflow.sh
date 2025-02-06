@@ -8,6 +8,7 @@ setup_funnel_infra() {
 
   secretsFolder="$(gen3_secrets_folder)/g3auto/gen3workflow"
   if [[ ! -f "$secretsFolder/funnel.conf" ]]; then
+    mkdir -p "$secretsFolder"
     # NOTE: to update once Funnel supports per-user bucket credentials
     cat - > "$secretsFolder/funnel.conf" <<EOM
 AmazonS3:
@@ -23,7 +24,6 @@ Logger:
   # Logging levels: debug, info, error
   Level: info
 EOM
-    gen3 secrets sync 'setup gen3workflow-g3auto secrets'
   fi
 
   namespace="$(gen3 db namespace)"
@@ -117,26 +117,12 @@ EOM
   fi
   secretsFolder="$(gen3_secrets_folder)/g3auto/gen3workflow"
   if [[ ! -f "$secretsFolder/gen3-workflow-config.yaml" ]]; then
+    mkdir -p "$secretsFolder"
     manifestPath="$(g3k_manifest_path)"
     hostname="$(g3k_config_lookup ".global.hostname" "$manifestPath")"
-    if [[ ! -f "$secretsFolder/dbcreds.json" ]]; then
-      if ! gen3 db setup gen3workflow; then
-        gen3_log_err "Failed setting up database for gen3-workflow service"
-        return 1
-      fi
-    fi
-    if [[ ! -f "$secretsFolder/dbcreds.json" ]]; then
-      gen3_log_err "dbcreds not present in Gen3Secrets/"
-      return 1
-    fi
     cat - > "$secretsFolder/gen3-workflow-config.yaml" <<EOM
 HOSTNAME: $hostname
 APP_DEBUG: false
-
-DB_HOST: $(jq -r .db_host < "$secretsFolder/dbcreds.json")
-DB_USER: $(jq -r .db_username < "$secretsFolder/dbcreds.json")
-DB_PASSWORD: $(jq -r .db_password < "$secretsFolder/dbcreds.json")
-DB_DATABASE: $(jq -r .db_database < "$secretsFolder/dbcreds.json")
 EOM
   gen3 secrets sync 'setup gen3workflow-g3auto secrets'
   fi
