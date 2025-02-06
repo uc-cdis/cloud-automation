@@ -5,53 +5,17 @@ FROM quay.io/cdis/ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Set environment variables for OpenSSL and FIPS
-ENV OPENSSL_VERSION=3.0.13
-ENV FIPS_DIR=/usr/local/ssl/fipsmodule
-
-# Install dependencies
-RUN apt-get update && apt-get upgrade -y && \
-    apt-get install -y \
-      build-essential \
-      wget \
-      libssl-dev \
-      zlib1g-dev \
-      perl \
-      cmake \
-      ninja-build \
-      && apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Download and extract OpenSSL source
-WORKDIR /tmp
-RUN wget https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz && \
-    tar -xzvf openssl-$OPENSSL_VERSION.tar.gz && \
-    rm openssl-$OPENSSL_VERSION.tar.gz
-
-# Configure and build OpenSSL with FIPS support
-WORKDIR /tmp/openssl-$OPENSSL_VERSION
-RUN ./Configure enable-fips --prefix=/usr/local/ssl --openssldir=/usr/local/ssl && \
-    make -j$(nproc) && \
-    make install_sw install_ssldirs
-
-# Install the FIPS module
-RUN /usr/local/ssl/bin/openssl fipsinstall \
-    -module /usr/local/ssl/lib/ossl-modules/fips.so \
-    -out /usr/local/ssl/fipsmodule.cnf
-
-# Set environment variables for the runtime linker and OpenSSL
-ENV LD_LIBRARY_PATH=/usr/local/ssl/lib
-ENV PATH=/usr/local/ssl/bin:$PATH
-ENV OPENSSL_CONF=/usr/local/ssl/ssl/openssl.cnf
-
-# Verify OpenSSL installation and FIPS support
-RUN openssl version && \
-    cat /usr/local/ssl/fipsmodule.cnf && \
-    echo "[openssl_init]\nproviders = fips\n" > /usr/local/ssl/ssl/openssl.cnf && \
-    echo "FIPS mode enabled"
-
-# Clean up
-WORKDIR /
-RUN rm -rf /tmp/openssl-$OPENSSL_VERSION
+# Install OpenSSL 3.4.0 first (before other dependencies)
+RUN apt remove --purge -y openssl libssl-dev libssl3 && apt autoremove -y && apt update && \
+    mkdir -p /tmp/openssl-install && cd /tmp/openssl-install && \
+    wget -q \
+        https://launchpad.net/ubuntu/+source/openssl/3.4.0-1ubuntu2/+build/29859677/+files/libssl-dev_3.4.0-1ubuntu2_amd64.deb \
+        https://launchpad.net/ubuntu/+source/openssl/3.4.0-1ubuntu2/+build/29859677/+files/libssl-doc_3.4.0-1ubuntu2_all.deb \
+        https://launchpad.net/ubuntu/+source/openssl/3.4.0-1ubuntu2/+build/29859677/+files/libssl3t64_3.4.0-1ubuntu2_amd64.deb \
+        https://launchpad.net/ubuntu/+source/openssl/3.4.0-1ubuntu2/+build/29859677/+files/openssl-provider-legacy_3.4.0-1ubuntu2_amd64.deb \
+        https://launchpad.net/ubuntu/+source/openssl/3.4.0-1ubuntu2/+build/29859677/+files/openssl_3.4.0-1ubuntu2_amd64.deb && \
+    dpkg -i *.deb || (apt --fix-broken install -y && dpkg -i *.deb) && \
+    rm -rf /tmp/openssl-install && rm -rf /var/lib/apt/lists/*
 
 RUN apt-get update && apt-get upgrade -y \
     && apt-get install -y \
