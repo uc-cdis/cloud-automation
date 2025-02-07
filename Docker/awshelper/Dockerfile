@@ -202,7 +202,13 @@ RUN cd ./cloud-automation \
     && cat ./Docker/awshelper/bashrc_suffix.sh >> ~/.bashrc
 
 # Ensure CA certificates are updated before installing Poetry
-RUN sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends ca-certificates
+USER root
+RUN LD_LIBRARY_PATH=/usr/local/openssl-3.4/lib64:$LD_LIBRARY_PATH apt-get update -qq \
+    && apt-get install -y --no-install-recommends ca-certificates \
+    || (echo "CA CERTIFICATES UPDATE FAILED" && exit 1)
+
+USER ubuntu
+WORKDIR /home/ubuntu
 
 
 # Fix SSL verification issue and install Poetry
