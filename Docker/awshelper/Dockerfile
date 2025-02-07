@@ -26,41 +26,42 @@ RUN apt-get update && apt-get upgrade -y \
       sudo \
       git
 
-# Compile OpenSSL 3.4.0 from source with FIPS enabled
+# Compile OpenSSL 3.4.0 from source with FIPS enabled (Silent Build)
 WORKDIR /usr/local/src
 
-RUN wget https://www.openssl.org/source/openssl-3.4.0.tar.gz \
+RUN wget -q https://www.openssl.org/source/openssl-3.4.0.tar.gz \
     && tar -xf openssl-3.4.0.tar.gz \
     && cd openssl-3.4.0 \
-    && ./Configure enable-fips --prefix=/usr/local/openssl-3.4 \
-    && make -s -j$(nproc) \
-    && make -s install \
+    && ./Configure enable-fips --prefix=/usr/local/openssl-3.4 --openssldir=/usr/local/openssl-3.4/ssl > /dev/null 2>&1 \
+    && make -s -j$(nproc) > /dev/null 2>&1 \
+    && make -s install > /dev/null 2>&1 \
     && rm -rf /usr/local/src/openssl-3.4.0 /usr/local/src/openssl-3.4.0.tar.gz
 
-# Remove system-provided OpenSSL and replace with OpenSSL 3.4.0
+# Remove system-provided OpenSSL to avoid conflicts
 RUN apt-get remove -y libssl3 libcrypto3 openssl || true
 
-# Detect architecture and create correct symlinks
+# Ensure correct architecture and create proper symlinks for OpenSSL 3.4
 RUN arch=$(dpkg --print-architecture) \
     && if [ "$arch" = "amd64" ]; then \
-          ln -sf /usr/local/openssl-3.4/lib/libcrypto.so.3 /lib/x86_64-linux-gnu/libcrypto.so.3 \
-          && ln -sf /usr/local/openssl-3.4/lib/libssl.so.3 /lib/x86_64-linux-gnu/libssl.so.3; \
+          ln -sf /usr/local/openssl-3.4/lib64/libcrypto.so.3 /lib/x86_64-linux-gnu/libcrypto.so.3 \
+          && ln -sf /usr/local/openssl-3.4/lib64/libssl.so.3 /lib/x86_64-linux-gnu/libssl.so.3; \
        elif [ "$arch" = "arm64" ]; then \
-          ln -sf /usr/local/openssl-3.4/lib/libcrypto.so.3 /lib/aarch64-linux-gnu/libcrypto.so.3 \
-          && ln -sf /usr/local/openssl-3.4/lib/libssl.so.3 /lib/aarch64-linux-gnu/libssl.so.3; \
+          ln -sf /usr/local/openssl-3.4/lib64/libcrypto.so.3 /lib/aarch64-linux-gnu/libcrypto.so.3 \
+          && ln -sf /usr/local/openssl-3.4/lib64/libssl.so.3 /lib/aarch64-linux-gnu/libssl.so.3; \
        else \
           echo "Unsupported architecture: $arch" && exit 1; \
        fi \
     && ln -sf /usr/local/openssl-3.4/bin/openssl /usr/bin/openssl \
     && ln -sf /usr/local/openssl-3.4/bin/openssl /usr/local/bin/openssl \
     && ldconfig \
-    && ldd /usr/bin/openssl
+    && ldd /usr/bin/openssl > /dev/null 2>&1
 
+# Ensure the OpenSSL shared libraries are detected
+ENV LD_LIBRARY_PATH="/usr/local/openssl-3.4/lib64:$LD_LIBRARY_PATH"
 
-# Initialize FIPS module and install FIPS configuration
-RUN export LD_LIBRARY_PATH=/usr/local/openssl-3.4/lib:$LD_LIBRARY_PATH \
-    && /usr/bin/openssl fipsinstall -out /usr/local/openssl-3.4/ssl/fipsmodule.cnf \
-    -module /usr/local/openssl-3.4/lib/ossl-modules/fips.so
+# Initialize FIPS module and install FIPS configuration (Minimal Logging)
+RUN /usr/bin/openssl fipsinstall -out /usr/local/openssl-3.4/ssl/fipsmodule.cnf \
+    -module /usr/local/openssl-3.4/lib64/ossl-modules/fips.so > /dev/null 2>&1
 
 # Configure OpenSSL for FIPS mode
 RUN cp /usr/local/openssl-3.4/ssl/openssl.cnf /usr/local/openssl-3.4/ssl/openssl.cnf.bak \
