@@ -150,7 +150,6 @@ class WorkspaceLaunchTest:
             logging.info("Trying to connect to workspace via proxy endpoint")
             proxy_response = requests.get(proxy_url, headers=self.headers)
             proxy_status_code = proxy_response.status_code
-            print(proxy_response.status_code)
             proxy_response.raise_for_status()
 
         except requests.exceptions.RequestException as e:
