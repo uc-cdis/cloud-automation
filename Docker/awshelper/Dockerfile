@@ -70,8 +70,15 @@ RUN cp /usr/local/openssl-3.4/ssl/openssl.cnf /usr/local/openssl-3.4/ssl/openssl
     && echo "activate = 1" >> /usr/local/openssl-3.4/ssl/openssl.cnf \
     && echo "module = /usr/local/openssl-3.4/lib/ossl-modules/fips.so" >> /usr/local/openssl-3.4/ssl/openssl.cnf
 
-# Reload library paths
-RUN ldconfig
+# Detect system library path dynamically
+RUN LIB_PATH=$(ldconfig -p | grep libcrypto.so.3 | awk '{print $NF}' | xargs dirname || echo "/lib") \
+    && echo "Using system library path: $LIB_PATH" \
+    && ln -sf /usr/local/openssl-3.4/lib/libcrypto.so.3 $LIB_PATH/libcrypto.so.3 \
+    && ln -sf /usr/local/openssl-3.4/lib/libssl.so.3 $LIB_PATH/libssl.so.3 \
+    && ln -sf /usr/local/openssl-3.4/bin/openssl /usr/bin/openssl \
+    && ln -sf /usr/local/openssl-3.4/bin/openssl /usr/local/bin/openssl \
+    && ldconfig \
+    && ldd /usr/bin/openssl
 
 # Verify FIPS Mode
 RUN /usr/bin/openssl list -providers \
