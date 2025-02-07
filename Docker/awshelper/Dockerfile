@@ -1,4 +1,4 @@
-# Build from root of cloud-automation/ repo:
+n# Build from root of cloud-automation/ repo:
 #   docker build -f Docker/awshelper/Dockerfile 
 #
 FROM quay.io/cdis/ubuntu:24.04
@@ -39,11 +39,16 @@ RUN wget https://www.openssl.org/source/openssl-3.4.0.tar.gz \
     && rm -rf /usr/local/src/openssl-3.4.0 /usr/local/src/openssl-3.4.0.tar.gz
 
 # Configure OpenSSL to use FIPS
-RUN ln -sf /usr/local/openssl-3.4/bin/openssl /usr/bin/openssl \
-    && echo 'export OPENSSL_CONF=/usr/local/openssl-3.4/ssl/openssl.cnf' >> /etc/profile \
-    && echo 'export OPENSSL_MODULES=/usr/local/openssl-3.4/lib/ossl-modules' >> /etc/profile \
-    && echo 'export LD_LIBRARY_PATH=/usr/local/openssl-3.4/lib:$LD_LIBRARY_PATH' >> /etc/profile \
-    && echo 'export OPENSSL_FORCE_FIPS_MODE=1' >> /etc/profile
+RUN apt-get remove -y libssl3 libcrypto3 openssl || true \
+    && ln -sf /usr/local/openssl-3.4/lib/libcrypto.so.3 /lib/x86_64-linux-gnu/libcrypto.so.3 \
+    && ln -sf /usr/local/openssl-3.4/lib/libssl.so.3 /lib/x86_64-linux-gnu/libssl.so.3 \
+    && ln -sf /usr/local/openssl-3.4/bin/openssl /usr/bin/openssl \
+    && ldconfig \
+    && ldd /usr/bin/openssl \
+    && export LD_LIBRARY_PATH=/usr/local/openssl-3.4/lib:$LD_LIBRARY_PATH \
+    && /usr/bin/openssl fipsinstall -out /usr/local/openssl-3.4/ssl/fipsmodule.cnf \
+    -module /usr/local/openssl-3.4/lib/ossl-modules/fips.so
+
 
 # Initialize FIPS module
 RUN /usr/local/openssl-3.4/bin/openssl fipsinstall -out /usr/local/openssl-3.4/ssl/fipsmodule.cnf \
