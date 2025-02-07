@@ -30,6 +30,7 @@ RUN apt-get update -qq && apt-get upgrade -y -qq \
       python3-pip \
       python3-setuptools \
       unzip \
+      gnupg \
       > /dev/null 2>&1
 
 # Install Poetry FIRST to Avoid SSL Issues
@@ -51,7 +52,7 @@ RUN curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dea
     && rm -rf /var/lib/apt/lists/*
 
 # Install Postgres 13 client (Silent)
-RUN curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc| gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg \
+RUN curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg \
     && echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" | tee /etc/apt/sources.list.d/pgdg.list > /dev/null \
     && apt-get update -qq \
     && apt-get install -y postgresql-client-13 > /dev/null 2>&1
