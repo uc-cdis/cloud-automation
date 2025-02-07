@@ -202,7 +202,8 @@ RUN cd ./cloud-automation \
     && cat ./Docker/awshelper/bashrc_suffix.sh >> ~/.bashrc
 
 # Ensure CA certificates are updated before installing Poetry
-RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
+RUN sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends ca-certificates
+
 
 # Fix SSL verification issue and install Poetry
 RUN export DEB_PYTHON_INSTALL_LAYOUT=deb \
