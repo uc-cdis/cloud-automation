@@ -145,14 +145,13 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
 RUN apt-get update && apt-get install -y --no-install-recommends gnupg curl
 
 # Add the Google Cloud SDK repository key and install kubectl
-RUN export CLOUD_SDK_REPO="cloud-sdk" \
-    && echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" > /etc/apt/sources.list.d/google-cloud-sdk.list \
-    && curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | tee /usr/share/keyrings/cloud.google.gpg > /dev/null \
+RUN curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg \
+    && echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" > /etc/apt/sources.list.d/google-cloud-sdk.list \
     && apt-get update \
     && apt-get install -y --no-install-recommends kubectl nodejs \
     && rm -rf /var/lib/apt/lists/*
 
-# Verify installation
+# Verify kubectl installation
 RUN kubectl version --client
 
 # Install postgres 13 client
