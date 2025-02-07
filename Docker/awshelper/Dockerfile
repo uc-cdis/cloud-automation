@@ -42,12 +42,20 @@ RUN apt-get remove -y libssl3 libcrypto3 openssl || true
 
 # Detect architecture and create correct symlinks
 RUN arch=$(dpkg --print-architecture) \
-    && ln -sf /usr/local/openssl-3.4/lib/libcrypto.so.3 /lib/$arch-linux-gnu/libcrypto.so.3 \
-    && ln -sf /usr/local/openssl-3.4/lib/libssl.so.3 /lib/$arch-linux-gnu/libssl.so.3 \
+    && if [ "$arch" = "amd64" ]; then \
+          ln -sf /usr/local/openssl-3.4/lib/libcrypto.so.3 /lib/x86_64-linux-gnu/libcrypto.so.3 \
+          && ln -sf /usr/local/openssl-3.4/lib/libssl.so.3 /lib/x86_64-linux-gnu/libssl.so.3; \
+       elif [ "$arch" = "arm64" ]; then \
+          ln -sf /usr/local/openssl-3.4/lib/libcrypto.so.3 /lib/aarch64-linux-gnu/libcrypto.so.3 \
+          && ln -sf /usr/local/openssl-3.4/lib/libssl.so.3 /lib/aarch64-linux-gnu/libssl.so.3; \
+       else \
+          echo "Unsupported architecture: $arch" && exit 1; \
+       fi \
     && ln -sf /usr/local/openssl-3.4/bin/openssl /usr/bin/openssl \
     && ln -sf /usr/local/openssl-3.4/bin/openssl /usr/local/bin/openssl \
     && ldconfig \
     && ldd /usr/bin/openssl
+
 
 # Initialize FIPS module and install FIPS configuration
 RUN export LD_LIBRARY_PATH=/usr/local/openssl-3.4/lib:$LD_LIBRARY_PATH \
