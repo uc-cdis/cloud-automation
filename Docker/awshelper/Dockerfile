@@ -51,11 +51,12 @@ RUN curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dea
     && apt-get install -y --no-install-recommends kubectl nodejs > /dev/null 2>&1 \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Postgres 13 client (Silent)
-RUN curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg \
-    && echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" | tee /etc/apt/sources.list.d/pgdg.list > /dev/null \
+RUN apt-get update -qq && apt-get install -y --no-install-recommends lsb-release > /dev/null 2>&1 \
+    && curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg \
+    && echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" | tee /etc/apt/sources.list.d/pgdg.list > /dev/null \
     && apt-get update -qq \
     && apt-get install -y postgresql-client-13 > /dev/null 2>&1
+
 
 # Install Terraform (Silent)
 RUN curl -s -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.15/terraform_0.11.15_linux_amd64.zip \
