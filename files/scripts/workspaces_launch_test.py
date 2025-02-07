@@ -143,19 +143,20 @@ class WorkspaceLaunchTest:
         self.end_time = time.time()
         logging.info(f"Workspace took {self.end_time-self.start_time} seconds to initialize")
 
-        # proxy_url = self.commons_url + "/lw-workspace/proxy"
-        # try:
-        #     logging.info("Trying to connect to workspace via proxy endpoint")
-        #     proxy_response = requests.get(proxy_url, headers=self.headers)
-        #     proxy_response.raise_for_status()
-        #     print(proxy_response)
-        # except requests.exceptions.RequestException as e:
-        #     error_msg = f"Error connecting to workspace via proxy endpoint. Error: {e}"
+        time.sleep(60)
+
+        proxy_url = self.commons_url + "/lw-workspace/proxy/"
+        try:
+            logging.info("Trying to connect to workspace via proxy endpoint")
+            proxy_response = requests.get(proxy_url, headers=self.headers)
+            proxy_status_code = proxy_response.status_code
+            print(proxy_response.status_code)
+            proxy_response.raise_for_status()
+
+        except requests.exceptions.RequestException as e:
+            error_msg = f"Error connecting to workspace via proxy endpoint. Error: {e}"
         
         # logging.info("Connected to workspace via proxy endpoint")
-        # print(proxy_response.json())
-
-
         # Terminate active running workspace
         terminate_url = self.commons_url + "/lw-workspace/terminate"
         try:
@@ -176,7 +177,8 @@ class WorkspaceLaunchTest:
             "duration": self.end_time - self.start_time,
             "result": self.launch_status,
             "reason_for_failure": self.reason_for_failure,
-            "status_response": self.status_response
+            "status_response": self.status_response,
+            "proxy_status": proxy_status_code,
         }
         return json_result
         
@@ -204,6 +206,11 @@ class WorkspaceLaunchTest:
 
             if status_response.json()["status"] == "Running":
                 self.launch_status = "Running"
+                self.status_response = status_response.json()
+                break
+            elif status_response.json()["status"] == "Not Found":
+                logging.error("Could not find workspace. Stopping status check...")
+                self.launch_status = "Not Found"
                 self.status_response = status_response.json()
                 break
 
