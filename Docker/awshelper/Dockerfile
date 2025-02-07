@@ -33,8 +33,8 @@ RUN wget https://www.openssl.org/source/openssl-3.4.0.tar.gz \
     && tar -xf openssl-3.4.0.tar.gz \
     && cd openssl-3.4.0 \
     && ./Configure enable-fips --prefix=/usr/local/openssl-3.4 \
-    && make -j$(nproc) \
-    && make install \
+    && make -s -j$(nproc) \
+    && make -s install \
     && rm -rf /usr/local/src/openssl-3.4.0 /usr/local/src/openssl-3.4.0.tar.gz
 
 # Remove system-provided OpenSSL and replace with OpenSSL 3.4.0
