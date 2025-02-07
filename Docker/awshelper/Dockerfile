@@ -1,4 +1,4 @@
-n# Build from root of cloud-automation/ repo:
+# Build from root of cloud-automation/ repo:
 #   docker build -f Docker/awshelper/Dockerfile 
 #
 FROM quay.io/cdis/ubuntu:24.04
@@ -8,7 +8,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Ensure correct architecture
 RUN dpkg --print-architecture
 
-# Update APT and install dependencies for openssl
+# Update APT and install dependencies for OpenSSL build
 RUN apt-get update && apt-get upgrade -y \
     && apt-get install -y --no-install-recommends \
       wget \
@@ -22,12 +22,11 @@ RUN apt-get update && apt-get upgrade -y \
       autoconf \
       automake \
       libtool \
-      libssl-dev \
       zlib1g-dev \
       sudo \
       git
 
-# Compile OpenSSL 3.4.0 from Source with FIPS enabled
+# Compile OpenSSL 3.4.0 from source with FIPS enabled
 WORKDIR /usr/local/src
 
 RUN wget https://www.openssl.org/source/openssl-3.4.0.tar.gz \
@@ -38,48 +37,45 @@ RUN wget https://www.openssl.org/source/openssl-3.4.0.tar.gz \
     && make install \
     && rm -rf /usr/local/src/openssl-3.4.0 /usr/local/src/openssl-3.4.0.tar.gz
 
-# Configure OpenSSL to use FIPS
-RUN apt-get remove -y libssl3 libcrypto3 openssl || true \
-    && ln -sf /usr/local/openssl-3.4/lib/libcrypto.so.3 /lib/x86_64-linux-gnu/libcrypto.so.3 \
-    && ln -sf /usr/local/openssl-3.4/lib/libssl.so.3 /lib/x86_64-linux-gnu/libssl.so.3 \
+# Remove system-provided OpenSSL and replace with OpenSSL 3.4.0
+RUN apt-get remove -y libssl3 libcrypto3 openssl || true
+
+# Detect architecture and create correct symlinks
+RUN arch=$(dpkg --print-architecture) \
+    && ln -sf /usr/local/openssl-3.4/lib/libcrypto.so.3 /lib/$arch-linux-gnu/libcrypto.so.3 \
+    && ln -sf /usr/local/openssl-3.4/lib/libssl.so.3 /lib/$arch-linux-gnu/libssl.so.3 \
     && ln -sf /usr/local/openssl-3.4/bin/openssl /usr/bin/openssl \
+    && ln -sf /usr/local/openssl-3.4/bin/openssl /usr/local/bin/openssl \
     && ldconfig \
-    && ldd /usr/bin/openssl \
-    && export LD_LIBRARY_PATH=/usr/local/openssl-3.4/lib:$LD_LIBRARY_PATH \
+    && ldd /usr/bin/openssl
+
+# Initialize FIPS module and install FIPS configuration
+RUN export LD_LIBRARY_PATH=/usr/local/openssl-3.4/lib:$LD_LIBRARY_PATH \
     && /usr/bin/openssl fipsinstall -out /usr/local/openssl-3.4/ssl/fipsmodule.cnf \
     -module /usr/local/openssl-3.4/lib/ossl-modules/fips.so
 
-
-# Initialize FIPS module
-RUN /usr/local/openssl-3.4/bin/openssl fipsinstall -out /usr/local/openssl-3.4/ssl/fipsmodule.cnf \
-    -module /usr/local/openssl-3.4/lib/ossl-modules/fips.so
-
-# Set up OpenSSL configuration for FIPS mode
-RUN cp /usr/local/openssl-3.4/ssl/openssl.cnf /usr/local/openssl-3.4/ssl/openssl.cnf.bak && \
-    echo "openssl_conf = openssl_init" > /usr/local/openssl-3.4/ssl/openssl.cnf && \
-    echo "" >> /usr/local/openssl-3.4/ssl/openssl.cnf && \
-    echo ".include fipsmodule.cnf" >> /usr/local/openssl-3.4/ssl/openssl.cnf && \
-    echo "" >> /usr/local/openssl-3.4/ssl/openssl.cnf && \
-    cat /usr/local/openssl-3.4/ssl/openssl.cnf.bak >> /usr/local/openssl-3.4/ssl/openssl.cnf && \
-    echo "[openssl_init]" >> /usr/local/openssl-3.4/ssl/openssl.cnf && \
-    echo "providers = provider_sect" >> /usr/local/openssl-3.4/ssl/openssl.cnf && \
-    echo "[provider_sect]" >> /usr/local/openssl-3.4/ssl/openssl.cnf && \
-    echo "default = default_sect" >> /usr/local/openssl-3.4/ssl/openssl.cnf && \
-    echo "fips = fips_sect" >> /usr/local/openssl-3.4/ssl/openssl.cnf && \
-    echo "[default_sect]" >> /usr/local/openssl-3.4/ssl/openssl.cnf && \
-    echo "activate = 1" >> /usr/local/openssl-3.4/ssl/openssl.cnf && \
-    echo "[fips_sect]" >> /usr/local/openssl-3.4/ssl/openssl.cnf && \
-    echo "activate = 1" >> /usr/local/openssl-3.4/ssl/openssl.cnf && \
-    echo "module = /usr/local/openssl-3.4/lib/ossl-modules/fips.so" >> /usr/local/openssl-3.4/ssl/openssl.cnf
-
+# Configure OpenSSL for FIPS mode
+RUN cp /usr/local/openssl-3.4/ssl/openssl.cnf /usr/local/openssl-3.4/ssl/openssl.cnf.bak \
+    && echo "openssl_conf = openssl_init" > /usr/local/openssl-3.4/ssl/openssl.cnf \
+    && echo ".include fipsmodule.cnf" >> /usr/local/openssl-3.4/ssl/openssl.cnf \
+    && cat /usr/local/openssl-3.4/ssl/openssl.cnf.bak >> /usr/local/openssl-3.4/ssl/openssl.cnf \
+    && echo "[openssl_init]" >> /usr/local/openssl-3.4/ssl/openssl.cnf \
+    && echo "providers = provider_sect" >> /usr/local/openssl-3.4/ssl/openssl.cnf \
+    && echo "[provider_sect]" >> /usr/local/openssl-3.4/ssl/openssl.cnf \
+    && echo "default = default_sect" >> /usr/local/openssl-3.4/ssl/openssl.cnf \
+    && echo "fips = fips_sect" >> /usr/local/openssl-3.4/ssl/openssl.cnf \
+    && echo "[default_sect]" >> /usr/local/openssl-3.4/ssl/openssl.cnf \
+    && echo "activate = 1" >> /usr/local/openssl-3.4/ssl/openssl.cnf \
+    && echo "[fips_sect]" >> /usr/local/openssl-3.4/ssl/openssl.cnf \
+    && echo "activate = 1" >> /usr/local/openssl-3.4/ssl/openssl.cnf \
+    && echo "module = /usr/local/openssl-3.4/lib/ossl-modules/fips.so" >> /usr/local/openssl-3.4/ssl/openssl.cnf
 
 # Reload library paths
 RUN ldconfig
 
-# Validate OpenSSL FIPS setup
-RUN /usr/local/openssl-3.4/bin/openssl version -a \
-    && /usr/local/openssl-3.4/bin/openssl list -providers
-
+# Verify FIPS Mode
+RUN /usr/bin/openssl list -providers \
+    && /usr/bin/openssl version -a
 # Install the remaining system dependencies
 RUN apt-get update && apt-get upgrade -y \
     && apt-get install -y --no-install-recommends \
