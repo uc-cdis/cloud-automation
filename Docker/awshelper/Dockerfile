@@ -201,7 +201,13 @@ RUN cp cloud-automation/Docker/awshelper/sshdStart.sh /opt/usersshd/ \
 RUN cd ./cloud-automation \
     && cat ./Docker/awshelper/bashrc_suffix.sh >> ~/.bashrc
 
-RUN export DEB_PYTHON_INSTALL_LAYOUT=deb && export POETRY_VERSION=1.1.15 && curl -sSL https://install.python-poetry.org | python3 -
+# Ensure CA certificates are updated before installing Poetry
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
+
+# Fix SSL verification issue and install Poetry
+RUN export DEB_PYTHON_INSTALL_LAYOUT=deb \
+    && export POETRY_VERSION=1.1.15 \
+    && curl -sSL https://install.python-poetry.org | python3 -
 
 RUN git config --global user.email gen3 \
     && git config --global user.name gen3
