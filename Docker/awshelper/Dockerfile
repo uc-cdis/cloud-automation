@@ -1,4 +1,4 @@
-# Start from Ubuntu 24.04 base image
+# Use Ubuntu 24.04 base image
 FROM quay.io/cdis/ubuntu:24.04
 
 # Prevent interactive prompts
@@ -21,15 +21,19 @@ RUN apt-get update -qq && apt-get upgrade -y -qq \
       sudo \
       git \
       lsb-release \
+      bc \
+      pkg-config \
+      ninja-build \
       > /dev/null 2>&1
 
 # Set working directory for OpenSSL source
 WORKDIR /usr/local/src
 
 # Download, compile, and install OpenSSL 3.4 with FIPS support
-RUN wget -q https://www.openssl.org/source/openssl-3.4.0.tar.gz \
+RUN wget -q https://www.openssl.org/source/openssl-3.4.0.tar.gz || wget -q https://ftp.openssl.org/source/openssl-3.4.0.tar.gz \
     && tar -xf openssl-3.4.0.tar.gz \
     && cd openssl-3.4.0 \
+    && export LD_LIBRARY_PATH="/usr/local/openssl-3.4/lib64:$LD_LIBRARY_PATH" \
     && ./Configure enable-fips --prefix=/usr/local/openssl-3.4 --openssldir=/usr/local/openssl-3.4/ssl > /dev/null 2>&1 \
     && make -s -j$(nproc) > /dev/null 2>&1 \
     && make -s install > /dev/null 2>&1 \
