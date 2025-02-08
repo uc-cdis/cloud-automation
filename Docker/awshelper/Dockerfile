@@ -1,6 +1,6 @@
-# Build from the root of cloud-automation/ repo:
-#   docker build -f Docker/awshelper/Dockerfile .
-
+# Build from root of cloud-automation/ repo:
+#   docker build -f Docker/awshelper/Dockerfile
+#
 FROM quay.io/cdis/ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -8,7 +8,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Ensure correct architecture
 RUN dpkg --print-architecture
 
-# Install base dependencies (before OpenSSL)
+# Update APT and install dependencies (BEFORE OpenSSL Upgrade)
 RUN apt-get update -qq && apt-get upgrade -y -qq \
     && apt-get install -y --no-install-recommends \
       wget \
@@ -31,6 +31,7 @@ RUN apt-get update -qq && apt-get upgrade -y -qq \
       python3-setuptools \
       unzip \
       gnupg \
+      lsb-release \
       > /dev/null 2>&1
 
 # Install Poetry FIRST to Avoid SSL Issues
@@ -51,9 +52,9 @@ RUN curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dea
     && apt-get install -y --no-install-recommends kubectl nodejs > /dev/null 2>&1 \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Postgres 13 client (Silent)
-RUN curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc| gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg \
-    && echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" | tee /etc/apt/sources.list.d/pgdg.list > /dev/null \
+# Install PostgreSQL 13 client (Silent) - Using /etc/os-release instead of lsb_release
+RUN curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg \
+    && echo "deb http://apt.postgresql.org/pub/repos/apt/ $(grep 'VERSION_CODENAME=' /etc/os-release | cut -d= -f2)-pgdg main" | tee /etc/apt/sources.list.d/pgdg.list > /dev/null \
     && apt-get update -qq \
     && apt-get install -y postgresql-client-13 > /dev/null 2>&1
 
@@ -80,13 +81,14 @@ RUN mkdir /var/run/sshd \
 
 EXPOSE 2222
 
-#-------------#
-# Install and Set Up Gen3
-#-------------#
+#-------------
 
 USER ubuntu
 WORKDIR /home/ubuntu
 
+#
+# Install and Set Up Gen3
+#
 COPY --chown=ubuntu:ubuntu . cloud-automation/
 
 # Remove node_modules (if exists)
@@ -98,53 +100,52 @@ RUN cp cloud-automation/Docker/awshelper/sshdStart.sh /opt/usersshd/ \
 RUN cd ./cloud-automation \
     && cat ./Docker/awshelper/bashrc_suffix.sh >> ~/.bashrc
 
-#-------------#
-# OpenSSL Install (Universal Across Architectures)
-#-------------#
-
+# Set SSL certificate paths BEFORE OpenSSL installation
 USER root
-WORKDIR /usr/src
+RUN apt-get update -qq && apt-get install -y --no-install-recommends ca-certificates \
+    > /dev/null 2>&1 || (echo "CA CERTIFICATES UPDATE FAILED" && exit 1)
+
+USER ubuntu
+WORKDIR /home/ubuntu
+
+# Configure Git BEFORE OpenSSL upgrade
+RUN git config --global http.sslVerify true
+
+#---------------#
+# OpenSSL Install (Moved to END to Avoid SSL Issues)
+#---------------#
+USER root
+WORKDIR /usr/local/src
 
 RUN wget -q https://www.openssl.org/source/openssl-3.4.0.tar.gz \
     && tar -xf openssl-3.4.0.tar.gz \
     && cd openssl-3.4.0 \
-    && ./Configure enable-fips --prefix=/usr --openssldir=/etc/ssl > /dev/null 2>&1 \
+    && ./Configure enable-fips --prefix=/usr/local/openssl-3.4 --openssldir=/usr/local/openssl-3.4/ssl > /dev/null 2>&1 \
     && make -s -j$(nproc) > /dev/null 2>&1 \
     && make -s install > /dev/null 2>&1 \
-    && rm -rf /usr/src/openssl-3.4.0 /usr/src/openssl-3.4.0.tar.gz
+    && rm -rf /usr/local/src/openssl-3.4.0 /usr/local/src/openssl-3.4.0.tar.gz
 
-# Ensure OpenSSL Libraries Are Accessible System-Wide
-RUN ldconfig \
-    && ln -sf /usr/bin/openssl /usr/local/bin/openssl \
-    && echo "OpenSSL version: $(openssl version -a)"
+# Remove system-provided OpenSSL to avoid conflicts
+RUN apt-get remove -y libssl3 libcrypto3 openssl || true
 
-# Automatically Detect OpenSSL's FIPS Module Path
-RUN export FIPS_MODULE_DIR=$(openssl version -d | awk -F'"' '{print $2}')/ossl-modules \
-    && echo "Detected FIPS module directory: $FIPS_MODULE_DIR" \
-    && openssl fipsinstall -out /etc/ssl/fipsmodule.cnf -module $FIPS_MODULE_DIR/fips.so > /dev/null 2>&1
+# Ensure OpenSSL 3.4 is installed correctly
+RUN ln -sf /usr/local/openssl-3.4/bin/openssl /usr/bin/openssl \
+    && ln -sf /usr/local/openssl-3.4/bin/openssl /usr/local/bin/openssl \
+    && ldconfig > /dev/null 2>&1
 
-# Configure OpenSSL for FIPS Mode
-RUN echo "openssl_conf = openssl_init" > /etc/ssl/openssl.cnf \
-    && echo "[openssl_init]" >> /etc/ssl/openssl.cnf \
-    && echo "providers = provider_sect" >> /etc/ssl/openssl.cnf \
-    && echo "[provider_sect]" >> /etc/ssl/openssl.cnf \
-    && echo "default = default_sect" >> /etc/ssl/openssl.cnf \
-    && echo "fips = fips_sect" >> /etc/ssl/openssl.cnf \
-    && echo "[default_sect]" >> /etc/ssl/openssl.cnf \
-    && echo "activate = 1" >> /etc/ssl/openssl.cnf \
-    && echo "[fips_sect]" >> /etc/ssl/openssl.cnf \
-    && echo "activate = 1" >> /etc/ssl/openssl.cnf \
-    && echo "module = /usr/lib/ossl-modules/fips.so" >> /etc/ssl/openssl.cnf
+# Ensure the OpenSSL shared libraries are detected
+ENV LD_LIBRARY_PATH="/usr/local/openssl-3.4/lib64:$LD_LIBRARY_PATH"
 
-# Verify OpenSSL and FIPS Mode
-RUN openssl version -a \
-    && openssl list -providers \
-    && openssl md5 /etc/hostname || echo "FIPS mode enabled (MD5 blocked)"
+# Initialize FIPS module and install FIPS configuration
+RUN /usr/bin/openssl fipsinstall -out /usr/local/openssl-3.4/ssl/fipsmodule.cnf \
+    -module /usr/local/openssl-3.4/lib64/ossl-modules/fips.so > /dev/null 2>&1
 
-#-------------#
+# Verify OpenSSL and FIPS mode (Silent)
+RUN /usr/bin/openssl version -a > /dev/null 2>&1
+
+#------------#
 # Smoke Test
-#-------------#
-
+#------------#
 USER ubuntu
 WORKDIR /home/ubuntu
 
