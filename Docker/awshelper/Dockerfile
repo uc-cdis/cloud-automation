@@ -5,9 +5,9 @@ FROM quay.io/cdis/ubuntu:24.04
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install dependencies required for OpenSSL compilation
-RUN apt-get update -qq && apt-get upgrade -y -qq \
-    && apt-get install -y --no-install-recommends \
-      ca-certificates \    
+RUN apt-get update -qq && apt-get upgrade -y -qq && \
+    apt-get install -y --no-install-recommends \
+      ca-certificates \
       wget \
       curl \
       build-essential \
@@ -22,12 +22,14 @@ RUN apt-get update -qq && apt-get upgrade -y -qq \
       sudo \
       git \
       lsb-release \
-      > /dev/null 2>&1
+      bc \
+    > /dev/null 2>&1
 
 # Set working directory for OpenSSL source
 WORKDIR /usr/local/src
 
-# Download, compile, and install OpenSSL 3.4 with FIPS support
+# Download, compile, and install OpenSSL 3.4 with FIPS support,
+# forcing libraries into /usr/local/openssl-3.4/lib via --libdir=lib
 RUN wget https://www.openssl.org/source/openssl-3.4.0.tar.gz && \
     tar -xf openssl-3.4.0.tar.gz && \
     cd openssl-3.4.0 && \
@@ -48,15 +50,17 @@ RUN export LIB_PATH=$(ldconfig -p | grep libcrypto.so.3 | awk '{print $NF}' | xa
     ln -sf /usr/local/openssl-3.4/bin/openssl /usr/bin/openssl && \
     ln -sf /usr/local/openssl-3.4/bin/openssl /usr/local/bin/openssl && \
     ldconfig
-    
+
 # Ensure the OpenSSL shared libraries are detected
 ENV LD_LIBRARY_PATH="/usr/local/openssl-3.4/lib:${LD_LIBRARY_PATH:-}"
 
-# Automatically detect OpenSSL's default config directory
-RUN export OPENSSL_CONFIG_DIR=$(/usr/local/openssl-3.4/bin/openssl version -d | awk -F'"' '{print $2}') && \
-    echo "Detected OpenSSL config directory: $OPENSSL_CONFIG_DIR"
+# Determine and set the OpenSSL config directory.
+# (The typical output of `openssl version -d` is: OPENSSLDIR: "/usr/local/openssl-3.4/ssl")
+# We set it as an ENV variable so it persists across RUN steps.
+ENV OPENSSL_CONFIG_DIR="/usr/local/openssl-3.4/ssl"
 
-# Automatically detect FIPS module path and install the FIPS module
+# Automatically detect FIPS module path and install the FIPS module.
+# (If fips.so is not in $OPENSSL_CONFIG_DIR/ossl-modules, attempt to copy it from /usr/local/openssl-3.4/lib/ossl-modules)
 RUN export FIPS_MODULE_DIR=$(/usr/local/openssl-3.4/bin/openssl version -d | awk -F'"' '{print $2}')/ossl-modules && \
     echo "Detected FIPS module directory: $FIPS_MODULE_DIR" && \
     if [ ! -f "$FIPS_MODULE_DIR/fips.so" ]; then \
