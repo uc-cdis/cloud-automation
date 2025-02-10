@@ -42,7 +42,7 @@ setup_database_and_config() {
 ####################
 
 # whether to enable debug logs
-DEBUG: true
+DEBUG: false
 
 PULL_FROM_QUEUE: true
 QUEUE_CONFIG:
