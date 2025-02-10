@@ -36,7 +36,7 @@ RUN wget https://www.openssl.org/source/openssl-3.4.0.tar.gz && \
     export LD_LIBRARY_PATH="/usr/local/openssl-3.4/lib:${LD_LIBRARY_PATH:-}" && \
     ./Configure enable-fips --prefix=/usr/local/openssl-3.4 --openssldir=/usr/local/openssl-3.4/ssl --libdir=lib && \
     make -j$(nproc) > /dev/null 2>&1 && \
-    make install > /dev/null 2>&1 && \
+    make install > /dev/null 2>&1 
     # rm -rf /usr/local/src/openssl-3.4.0 /usr/local/src/openssl-3.4.0.tar.gz
 
 # Remove system-provided OpenSSL to prevent conflicts
@@ -70,13 +70,24 @@ RUN export FIPS_MODULE_DIR=$(/usr/local/openssl-3.4/bin/openssl version -d | awk
     fi && \
     /usr/local/openssl-3.4/bin/openssl fipsinstall -out $OPENSSL_CONFIG_DIR/fipsmodule.cnf -module $FIPS_MODULE_DIR/fips.so
 
-# Fix OpenSSL configuration for FIPS mode (remove any hardcoded comments)
-RUN cp $OPENSSL_CONFIG_DIR/openssl.cnf $OPENSSL_CONFIG_DIR/openssl.cnf.bak && \
-    sed -i '/^\# fips = fips_sect$/s/^# //' $OPENSSL_CONFIG_DIR/openssl.cnf && \
-    sed -i '/^\# \.include fipsmodule.cnf$/s/^# //' $OPENSSL_CONFIG_DIR/openssl.cnf
-    #echo "[fips_sect]" >> $OPENSSL_CONFIG_DIR/openssl.cnf && \
-    #echo "activate = 1" >> $OPENSSL_CONFIG_DIR/openssl.cnf && \
-    #echo "module = $FIPS_MODULE_DIR/fips.so" >> $OPENSSL_CONFIG_DIR/openssl.cnf
+# Rewrite OpenSSL configuration for FIPS mode 
+RUN cat > $OPENSSL_CONFIG_DIR/openssl.cnf <<'EOF'
+openssl_conf = openssl_init
+
+[openssl_init]
+providers = provider_sect
+
+[provider_sect]
+fips = fips_sect
+default = default_sect
+
+[fips_sect]
+activate = 1
+module = /usr/local/openssl-3.4/ssl/ossl-modules/fips.so
+
+[default_sect]
+EOF
+
 
 # Verify OpenSSL version and FIPS provider configuration
 RUN /usr/local/openssl-3.4/bin/openssl version -a && \
