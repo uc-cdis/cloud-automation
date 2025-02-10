@@ -73,7 +73,7 @@ RUN export FIPS_MODULE_DIR=$(/usr/local/openssl-3.4/bin/openssl version -d | awk
 # Fix OpenSSL configuration for FIPS mode (remove any hardcoded comments)
 RUN cp $OPENSSL_CONFIG_DIR/openssl.cnf $OPENSSL_CONFIG_DIR/openssl.cnf.bak && \
     sed -i '/^\# fips = fips_sect$/s/^# //' $OPENSSL_CONFIG_DIR/openssl.cnf && \
-    sed -i '/^\# \.include fipsmodule.cnf$/s/^# //' $OPENSSL_CONFIG_DIR/openssl.cnf && \
+    sed -i '/^\# \.include fipsmodule.cnf$/s/^# //' $OPENSSL_CONFIG_DIR/openssl.cnf
     #echo "[fips_sect]" >> $OPENSSL_CONFIG_DIR/openssl.cnf && \
     #echo "activate = 1" >> $OPENSSL_CONFIG_DIR/openssl.cnf && \
     #echo "module = $FIPS_MODULE_DIR/fips.so" >> $OPENSSL_CONFIG_DIR/openssl.cnf
