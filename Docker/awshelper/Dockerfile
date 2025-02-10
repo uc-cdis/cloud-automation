@@ -7,6 +7,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Install dependencies required for OpenSSL compilation
 RUN apt-get update -qq && apt-get upgrade -y -qq \
     && apt-get install -y --no-install-recommends \
+      ca-certificates \    
       wget \
       curl \
       build-essential \
