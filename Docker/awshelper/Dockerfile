@@ -1,15 +1,9 @@
 # Build from root of cloud-automation/ repo:
 #   docker build -f Docker/awshelper/Dockerfile 
 #
-FROM quay.io/cdis/ubuntu:24.04
+FROM quay.io/cdis/awshelper:chore_fips-2404
 
 ENV DEBIAN_FRONTEND=noninteractive
-
-# Workaround for OpenSSL FIPS mode issue
-ENV OPENSSL_FORCE_FIPS_MODE=0
-
-# Verify that OPENSSL_FORCE_FIPS_MODE is set correctly
-RUN echo "OPENSSL_FORCE_FIPS_MODE=$OPENSSL_FORCE_FIPS_MODE"
 
 RUN apt-get update && apt-get upgrade -y \
     && apt-get install -y \
