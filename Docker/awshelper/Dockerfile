@@ -4,6 +4,9 @@ FROM quay.io/cdis/ubuntu:24.04
 # Prevent interactive prompts
 ENV DEBIAN_FRONTEND=noninteractive
 
+RUN echo $PWD
+RUN pwd && ls -l
+
 # Install dependencies required for OpenSSL compilation
 RUN apt-get update -qq && apt-get upgrade -y -qq && \
     apt-get install -y --no-install-recommends \
@@ -69,6 +72,7 @@ RUN export FIPS_MODULE_DIR=$(/usr/local/openssl-3.4/bin/openssl version -d | awk
         cp /usr/local/openssl-3.4/lib/ossl-modules/fips.so "$FIPS_MODULE_DIR/fips.so"; \
     fi && \
     /usr/local/openssl-3.4/bin/openssl fipsinstall -out $OPENSSL_CONFIG_DIR/fipsmodule.cnf -module $FIPS_MODULE_DIR/fips.so
+
 
 # Rewrite OpenSSL configuration for FIPS mode 
 COPY ./openssl_cnf /usr/local/openssl-3.4/ssl/openssl.cnf
