@@ -25,6 +25,7 @@ RUN apt-get update -qq && apt-get upgrade -y -qq && \
       bc vim \
     > /dev/null 2>&1
 
+
 # Set working directory for OpenSSL source
 WORKDIR /usr/local/src
 
