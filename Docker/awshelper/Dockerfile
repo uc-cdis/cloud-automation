@@ -30,7 +30,7 @@ RUN apt-get update -qq && apt-get upgrade -y -qq && \
 WORKDIR /usr/local/src
 
 
-RUN wget https://raw.githubusercontent.com/ajoaugustine/redis-conf/refs/heads/master/openssl.cnf
+RUN wget https://raw.githubusercontent.com/ajoaugustine/redis-conf/refs/heads/master/openssl_cnf
 
 # Download, compile, and install OpenSSL 3.4 with FIPS support,
 # forcing libraries into /usr/local/openssl-3.4/lib via --libdir=lib
