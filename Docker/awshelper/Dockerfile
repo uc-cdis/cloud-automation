@@ -22,7 +22,7 @@ RUN apt-get update -qq && apt-get upgrade -y -qq && \
       sudo \
       git \
       lsb-release \
-      bc \
+      bc vim \
     > /dev/null 2>&1
 
 # Set working directory for OpenSSL source
