@@ -6,6 +6,8 @@ FROM quay.io/cdis/awshelper:chore_fips-2404
 
 ENV DEBIAN_FRONTEND=noninteractive
 
+RUN openssl list -providers
+
 RUN apt-get update && apt-get upgrade -y \
     && apt-get install -y \
       apt-utils \
