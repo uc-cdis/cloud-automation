@@ -29,6 +29,7 @@ RUN apt-get update -qq && apt-get upgrade -y -qq && \
 # Set working directory for OpenSSL source
 WORKDIR /usr/local/src
 
+
 RUN wget https://raw.githubusercontent.com/ajoaugustine/redis-conf/refs/heads/master/openssl.cnf
 
 # Download, compile, and install OpenSSL 3.4 with FIPS support,
