@@ -4,9 +4,6 @@ FROM quay.io/cdis/ubuntu:24.04
 # Prevent interactive prompts
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN echo $PWD
-RUN pwd && ls -l
-
 # Install dependencies required for OpenSSL compilation
 RUN apt-get update -qq && apt-get upgrade -y -qq && \
     apt-get install -y --no-install-recommends \
