@@ -31,6 +31,8 @@ RUN apt-get update -qq && apt-get upgrade -y -qq && \
 # Set working directory for OpenSSL source
 WORKDIR /usr/local/src
 
+RUN wget https://raw.githubusercontent.com/ajoaugustine/redis-conf/refs/heads/master/openssl.cnf
+
 # Download, compile, and install OpenSSL 3.4 with FIPS support,
 # forcing libraries into /usr/local/openssl-3.4/lib via --libdir=lib
 RUN wget https://www.openssl.org/source/openssl-3.4.0.tar.gz && \
@@ -75,7 +77,7 @@ RUN export FIPS_MODULE_DIR=$(/usr/local/openssl-3.4/bin/openssl version -d | awk
 
 
 # Rewrite OpenSSL configuration for FIPS mode 
-COPY ./openssl_cnf /usr/local/openssl-3.4/ssl/openssl.cnf
+cp /usr/local/src/openssl.cnf /usr/local/openssl-3.4/ssl/openssl.cnf
 
 # Verify OpenSSL version and FIPS provider configuration
 RUN /usr/local/openssl-3.4/bin/openssl version -a && \
