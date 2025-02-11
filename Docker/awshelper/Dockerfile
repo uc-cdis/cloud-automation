@@ -1,6 +1,7 @@
 # Build from root of cloud-automation/ repo:
 #   docker build -f Docker/awshelper/Dockerfile 
 #
+
 FROM quay.io/cdis/awshelper:chore_fips-2404
 
 ENV DEBIAN_FRONTEND=noninteractive
