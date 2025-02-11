@@ -75,7 +75,7 @@ RUN export FIPS_MODULE_DIR=$(/usr/local/openssl-3.4/bin/openssl version -d | awk
 
 # Rewrite OpenSSL configuration for FIPS mode 
 RUN cp /usr/local/src/openssl.cnf /usr/local/openssl-3.4/ssl/openssl.cnf
-
+RUN sleep 10
 # Verify OpenSSL version and FIPS provider configuration
 RUN /usr/local/openssl-3.4/bin/openssl version -a && \
     /usr/local/openssl-3.4/bin/openssl list -providers
