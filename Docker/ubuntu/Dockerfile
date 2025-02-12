@@ -62,6 +62,21 @@ RUN echo 'export LD_LIBRARY_PATH="/usr/local/openssl-3.4/lib:$LD_LIBRARY_PATH"' 
     echo 'export PATH="/usr/local/openssl-3.4/bin:$PATH"' >> /root/.bashrc && \
     echo 'export OPENSSL_CONF="/usr/local/openssl-3.4/ssl/openssl.cnf"' >> /root/.bashrc
 
+# Set the working directory to where OpenSSL is installed
+WORKDIR /usr/local/openssl-3.4/ssl
+
+# Check and rename existing certs and private directories, then create the links
+RUN [ -d certs ] && mv certs certs.old || true && \
+    [ -d private ] && mv private private.old || true && \
+    ln -s /etc/ssl/certs certs && \
+    ln -s /etc/ssl/private private
+
+# Create symbolic links for the configuration files in /etc/ssl
+RUN [ -f /etc/ssl/openssl.cnf ] && mv /etc/ssl/openssl.cnf /etc/ssl/openssl.cnf.bak || true && \
+    [ -f /etc/ssl/fipsmodule.cnf ] && mv /etc/ssl/fipsmodule.cnf /etc/ssl/fipsmodule.cnf.bak || true && \
+    ln -s /usr/local/openssl-3.4/ssl/openssl.cnf /etc/ssl/openssl.cnf && \
+    ln -s /usr/local/openssl-3.4/ssl/fipsmodule.cnf /etc/ssl/fipsmodule.cnf
+
 # (Optional) Verify the installation. These commands are run and any errors are ignored,
 # so the build doesn't fail if verification fails.
 RUN openssl version -a || true && \
