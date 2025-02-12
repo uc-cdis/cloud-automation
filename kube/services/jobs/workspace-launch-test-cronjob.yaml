@@ -1,5 +1,5 @@
 # To run: gen3 job run workspace-launch-test-cronjob COMMONS_URL <commons base url> IMAGES <IMAGES name>
-# example: gen3 job run workspace-launch-test-cronjob COMMONS_URL https://qa-heal.planx-pla.net IMAGES '(Generic) Jupyter Lab Image with R Kernel' '(Tutorials) Example Analysis Jupyter Lab Notebooks'
+# example: gen3 job run workspace-launch-test-cronjob COMMONS_URL https://qa-heal.planx-pla.net IMAGES '(Generic) Jupyter Lab Image with R Kernel+(Tutorials) Example Analysis Jupyter Lab Notebooks'
 # If IMAGES isn't provided, it defaults to '(Generic) Jupyter Lab Image with R Kernel'
 
 apiVersion: batch/v1

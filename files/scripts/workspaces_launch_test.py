@@ -63,16 +63,11 @@ class WorkspaceLaunchTest:
         else:
             self.headers = {}
 
-    def get_info_for_image(self, image_name, options=None):
-        for option in options:
-            if option["name"] == image_name:
-                return option
-        return None
-            
-
     def initialize_workspace_launch_test(self):
         
-        test_image_ids_map = {} # list of tuples containing image name and image ids
+        available_images = {} # dict of name: id pairs of all available images
+        images_to_test = {} # dict of name: id pairs of images requested that will be tested
+        unavailable_images = [] # list of images requested but are not available
         
         # Get available workspace options
         options_url = self.commons_url + "/lw-workspace/options"
@@ -86,28 +81,28 @@ class WorkspaceLaunchTest:
             self.reason_for_failure = error_msg
         
         options = options_response.json()
-        logging.info("Successfully found workspace options")
-        logging.info(f"Found {len(options)} Workspace options: {options}")
 
-        available_images = [option['name'] for option in options]
+        for option in options:
+            available_images[option["name"]] = option["id"]
 
         for image in self.images:
             if image in available_images:
-                test_image_ids_map[image] = self.get_info_for_image(image, options)["id"]
+                images_to_test[image] = available_images[image]
+            else:
+                unavailable_images.append(image)
 
+        logging.info("Successfully found workspace options")
+        logging.info(f"Found {len(options)} Workspace options: {options}")
         logging.info(f"Images requested to test {self.images}")
-        logging.info(f"Images available to test {test_image_ids_map}")
-
-        unavailable_images = set(self.images) - set(available_images)
-        if len(unavailable_images) != 0:
-            logging.warning(f"The following requested images are not available: {unavailable_images}")
+        logging.info(f"Could not find the following images: {unavailable_images}") if unavailable_images else None
+        logging.info(f"Testing the following images: {images_to_test}")
 
         # Launch workspaces sequentially:
         final_result = [] 
-        number_of_images = len(test_image_ids_map)
+        number_of_images = len(images_to_test)
         number_of_runs = 0
 
-        for image_name, id in test_image_ids_map.items():
+        for image_name, id in images_to_test.items():
             logging.info(f"Testing image: {image_name}")
             final_result.append(self.start_workspace_launch_test(image_name, id))
             logging.info(f"Finished testing image: {image_name}")
@@ -143,7 +138,7 @@ class WorkspaceLaunchTest:
         self.end_time = time.time()
         logging.info(f"Workspace took {self.end_time-self.start_time} seconds to initialize")
 
-        time.sleep(60)
+        time.sleep(30)
 
         proxy_url = self.commons_url + "/lw-workspace/proxy/"
         try:
