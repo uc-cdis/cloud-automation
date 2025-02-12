@@ -1,86 +1,124 @@
-# Use Ubuntu 24.04 base image
-FROM quay.io/cdis/ubuntu:24.04
+# Build from root of cloud-automation/ repo:
+#   docker build -f Docker/awshelper/Dockerfile 
+#
+FROM quay.io/cdis/ubuntu:fips-enabled-not-enforced
 
-# Prevent interactive prompts
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install dependencies required for OpenSSL compilation
-RUN apt-get update -qq && apt-get upgrade -y -qq && \
-    apt-get install -y --no-install-recommends \
-      ca-certificates \
-      wget \
+RUN apt-get update && apt-get upgrade -y \
+    && apt-get install -y \
+      apt-utils \
+      apt-transport-https \
+      bash-completion \
       curl \
-      build-essential \
-      perl \
+      dnsutils \
+      ftp \
       gcc \
-      make \
-      g++ \
-      autoconf \
-      automake \
-      libtool \
-      zlib1g-dev \
-      sudo \
       git \
+      groff-base \
+      iputils-ping \
+      jq \
+      less \
+      libpq-dev \
       lsb-release \
-      bc vim \
-    > /dev/null 2>&1
+      netcat-openbsd \
+      networkd-dispatcher \
+      net-tools \
+      openssh-client \
+      openssh-server \
+      python3 \
+      python3-dev \
+      python3-pip \
+      python3-setuptools \
+      ssh \
+      sudo \
+      tmux \
+      unzip \
+      vim \
+      wget \
+      gettext-base
 
+#can remove once https://github.com/yaml/pyyaml/issues/724 is solved
+RUN pip install pyyaml==6.0.1 --break-system-packages
 
-# Set working directory for OpenSSL source
-WORKDIR /usr/local/src
+# RUN  python3 -m pip install pip --upgrade --break-system-packages
+RUN  python3 -m pip install --upgrade setuptools --break-system-packages \
+    && python3 -m pip install -U crcmod --break-system-packages \
+    && python3 -m pip install --upgrade yq --break-system-packages \
+    && python3 -m pip install --upgrade 'gen3>4' --break-system-packages
 
+# aws cli v2
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
+    && unzip awscliv2.zip \
+    && ./aws/install \
+    && /bin/rm -rf awscliv2.zip ./aws
 
-RUN wget https://raw.githubusercontent.com/ajoaugustine/redis-conf/refs/heads/master/openssl_cnf
+# From  https://hub.docker.com/r/google/cloud-sdk/~/dockerfile/
+RUN export CLOUD_SDK_REPO="cloud-sdk" && \
+    echo "deb https://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" > /etc/apt/sources.list.d/google-cloud-sdk.list && \
+    curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
+    apt-get update && \
+    apt-get install -y kubectl && \
+    apt-get install -y --no-install-recommends nodejs && \
+    rm -rf /var/lib/apt/lists/* && \
+    kubectl version --client && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /var/log/*
 
-# Download, compile, and install OpenSSL 3.4 with FIPS support,
-# forcing libraries into /usr/local/openssl-3.4/lib via --libdir=lib
-RUN wget https://www.openssl.org/source/openssl-3.4.0.tar.gz && \
-    tar -xf openssl-3.4.0.tar.gz && \
-    cd openssl-3.4.0 && \
-    export LD_LIBRARY_PATH="/usr/local/openssl-3.4/lib:${LD_LIBRARY_PATH:-}" && \
-    ./Configure enable-fips --prefix=/usr/local/openssl-3.4 --openssldir=/usr/local/openssl-3.4/ssl --libdir=lib && \
-    make -j$(nproc) > /dev/null 2>&1 && \
-    make install > /dev/null 2>&1 
-    # rm -rf /usr/local/src/openssl-3.4.0 /usr/local/src/openssl-3.4.0.tar.gz
+# Install postgres 13 client
+RUN curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc| gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg && \
+    echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" | tee  /etc/apt/sources.list.d/pgdg.list && \
+    apt-get update && \
+    apt-get install -y postgresql-client-13
 
-# Remove system-provided OpenSSL to prevent conflicts
-RUN apt-get remove -y libssl3 libcrypto3 openssl || true
+# install terraform
+RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.15/terraform_0.11.15_linux_amd64.zip \
+   && unzip /tmp/terraform.zip -d /usr/local/bin && /bin/rm /tmp/terraform.zip
 
-# Detect OpenSSL's shared library directory dynamically and create symlinks
-RUN export LIB_PATH=$(ldconfig -p | grep libcrypto.so.3 | awk '{print $NF}' | xargs dirname || echo "/lib") && \
-    echo "Using detected OpenSSL library path: $LIB_PATH" && \
-    ln -sf /usr/local/openssl-3.4/lib/libcrypto.so.3 $LIB_PATH/libcrypto.so.3 && \
-    ln -sf /usr/local/openssl-3.4/lib/libssl.so.3 $LIB_PATH/libssl.so.3 && \
-    ln -sf /usr/local/openssl-3.4/bin/openssl /usr/bin/openssl && \
-    ln -sf /usr/local/openssl-3.4/bin/openssl /usr/local/bin/openssl && \
-    ldconfig
+RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.12.31/terraform_0.12.31_linux_amd64.zip \
+   && unzip /tmp/terraform.zip -d /tmp && mv /tmp/terraform /usr/local/bin/terraform12 && /bin/rm /tmp/terraform.zip
 
-# Ensure the OpenSSL shared libraries are detected
-ENV LD_LIBRARY_PATH="/usr/local/openssl-3.4/lib:${LD_LIBRARY_PATH:-}"
+RUN echo "ubuntu:gen3" | chpasswd
 
-# Determine and set the OpenSSL config directory.
-# (The typical output of `openssl version -d` is: OPENSSLDIR: "/usr/local/openssl-3.4/ssl")
-# We set it as an ENV variable so it persists across RUN steps.
-ENV OPENSSL_CONFIG_DIR="/usr/local/openssl-3.4/ssl"
+# Setup scripts to run sshd for wetty - see kube/services/tty
+RUN mkdir -p /opt/usersshd \
+    && chown -R ubuntu: /opt/usersshd \
+    && chmod -R a+rwX /run
 
-# Automatically detect FIPS module path and install the FIPS module.
-# (If fips.so is not in $OPENSSL_CONFIG_DIR/ossl-modules, attempt to copy it from /usr/local/openssl-3.4/lib/ossl-modules)
-RUN export FIPS_MODULE_DIR=$(/usr/local/openssl-3.4/bin/openssl version -d | awk -F'"' '{print $2}')/ossl-modules && \
-    echo "Detected FIPS module directory: $FIPS_MODULE_DIR" && \
-    if [ ! -f "$FIPS_MODULE_DIR/fips.so" ]; then \
-        echo "fips.so not found in $FIPS_MODULE_DIR, attempting to copy from /usr/local/openssl-3.4/lib/ossl-modules"; \
-        mkdir -p "$FIPS_MODULE_DIR"; \
-        cp /usr/local/openssl-3.4/lib/ossl-modules/fips.so "$FIPS_MODULE_DIR/fips.so"; \
-    fi && \
-    /usr/local/openssl-3.4/bin/openssl fipsinstall -out $OPENSSL_CONFIG_DIR/fipsmodule.cnf -module $FIPS_MODULE_DIR/fips.so
+RUN mkdir /var/run/sshd \
+  && touch /var/log/lastlog \
+  && update-alternatives --install /usr/bin/python python /usr/bin/python3 100 \
+  && update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 100 \
+  && [ "Python 3" = "$(python --version | awk -F . '{ print $1 }')" ]
 
+EXPOSE 2222
 
-# Rewrite OpenSSL configuration for FIPS mode 
-RUN cp /usr/local/src/openssl_cnf /usr/local/openssl-3.4/ssl/openssl.cnf
+#-------------
 
-# Verify OpenSSL version and FIPS provider configuration
-# RUN openssl version -a
-# RUN openssl list -providers
+USER ubuntu
+WORKDIR /home/ubuntu
 
-# Set default command to launch an interactive shell
-CMD ["/bin/bash"]
+#
+# install and set up gen3
+#
+COPY --chown=ubuntu:ubuntu . cloud-automation/
+
+# COPY generates files owned by root regardless of USER
+RUN /bin/rm -rf ./cloud-automation/node_modules
+
+RUN cp cloud-automation/Docker/awshelper/sshdStart.sh /opt/usersshd/ \
+    && cp cloud-automation/Docker/awshelper/sshd_config /opt/usersshd/
+
+RUN cd ./cloud-automation \
+    && cat ./Docker/awshelper/bashrc_suffix.sh >> ~/.bashrc
+
+RUN export DEB_PYTHON_INSTALL_LAYOUT=deb && export POETRY_VERSION=1.1.15 && curl -sSL https://install.python-poetry.org | python3 -
+
+RUN git config --global user.email gen3 \
+    && git config --global user.name gen3
+
+# smoke test
+RUN export GEN3_HOME="$HOME/cloud-automation" \
+    && bash -c 'source "$GEN3_HOME/gen3/gen3setup.sh" && gen3 help'
+
+CMD /bin/bash
