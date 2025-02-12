@@ -1,7 +1,7 @@
 # Build from root of cloud-automation/ repo:
 #   docker build -f Docker/awshelper/Dockerfile 
 #
-FROM quay.io/cdis/ubuntu:fips-enabled-not-enforced
+FROM quay.io/cdis/ubuntu:24.04-fips_enabled_not_enforced
 
 ENV DEBIAN_FRONTEND=noninteractive
 
