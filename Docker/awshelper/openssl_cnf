@@ -48,25 +48,17 @@ tsa_policy3 = 1.2.3.4.5.7
 # fips provider. It contains a named section e.g. [fips_sect] which is
 # referenced from the [provider_sect] below.
 # Refer to the OpenSSL security policy for more information.
-.include fipsmodule.cnf
+.include /usr/local/openssl-3.4/ssl/fipsmodule.cnf
 
 [openssl_init]
 providers = provider_sect
 
 # List of providers to load
 [provider_sect]
-#default = default_sect
-fips = fips_sect
-
-[default_sect]
-activate = 1
-
-[fips_sect]
-activate = 1
-module = /usr/local/openssl-3.4/lib/ossl-modules/fips.so
+default = default_sect
 # The fips section name should match the section name inside the
 # included fipsmodule.cnf.
-# fips = fips_sect
+fips = fips_sect
 
 # If no providers are activated explicitly, the default one is activated implicitly.
 # See man 7 OSSL_PROVIDER-default for more details.
@@ -76,7 +68,8 @@ module = /usr/local/openssl-3.4/lib/ossl-modules/fips.so
 # becomes unavailable in openssl.  As a consequence applications depending on
 # OpenSSL may not work correctly which could lead to significant system
 # problems including inability to remotely access the system.
-
+[default_sect]
+activate = 1
 
 
 ####################################################################
