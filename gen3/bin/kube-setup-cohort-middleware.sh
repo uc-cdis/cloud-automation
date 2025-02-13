@@ -34,6 +34,7 @@ setup_secrets() {
       cat - > "$credsFile" <<EOM
 ---
 arborist_endpoint: 'http://arborist-service'
+global_reader_role: 'public'
 atlas_db:
   host: "$DB_HOST"
   port: '5432'

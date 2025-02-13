@@ -102,7 +102,7 @@ export FQDN="$SERVERNAME.planx-pla.net"; export cloud="$CLOUDNAME"; export SERVE
 
 #export FQDN="raryatestvpnv1.planx-pla.net"; export cloud="planxvpn1"; export SERVER_PEM="/root/server.pem"; bash /root/openvpn_management_scripts/install_ovpn.sh
 
-#export FQDN="raryatestvpnv1.planx-pla.net"; export cloud="planxvpn"; export EMAIL="support@datacommons.io"; export SERVER_PEM="/root/server.pem"; export VPN_SUBNET="192.168.192.0/20"; export VM_SUBNET="10.128.0.0/20"; bash install_ovpn.sh
+#export FQDN="raryatestvpnv1.planx-pla.net"; export cloud="planxvpn"; export EMAIL="support@gen3.org"; export SERVER_PEM="/root/server.pem"; export VPN_SUBNET="192.168.192.0/20"; export VM_SUBNET="10.128.0.0/20"; bash install_ovpn.sh
 
 ### need to install lighttpd
 

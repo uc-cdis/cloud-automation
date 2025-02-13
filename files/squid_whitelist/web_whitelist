@@ -7,6 +7,7 @@ achecker.ca
 apache.github.io
 api.epigraphdb.org
 api.monqcle.com
+app.getambassador.io
 awslabs.github.io
 biodata-integration-tests.net
 marketing.biorender.com
@@ -14,6 +15,7 @@ clinicaltrials.gov
 charts.bitnami.com
 ctds-planx.atlassian.net
 data.cityofchicago.org
+data.stage.qdr.org
 dataguids.org
 api.login.yahoo.com
 apt.kubernetes.io
@@ -31,7 +33,7 @@ centos.mirrors.hoobly.com
 centos.mirrors.tds.net
 centos.mirrors.wvstateu.edu
 cernvm.cern.ch
-charts.bitnami.com
+charts.authelia.com
 charts.helm.sh
 cloud.r-project.org
 coredns.github.io
@@ -68,6 +70,7 @@ ftp.linux.ncsu.edu
 ftp.sanger.ac.uk
 ftp.usf.edu
 ftp.ussg.iu.edu
+fluent.github.io
 fmwww.bc.edu
 gcr.io
 get.helm.sh
@@ -88,7 +91,9 @@ ks.osdc.io
 kubecost.github.io
 kubernetes.github.io
 kubernetes-sigs.github.io
+launchpad.net
 lib.stat.cmu.edu
+localstack.github.io
 login.mathworks.com
 login.microsoftonline.com
 maven.restlet.org
@@ -123,6 +128,7 @@ neuro.debian.net
 neurodeb.pirsquared.org
 nginx.org
 nvidia.github.io
+ohsu-comp-bio.github.io
 opportunityinsights.org
 orcid.org
 pgp.mit.edu
@@ -137,6 +143,7 @@ registry.terraform.io
 releases.rancher.com
 rendersnake.googlecode.com
 repec.org
+repo.broadcom.com
 repo-prod.prod.sagebase.org
 repo-staging.prod.sagebase.org
 repo.continuum.io
@@ -156,6 +163,7 @@ sa-update.space-pro.be
 security.debian.org
 services.mathworks.com
 streaming.stat.iastate.edu
+uc-cdis.github.io
 us-east4-docker.pkg.dev
 us-central1-docker.pkg.dev
 www.google.com
@@ -168,3 +176,6 @@ vpodc.org
 yahoo.com
 idp.stage.qdr.org
 stage.qdr.org
+data.qdr.syr.edu
+zenodo.org
+dataverse.harvard.edu

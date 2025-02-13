@@ -23,6 +23,7 @@ spec:
         userhelper: "yes"
         internet: "yes"
         GEN3_DATE_LABEL
+        GEN3_HOSTNAME_LABEL
     spec:
       affinity:
         podAntiAffinity:
@@ -196,11 +197,12 @@ spec:
             mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
             subPath: "ca.pem"
         resources:
-          requests:
-            cpu: 100m
-            memory: 100Mi
+          requests:  
+            cpu: 0.5
+            memory: 1024Mi
           limits:
-            memory: 800Mi 
+            cpu: 1.0
+            memory: 2048Mi
         command: ["/bin/sh" ]
         args:
           - "-c"

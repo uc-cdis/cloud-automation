@@ -25,6 +25,7 @@ spec:
         # for network policy
         netnolimit: "yes"
         GEN3_DATE_LABEL
+        GEN3_HOSTNAME_LABEL
     spec:
       affinity:
         podAntiAffinity:
@@ -91,6 +92,12 @@ spec:
                 name: manifest-metadata
                 key: AGG_MDS_NAMESPACE
                 optional: true
+          - name: AGG_MDS_DEFAULT_DATA_DICT_FIELD
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-metadata
+                key: AGG_MDS_DEFAULT_DATA_DICT_FIELD
+                optional: true
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
@@ -109,6 +116,11 @@ spec:
           - name: config-volume-g3auto
             readOnly: true
             mountPath: /src/.env
+            subPath: metadata.env
+          # Added an additional volume mount for new images using the /<app-name> directory, while retaining the 'src' mount for backward compatibility.
+          - name: config-volume-g3auto
+            readOnly: true
+            mountPath: /mds/.env
             subPath: metadata.env
           - name: config-volume
             readOnly: true
@@ -133,6 +145,11 @@ spec:
               readOnly: true
               mountPath: /src/.env
               subPath: metadata.env
+            # Added an additional volume mount for new images using the /<app-name> directory, while retaining the 'src' mount for backward compatibility.
+            - name: config-volume-g3auto
+              readOnly: true
+              mountPath: /mds/.env
+              subPath: metadata.env
           resources:
             limits:
               cpu: 0.8
@@ -141,4 +158,6 @@ spec:
           args:
             - "-c"
             - |
-              /env/bin/alembic upgrade head
+              # Managing virtual environments via poetry instead of python since the AL base image update, but retaining backwards compatibility 
+              poetry run alembic upgrade head || /env/bin/alembic upgrade head
+

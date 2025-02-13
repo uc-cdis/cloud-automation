@@ -103,7 +103,8 @@ _add_bucket_to_cloudtrail() {
 #
 _bucket_exists() {
   local bucketName=$1
-  if [[ -z "$(gen3_aws_run aws s3api head-bucket --bucket $bucketName 2>&1)" ]]; then
+  gen3_aws_run aws s3api head-bucket --bucket $bucketName > /dev/null 2>&1
+  if [[ $? -eq 0 ]]; then
     echo 0
   else
     echo 1
@@ -168,15 +169,18 @@ gen3_s3_info() {
   local writerName="bucket_writer_$1"
   local readerName="bucket_reader_$1"
   local AWS_ACCOUNT_ID=$(gen3_aws_run aws sts get-caller-identity | jq -r .Account)
+  local bucketName=$1
 
   if [[ -z "$AWS_ACCOUNT_ID" ]]; then
     gen3_log_err "Unable to fetch AWS account ID."
     return 1
   fi
-  if [[ ! -z "$(gen3_aws_run aws s3api head-bucket --bucket $1 2>&1)" ]]; then
-    gen3_log_err "Bucket does not exist"
+
+  if [[ $(_bucket_exists $bucketName) -ne 0 ]]; then
+    gen3_log_err "Bucket '$bucketName' does not exist"
     return 1
   fi
+
   local rootPolicyArn="arn:aws:iam::${AWS_ACCOUNT_ID}:policy"
   if gen3_aws_run aws iam get-policy --policy-arn ${rootPolicyArn}/${writerName} >/dev/null 2>&1; then
     writerPolicy="{ \"name\": \"$writerName\", \"policy_arn\": \"${rootPolicyArn}/${writerName}\" } "

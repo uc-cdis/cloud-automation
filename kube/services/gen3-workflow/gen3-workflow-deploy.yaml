@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gen3-workflow-deployment
+spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: gen3-workflow
+      release: production
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: gen3-workflow
+        release: production
+        dbgen3workflow: "yes"
+        # for revproxy authz
+        public: "yes"
+        # for network policy
+        netnolimit: "yes"
+        GEN3_DATE_LABEL
+        GEN3_HOSTNAME_LABEL
+    spec:
+      serviceAccountName: gen3-workflow-sa
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 25
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - gen3-workflow
+              topologyKey: "kubernetes.io/hostname"
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - spot
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - SPOT
+      automountServiceAccountToken: false
+      volumes:
+        - name: config-volume
+          secret:
+            secretName: "gen3workflow-g3auto"
+      containers:
+      - name: gen3-workflow
+        GEN3_GEN3-WORKFLOW_IMAGE
+        env:
+          - name: ARBORIST_URL
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: arborist_url
+                optional: true
+        imagePullPolicy: Always
+        livenessProbe:
+          httpGet:
+            path: /_status
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 60
+          timeoutSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /_status
+            port: 8000
+        ports:
+        - containerPort: 8000
+        volumeMounts:
+          - name: "config-volume"
+            readOnly: true
+            mountPath: "/src/gen3-workflow-config.yaml"
+            subPath: "gen3-workflow-config.yaml"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 1Gi
+          limits:
+            memory: 1Gi

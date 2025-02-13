@@ -250,11 +250,14 @@ g3k_manifest_filter() {
     kvList+=("$kvKey" "image: $value")
     kvLabelKey=$(echo "GEN3_${key}_VERSION" | tr '[:lower:]' '[:upper:]')
     version=$(echo $value | rev | cut -d ':' -f 1 | rev)
-    kvList+=("$kvLabelKey" "tags.datadoghq.com/version: '$version'")
+    kvList+=("$kvLabelKey" "version: '$version'")
   done
   environment="$(g3k_config_lookup ".global.environment" "$manifestPath")"
+  hostname="$(g3k_config_lookup ".global.hostname" "$manifestPath")"
   kvEnvKey=$(echo "GEN3_ENV_LABEL" | tr '[:lower:]' '[:upper:]')
-  kvList+=("$kvEnvKey" "tags.datadoghq.com/env: $environment")
+  kvHostKey=$(echo "GEN3_HOSTNAME_LABEL" | tr '[:lower:]' '[:upper:]')
+  kvList+=("$kvEnvKey" "env: $environment")
+  kvList+=("$kvHostKey" "hostname: $hostname")
   for key in $(g3k_config_lookup '. | keys[]' "$manifestPath"); do
     gen3_log_debug "harvesting key $key"
     for key2 in $(g3k_config_lookup ".[\"${key}\"] "' | to_entries | map(select((.value|type != "array") and (.value|type != "object"))) | map(.key)[]' "$manifestPath" | grep '^[a-zA-Z]'); do

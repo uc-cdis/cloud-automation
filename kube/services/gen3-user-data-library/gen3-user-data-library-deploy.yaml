@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gen3-user-data-library-deployment
+spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: gen3-user-data-library
+      release: production
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: gen3-user-data-library
+        release: production
+        public: "yes"
+        netnolimit: "yes"
+        GEN3_DATE_LABEL
+    spec:
+      volumes:
+        - name: gen3-user-data-library-g3auto-volume
+          secret:
+            secretName: gen3userdatalibrary-g3auto
+      containers:
+      - name: gen3-user-data-library
+        GEN3_GEN3-USER-DATA-LIBRARY_IMAGE
+        ports:
+        - containerPort: 8080
+        env:
+          - name: GEN3_DEBUG
+            GEN3_DEBUG_FLAG|-value: "False"-|
+          - name: ANONYMIZED_TELEMETRY
+            value: "False"
+        volumeMounts:
+          - name: gen3-user-data-library-g3auto-volume
+            readOnly: true
+            mountPath: /gen3userdatalibrary/.env
+            subPath: gen3-user-data-library.env
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: 1
+            memory: 1024Mi
+          limits:
+            cpu: 2
+            memory: 2048Mi
+      initContainers:
+        - name: gen3-user-data-library-db-migrate
+          GEN3_GEN3-USER-DATA-LIBRARY_IMAGE
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: gen3-user-data-library-g3auto-volume
+              readOnly: true
+              mountPath: /gen3userdatalibrary/.env
+              subPath: gen3-user-data-library.env
+          resources:
+            limits:
+              cpu: 0.8
+              memory: 512Mi
+          command: [ "/bin/sh" ]
+          args:
+            - "-c"
+            - |
+              # Managing virtual environments via poetry instead of python since the AL base image update, but retaining backwards compatibility 
+              poetry run alembic upgrade head || /env/bin/alembic upgrade head

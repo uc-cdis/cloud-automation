@@ -97,6 +97,8 @@ spec:
               secretKeyRef:
                 name: cedar-g3auto
                 key: "cedar_api_key.txt"
+          - name: GEN3_DEBUG
+            GEN3_DEBUG_FLAG|-value: "False"-|
         volumeMounts:
           - name: "ca-volume"
             readOnly: true

@@ -118,10 +118,6 @@ spec:
               secretKeyRef:
                 name: jenkins-g3auto
                 key: google_app_creds.json
-          - name: DD_AGENT_HOST
-            valueFrom:
-              fieldRef:
-                fieldPath: status.hostIP
         resources:
           limits:
             cpu: "0.6"

@@ -135,19 +135,6 @@ spec:
           subPath: "ca.pem"
         - name: dockersock
           mountPath: "/var/run/docker.sock"
-      - name: selenium
-        image: selenium/standalone-chrome:3.14
-        ports:
-        - containerPort: 4444
-        readinessProbe:
-          httpGet:
-            path: /wd/hub/sessions
-            port: 4444
-        readinessProbe:
-          httpGet:
-            path: /wd/hub/sessions
-            port: 4444
-        imagePullPolicy: Always
       volumes:
       - name: datadir
         persistentVolumeClaim:

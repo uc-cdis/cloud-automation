@@ -1,0 +1,108 @@
+# Setup for running this migration https://github.com/uc-cdis/indexd/blob/master/docs/migration_to_single_table_indexd.md
+# Need to apply PriorityClass before running this job. Run kubectl apply -f indexd-single-table-migration-priority-class.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: indexd-single-table-migration
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      priorityClassName: indexd-single-table-migration-priority  # Assigning the priority class
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND
+      automountServiceAccountToken: false
+      volumes:
+        - name: config-volume
+          secret:
+            secretName: "indexd-secret" # pragma: allowlist secret
+        - name: "indexd-creds-volume"
+          secret:
+            secretName: "indexd-creds" # pragma: allowlist secret
+        - name: config-helper
+          configMap:
+            name: config-helper
+        - name: creds-volume-new
+          secret:
+            secretName: "indexd-new-creds" # pragma: allowlist secret
+      containers:
+        - name: indexd
+          GEN3_INDEXD_IMAGE
+          env:
+            - name: START_DID
+              GEN3_START_DID|-value: ""-|
+            - name: BATCH_SIZE
+              GEN3_BATCH_SIZE|-value: ""-|
+            - name: OFFSET_VALUE
+              GEN3_OFFSET_VALUE|-value: ""-|
+            - name: USE_DEFAULT_CREDS
+              GEN3_USE_DEFAULT_CREDS|-value: "false"-|
+          volumeMounts:
+            - name: "config-volume"
+              readOnly: true
+              mountPath: "/var/www/indexd/local_settings.py"
+              subPath: "local_settings.py"
+            - name: "indexd-creds-volume"
+              readOnly: true
+              mountPath: "/var/www/indexd/creds.json"
+              subPath: creds.json
+            - name: "config-helper"
+              readOnly: true
+              mountPath: "/var/www/indexd/config_helper.py"
+              subPath: config_helper.py
+            - name: "creds-volume-new"
+              readOnly: true
+              mountPath: "/var/www/indexd/creds_new.json"
+              subPath: creds.json
+          resources:
+            requests:
+              cpu: 1000m
+              memory: 1Gi
+          imagePullPolicy: Always
+          command: ["/bin/bash"]
+          args:
+            - "-c"
+            - |
+              $flags=""
+              
+              if [[ "$USE_DEFAULT_CREDS" == "false" ]]; then
+                echo "Using new creds"
+                flags="$flags --creds-file /var/www/indexd/creds_new.json"
+              else
+                echo "using default creds"
+                flags="$flags --creds-file /var/www/indexd/creds.json"
+              fi
+
+              if [[ -n "$START_DID" ]]; then
+                flags="$flags --start-did $START_DID"
+              fi
+              if [[ -n "$BATCH_SIZE" ]]; then
+                flags="$flags --batch-size $BATCH_SIZE"
+              fi
+
+              if [[ -n "$OFFSET_VALUE" ]]; then
+                flags="$flags --start-offset $OFFSET_VALUE"
+              fi
+
+              time python /indexd/bin/migrate_to_single_table.py $flags
+              echo "Exit code: $?"
+      restartPolicy: Never
+
+        

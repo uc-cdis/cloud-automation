@@ -247,10 +247,23 @@ else
   gen3_log_info "not deploying dicom-viewer - no manifest entry for '.versions[\"dicom-viewer\"]'"
 fi
 
+if g3k_manifest_lookup '.versions["ohif-viewer"]' 2> /dev/null || g3k_manifest_lookup '.versions["orthanc"]' 2> /dev/null; then
+  gen3 kube-setup-dicom &
+else
+  gen3_log_info "not deploying - no manifest entry for '.versions[\"ohif-viewer\"]' or '.versions[\"orthanc\"]'"
+fi
+
+
 if g3k_manifest_lookup '.versions["gen3-discovery-ai"]' 2> /dev/null; then
   gen3 kube-setup-gen3-discovery-ai &
 else
   gen3_log_info "not deploying gen3-discovery-ai - no manifest entry for '.versions[\"gen3-discovery-ai\"]'"
+fi
+
+if g3k_manifest_lookup '.versions["gen3-user-data-library"]' 2> /dev/null; then
+  gen3 kube-setup-gen3-user-data-library &
+else
+  gen3_log_info "not deploying gen3-user-data-library - no manifest entry for '.versions[\"gen3-user-data-library\"]'"
 fi
 
 if g3k_manifest_lookup '.versions["ohdsi-atlas"]' && g3k_manifest_lookup '.versions["ohdsi-webapi"]' 2> /dev/null; then
@@ -265,12 +278,18 @@ else
   gen3_log_info "not deploying cohort-middleware - no manifest entry for .versions[\"cohort-middleware\"]"
 fi
 
+if g3k_manifest_lookup '.versions["gen3-workflow"]' 2> /dev/null; then
+  gen3 kube-setup-gen3-workflow &
+else
+  gen3_log_info "not deploying gen3-workflow - no manifest entry for .versions[\"gen3-workflow\"]"
+fi
+
 gen3 kube-setup-revproxy
 
 if [[ "$GEN3_ROLL_FAST" != "true" ]]; then
-  if g3k_manifest_lookup .global.argocd 2> /dev/null; then
-    gen3 kube-setup-prometheus
-  fi
+  # if g3k_manifest_lookup .global.argocd 2> /dev/null; then
+  #   gen3 kube-setup-prometheus
+  # fi
   # Internal k8s systems
   gen3 kube-setup-fluentd &
   # If there is an entry for karpenter in the manifest setup karpenter
