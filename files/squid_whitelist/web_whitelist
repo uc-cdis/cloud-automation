@@ -82,6 +82,7 @@ gopkg.in
 grafana.com
 grafana.github.io
 helm.elastic.co
+helm.localstack.cloud
 http.us.debian.org
 ifconfig.io
 ingress.coralogix.us
@@ -178,3 +179,4 @@ idp.stage.qdr.org
 stage.qdr.org
 data.qdr.syr.edu
 zenodo.org
+dataverse.harvard.edu

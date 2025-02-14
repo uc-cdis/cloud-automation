@@ -183,6 +183,20 @@ spec:
                 name: global
                 key: mapbox_token
                 optional: true
+          - name: DATADOG_APPLICATION_ID
+            # Optional application ID for Datadog
+            valueFrom:
+              secretKeyRef:
+                name: portal-datadog-config
+                key: datadog_application_id
+                optional: true
+          - name: DATADOG_CLIENT_TOKEN
+            # Optional client token for Datadog
+            valueFrom:
+              secretKeyRef:
+                name: portal-datadog-config
+                key: datadog_client_token
+                optional: true
           - name: DATA_UPLOAD_BUCKET
             # S3 bucket name for data upload, for setting up CSP
             GEN3_DATA_UPLOAD_BUCKET|-value: ""-|
