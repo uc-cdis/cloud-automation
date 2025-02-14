@@ -129,13 +129,9 @@ fi
 
 if g3k_manifest_lookup .versions.spark 2> /dev/null; then
   #
-  # Only if an ETL job is not running
+  # Only if not already deployed - otherwise it may interrupt a running ETL
   #
-  # Save etl pods to a var
-  PODS=$(kubectl get pods -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.status.phase}{"\n"}{end}' | grep "etl")
-  # Get any running ETL pods and save them to a var
-  RUNNING_POD=$(echo "$PODS" | grep " Running")
-  if [ -z "$RUNNING_POD" ]; then
+  if ! g3kubectl get deployment spark-deployment > /dev/null 2>&1; then
     gen3 kube-setup-spark &
   fi
 else
