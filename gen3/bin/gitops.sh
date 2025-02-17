@@ -561,7 +561,8 @@ update_cronjob() {
 gen3_gitops_update_all_cron_jobs() {
 
   # List of cronjobs
-  local active_cronjobs=$(kubectl get cronjobs -o custom-columns=":metadata.name" | awk 'NF' | sed 's/^/"/;s/$/"/' | tr '\n' ' ')
+  local IFS=$'\n'  # Set Internal Field Separator to newline
+  local active_cronjobs=($(kubectl get cronjobs -o custom-columns=":metadata.name" | awk 'NF'))
 
   # Loop through each cronjob and check/update if needed
   for cronjob in "${active_cronjobs[@]}"; do
