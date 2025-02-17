@@ -9,7 +9,7 @@ concurrency:
 jobs:
   integration_tests:
     name: Integration tests
-    uses: uc-cdis/gen3-code-vigil/.github/workflows/shared_integration_tests.yaml@master
+    uses: uc-cdis/gen3-code-vigil/.github/workflows/shared_integration_tests.yaml@chore/use_branch_cloud_automation_instead_of_master
     with:
       QUAY_REPO: "awshelper"
       TEST_REPO: chore/use_branch_cloud_automation_instead_of_master
