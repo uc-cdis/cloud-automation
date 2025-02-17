@@ -52,7 +52,7 @@ db_password_sheepdog= ""
 #The password for the indexd DB
 db_password_indexd= ""
 
-#The URL for the data dictionary schema. It must be in JSON format. For more info, see: https://gen3.org/resources/user/dictionary/
+#The URL for the data dictionary schema. It must be in JSON format. For more info, see: https://docs.gen3.org/gen3-resources/operator-guide/create-data-dictionary/
 dictionary_url= ""
 
 #A configuration to specify a customization profile for the the commons' front-end
