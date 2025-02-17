@@ -561,7 +561,7 @@ update_cronjob() {
 gen3_gitops_update_all_cron_jobs() {
 
   # List of cronjobs
-  local active_cronjobs=$(kubectl get cronjobs -o custom-columns=":metadata.name" | grep -v '^$')
+  local active_cronjobs=$(g3kubectl get cronjobs -o custom-columns=":metadata.name" | awk 'NF {print "\"" $0 "\""}' | paste -sd " ")
 
   # Loop through each cronjob and check/update if needed
   for cronjob in "${active_cronjobs[@]}"; do
