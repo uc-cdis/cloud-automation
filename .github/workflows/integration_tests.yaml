@@ -9,13 +9,10 @@ concurrency:
 jobs:
   integration_tests:
     name: Integration tests
-    uses: uc-cdis/.github/.github/workflows/integration_tests.yaml@master
-    concurrency:
-      group: ${{ github.workflow }}-${{ github.event.pull_request.number }}-integration_tests  # Unique group for this job
-      cancel-in-progress: true
+    uses: uc-cdis/gen3-code-vigil/.github/workflows/shared_integration_tests.yaml@master
     with:
       QUAY_REPO: "awshelper"
-      CLOUD_AUTO_BRANCH: ${{ github.event.pull_request.ref }}
+      TEST_REPO: chore/use_branch_cloud_automation_instead_of_master
     secrets:
       CI_AWS_ACCESS_KEY_ID: ${{ secrets.CI_AWS_ACCESS_KEY_ID }}
       CI_AWS_SECRET_ACCESS_KEY: ${{ secrets.CI_AWS_SECRET_ACCESS_KEY }}
