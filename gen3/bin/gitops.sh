@@ -510,8 +510,6 @@ gen3_gitops_sync() {
       fi
     else
       echo "no changes detected, not rolling"
-      echo "but doing the cronjob thing!"
-      gen3_gitops_update_all_cron_jobs #remove this later
     fi
   fi
 }
@@ -1167,8 +1165,8 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
     "update-fence-cronjobs")
       gen3_gitops_update_fence_cron_jobs "$@"
       ;;      
-    "update-cronjobs")
-      update_cronjob "$@"
+    "update-all-cronjobs")
+      gen3_gitops_update_all_cron_jobs "$@"
       ;;    
     "taglist")
       gen3_gitops_repo_taglist "$@"
