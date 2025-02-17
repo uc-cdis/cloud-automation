@@ -12,7 +12,7 @@ jobs:
     uses: uc-cdis/gen3-code-vigil/.github/workflows/shared_integration_tests.yaml@chore/use_branch_cloud_automation_instead_of_master
     with:
       QUAY_REPO: "awshelper"
-      TEST_REPO: chore/use_branch_cloud_automation_instead_of_master
+      TEST_REPO_BRANCH: chore/use_branch_cloud_automation_instead_of_master
     secrets:
       CI_AWS_ACCESS_KEY_ID: ${{ secrets.CI_AWS_ACCESS_KEY_ID }}
       CI_AWS_SECRET_ACCESS_KEY: ${{ secrets.CI_AWS_SECRET_ACCESS_KEY }}
