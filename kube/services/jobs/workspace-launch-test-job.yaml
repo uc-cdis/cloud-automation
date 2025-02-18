@@ -11,6 +11,8 @@ spec:
     metadata:
       labels:
         app: gen3job
+        GEN3_ENV_LABEL
+        GEN3_HOSTNAME_LABEL
     spec:
       affinity:
         nodeAffinity:

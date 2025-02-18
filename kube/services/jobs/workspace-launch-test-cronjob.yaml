@@ -1,11 +1,11 @@
 # To run: gen3 job run workspace-launch-test-cronjob COMMONS_URL <commons base url> IMAGES <IMAGES name>
-# example: gen3 job run workspace-launch-test-cronjob COMMONS_URL https://qa-heal.planx-pla.net IMAGES '(Generic) Jupyter Lab Image with R Kernel+(Tutorials) Example Analysis Jupyter Lab Notebooks'
+# example: gen3 job run workspace-launch-test-cronjob COMMONS_URL https://qa-heal.planx-pla.net IMAGES "(Generic) Jupyter Lab Image with R Kernel+(Tutorials) Example Analysis Jupyter Lab Notebooks"
 # If IMAGES isn't provided, it defaults to '(Generic) Jupyter Lab Image with R Kernel'
 
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: workspace-launch-test-cron
+  name: workspace-launch-test
 spec:
   schedule: "0 * * * *" # Schedule: Runs daily at 3 AM (adjust as needed)
   jobTemplate:
@@ -14,6 +14,8 @@ spec:
         metadata:
           labels:
             app: gen3job
+            GEN3_ENV_LABEL
+            GEN3_HOSTNAME_LABEL
         spec:
           affinity:
             nodeAffinity:
