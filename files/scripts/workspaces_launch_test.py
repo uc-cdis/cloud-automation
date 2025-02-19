@@ -165,7 +165,7 @@ class WorkspaceLaunchTest:
             self.reason_for_failure = error_msg
 
         json_result = {
-            "iamge": image_name,
+            "image": image_name,
             "workspace_id": workspace_id,
             "start_time": self.start_time,
             "end_time": self.end_time,
