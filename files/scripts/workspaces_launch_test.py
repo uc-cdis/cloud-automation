@@ -99,12 +99,13 @@ class WorkspaceLaunchTest:
 
         # Launch workspaces sequentially:
         final_result = {}
+        final_result["final_result"] = {}
         number_of_images = len(images_to_test)
         number_of_runs = 0
 
         for image_name, id in images_to_test.items():
             logging.info(f"Testing image: {image_name}")
-            final_result[image_name] = self.start_workspace_launch_test(image_name, id)
+            final_result["final_result"][image_name] = self.start_workspace_launch_test(image_name, id)
             logging.info(f"Finished testing image: {image_name}")
             
             number_of_runs += 1
