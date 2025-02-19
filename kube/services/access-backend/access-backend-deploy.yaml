@@ -67,6 +67,14 @@ spec:
           - name: AWS_DEFAULT_REGION
             value: "us-east-1"
         imagePullPolicy: Always
+        livenessProbe:
+          httpGet:
+            path: /_status
+            port: 80
+        readinessProbe:
+          httpGet:
+            path: /_status
+            port: 80
         ports:
         - containerPort: 80
         volumeMounts:
