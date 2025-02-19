@@ -70,6 +70,7 @@ ftp.linux.ncsu.edu
 ftp.sanger.ac.uk
 ftp.usf.edu
 ftp.ussg.iu.edu
+fluent.github.io
 fmwww.bc.edu
 gcr.io
 get.helm.sh
@@ -81,6 +82,7 @@ gopkg.in
 grafana.com
 grafana.github.io
 helm.elastic.co
+helm.localstack.cloud
 http.us.debian.org
 ifconfig.io
 ingress.coralogix.us
@@ -90,7 +92,9 @@ ks.osdc.io
 kubecost.github.io
 kubernetes.github.io
 kubernetes-sigs.github.io
+launchpad.net
 lib.stat.cmu.edu
+localstack.github.io
 login.mathworks.com
 login.microsoftonline.com
 maven.restlet.org
@@ -174,3 +178,5 @@ yahoo.com
 idp.stage.qdr.org
 stage.qdr.org
 data.qdr.syr.edu
+zenodo.org
+dataverse.harvard.edu

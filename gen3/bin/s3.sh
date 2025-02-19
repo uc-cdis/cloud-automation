@@ -169,6 +169,7 @@ gen3_s3_info() {
   local writerName="bucket_writer_$1"
   local readerName="bucket_reader_$1"
   local AWS_ACCOUNT_ID=$(gen3_aws_run aws sts get-caller-identity | jq -r .Account)
+  local bucketName=$1
 
   if [[ -z "$AWS_ACCOUNT_ID" ]]; then
     gen3_log_err "Unable to fetch AWS account ID."
@@ -176,7 +177,7 @@ gen3_s3_info() {
   fi
 
   if [[ $(_bucket_exists $bucketName) -ne 0 ]]; then
-    gen3_log_err "Bucket does not exist"
+    gen3_log_err "Bucket '$bucketName' does not exist"
     return 1
   fi
 

@@ -87,15 +87,15 @@ test_db_services() {
 
 test_db_snapshot_list() {
   local snapshotJson
-  snapshotJson="$(gen3 db snapshot list server1)"; because $? "gen3 db snapshot list server1 should work"
+  snapshotJson="$(gen3 db snapshot list server2)"; because $? "gen3 db snapshot list server2 should work"
   local snapCount
-  snapCount="$(jq -e -r '.DBSnapshots | length' <<<"$snapshotJson")"; 
+  snapCount="$(jq -e -r '.DBClusterSnapshots | length' <<<"$snapshotJson")"; 
     because $? "snap list json has expected structure"
   [[ "$snapCount" =~ ^[0-9]+$ && "$snapCount" -gt 0 ]]; because $? "server1 has at least 1 snapshot"
 }
 
 test_db_snapshot_take() {
-  gen3 db snapshot take server1 --dryrun; because $? "gen3 db snapshot take server1 should work"
+  gen3 db snapshot take server2 --dryrun; because $? "gen3 db snapshot take server2 should work"
 }
 
 test_db_backup_restore() {

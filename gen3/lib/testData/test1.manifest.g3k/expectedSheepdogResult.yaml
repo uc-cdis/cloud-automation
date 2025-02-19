@@ -23,10 +23,10 @@ spec:
         public: "yes"
         # to download dictionary
         s3: "yes"
-        service: "sheepdog"
         env: null
         version: 'master'
         date: "1522344212"
+        hostname: null
     spec:
       affinity:
         podAntiAffinity:
