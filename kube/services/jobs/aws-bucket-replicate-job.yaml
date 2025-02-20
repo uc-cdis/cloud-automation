@@ -79,7 +79,7 @@ spec:
             mountPath: "/secrets/dcf_dataservice_settings"
             subPath: "dcf_dataservice_settings"
           - name: "project-map-volume"
-            mountPath: "/dcf-dataservice/GDC_project_map.json"
+            mountPath: "/dcf_dataservice/GDC_project_map.json"
             subPath: "GDC_project_map.json"
           - name: "creds-json-volume"
             mountPath: "/secrets/dcf_dataservice_credentials.json"
