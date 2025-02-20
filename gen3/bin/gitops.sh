@@ -503,9 +503,10 @@ gen3_gitops_sync() {
         fi
         curl -X POST --data-urlencode "payload={\"text\": \"Gitops-sync Cron: ${resStr} - Syncing dict and images on ${tmpHostname}\", \"attachments\": [{${dictAttachment}}, {${versionsAttachment}}, {${portalAttachment}}, {${fenceAttachment}}, {${etlAttachment}}, {${covidAttachment}}]}" "${slackWebHook}"
       fi
-      # update fence jobs
+      # update cronjobs
       if [[ "$versions_roll" = true ]]; then
           gen3_gitops_update_fence_cron_jobs
+          gen3_gitops_update_all_cron_jobs
       fi
     else
       echo "no changes detected, not rolling"
@@ -531,6 +532,42 @@ gen3_gitops_rsync() {
   ssh "$target" "bash -ic 'gen3 gitops sync'"
 }
 
+# Function to check and update cronjobs
+update_cronjob() {
+  local cronjob_name=$1
+  local manifest_image=$2
+
+  gen3_log_info "Checking cronjob $cronjob_name..."
+
+  # Extract cronjob schedule directly using kubectl with jsonpath
+  local cronjob_schedule=$(kubectl get cronjobs.batch $cronjob_name -o jsonpath='{.spec.schedule}')
+
+  # Check if the cronjob exists
+  if [[ -z "$cronjob_schedule" ]]; then
+    gen3_log_info "Cronjob $cronjob_name does not exist."
+    return
+  fi
+
+  # Update cronjob with the image in manifest-versions ConfigMap
+  gen3_log_info "Updating cronjob $cronjob_name to use image $manifest_image..."
+  gen3 job cron $cronjob_name "$cronjob_schedule"
+}
+
+#
+# Update all cronjobs
+#
+gen3_gitops_update_all_cron_jobs() {
+
+  # List of cronjobs
+  local IFS=$'\n'  # Set Internal Field Separator to newline
+  local active_cronjobs=($(kubectl get cronjobs -o custom-columns=":metadata.name" | awk 'NF'))
+
+  # Loop through each cronjob and check/update if needed
+  for cronjob in "${active_cronjobs[@]}"; do
+    update_cronjob "$cronjob"
+  done
+}
+
 #
 # Update fence cronjobs
 #
@@ -540,27 +577,6 @@ gen3_gitops_update_fence_cron_jobs() {
 
   # List of fence-related cronjobs
   local fence_cronjobs=("fence-delete-expired-clients" "fence-cleanup-expired-ga4gh-info")
-
-  # Function to check and update cronjobs
-  update_cronjob() {
-    local cronjob_name=$1
-    local manifest_image=$2
-
-    gen3_log_info "Checking cronjob $cronjob_name..."
-
-    # Extract cronjob schedule directly using kubectl with jsonpath
-    local cronjob_schedule=$(kubectl get cronjobs.batch $cronjob_name -o jsonpath='{.spec.schedule}')
-
-    # Check if the cronjob exists
-    if [[ -z "$cronjob_schedule" ]]; then
-      gen3_log_info "Cronjob $cronjob_name does not exist."
-      return
-    fi
-
-    # Update cronjob with the image in manifest-versions ConfigMap
-    gen3_log_info "Updating cronjob $cronjob_name to use image $manifest_image..."
-    gen3 job cron $cronjob_name "$cronjob_schedule"
-  }
 
   # Loop through each fence-related cronjob and check/update if needed
   for cronjob in "${fence_cronjobs[@]}"; do
@@ -1149,6 +1165,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
     "update-fence-cronjobs")
       gen3_gitops_update_fence_cron_jobs "$@"
       ;;      
+    "update-all-cronjobs")
+      gen3_gitops_update_all_cron_jobs "$@"
+      ;;    
     "taglist")
       gen3_gitops_repo_taglist "$@"
       ;;
