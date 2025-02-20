@@ -16,7 +16,7 @@ for name in indexd fence sheepdog peregrine; do
   update_pass $name $username $password
 done
 
-for name in wts metadata gearbox audit arborist access-backend argo_db requestor atlas ohdsi argo thor; do
+for name in wts metadata gearbox audit arborist access-backend argo_db requestor atlas ohdsi argo thor orthanc orthanc-s3; do
   if [[ ! -z $(gen3 secrets decode $name-g3auto dbcreds.json) ]]; then
     username=$(gen3 secrets decode $name-g3auto dbcreds.json | jq -r .db_username)
     password=$(gen3 secrets decode $name-g3auto dbcreds.json | jq -r .db_password)
