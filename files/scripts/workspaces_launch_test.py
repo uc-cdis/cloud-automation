@@ -98,14 +98,13 @@ class WorkspaceLaunchTest:
         logging.info(f"Testing the following images: {images_to_test}")
 
         # Launch workspaces sequentially:
-        final_result = {}
-        final_result["final_result"] = {}
+        final_result = []
         number_of_images = len(images_to_test)
         number_of_runs = 0
 
         for image_name, id in images_to_test.items():
             logging.info(f"Testing image: {image_name}")
-            final_result["final_result"][image_name] = self.start_workspace_launch_test(image_name, id)
+            final_result.append(self.start_workspace_launch_test(image_name, id))
             logging.info(f"Finished testing image: {image_name}")
             
             number_of_runs += 1
@@ -115,8 +114,8 @@ class WorkspaceLaunchTest:
 
         
         logging.info("Completed all launch tests...")
-        logging.info("Results:")
-        logging.info(json.dumps(final_result))
+        for result in final_result:
+            logging.info(json.dumps(result))
 
     def start_workspace_launch_test(self, image_name, workspace_id):
 
@@ -193,7 +192,7 @@ class WorkspaceLaunchTest:
                 status_response.raise_for_status()
             except requests.exceptions.RequestException as e:
                 error_msg = f"Error checking workspace status: {e}"
-                logging.error(error_msg)
+                logging.error(error_msg)  
                 self.reason_for_failure = error_msg
 
             logging.info("Launch Response:")
