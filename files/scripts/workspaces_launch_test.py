@@ -115,7 +115,7 @@ class WorkspaceLaunchTest:
         
         logging.info("Completed all launch tests...")
         for result in final_result:
-            logging.info(json.dumps({"final_reuslt":result}))
+            logging.info(json.dumps({"final_result":result}))
 
     def start_workspace_launch_test(self, image_name, workspace_id):
 
