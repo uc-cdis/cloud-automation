@@ -25,6 +25,7 @@ setup_audit_sqs() {
 }
 
 gen3 update_config fence-yaml-merge "${GEN3_HOME}/apis_configs/yaml_merge.py"
+gen3 update_config fence-dd-submit-metrics "${GEN3_HOME}/apis_configs/datadog_submit_metrics.py"
 [[ -z "$GEN3_ROLL_ALL" ]] && gen3 kube-setup-secrets
 
 if [[ -f "$(gen3_secrets_folder)/creds.json" && -z "$JENKINS_HOME" ]]; then # create database
