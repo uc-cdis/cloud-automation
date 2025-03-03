@@ -177,12 +177,13 @@ class WorkspaceLaunchTest:
         return json_result
         
 
-    def monitor_workspace_status(self, interval=10):
+    def monitor_workspace_status(self, interval=10, timeout_limit=10):
         """
         In an interval of given time (in seconds) hit the workspace status endpoint to monitor the status of the workspace
 
         Args:
             interval (int, optional): Interval (in seconds) to hit the options endpoint. Defaults to 10 seconds.
+            timeout_limit(int, optional): Time limit at which a workspace launch is considered a failure.
         """
         status_url = self.commons_url + "/lw-workspace/status"
 
@@ -207,6 +208,12 @@ class WorkspaceLaunchTest:
                 self.launch_status = "Not Found"
                 self.status_response = status_response.json()
                 break
+            elif time.time() - self.start_time >= timeout_limit * 60:
+                logging.error(f"Workspace failed to come up in {timeout_limit * 60} minutes")
+                self.launch_status = f"Workspace failed to come up in {timeout_limit * 60} minutes"
+                self.status_response = status_response.json()
+                break
+
 
             time.sleep(interval)
             logging.info(f"Elapsed time: {time.time()-self.start_time}")
