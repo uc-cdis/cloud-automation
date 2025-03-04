@@ -42,8 +42,8 @@ RUN apt-get update && apt-get install -y \
     python3-setuptools \
     python3-crcmod \
     yq \
-    && python3 -m pip install --upgrade pip \
-    && python3 -m pip install --upgrade pyyaml 'gen3>4'
+    && python3 -m pip install --upgrade pip --break-system-packages \
+    && python3 -m pip install --upgrade pyyaml 'gen3>4' --break-system-packages   
 
 # aws cli v2
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
