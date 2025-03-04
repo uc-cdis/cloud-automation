@@ -41,11 +41,13 @@ RUN apt-get update && apt-get upgrade -y \
 #can remove once https://github.com/yaml/pyyaml/issues/724 is solved
 RUN pip install pyyaml==6.0.1
 
-# RUN  python3 -m pip install pip --upgrade
-RUN  python3 -m pip install --upgrade setuptools \
-    && python3 -m pip install -U crcmod \
-    && python3 -m pip install --upgrade yq \
-    && python3 -m pip install --upgrade 'gen3>4'    
+# RUN  python3 -m pip install pip --upgrade 
+RUN apt-get update && apt-get install -y \
+    python3-pyyaml \
+    python3-setuptools \
+    python3-crcmod \
+    yq \
+    && python3 -m pip install --upgrade 'gen3>4'
 
 # aws cli v2
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
