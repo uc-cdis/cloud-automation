@@ -38,11 +38,14 @@ RUN apt-get update && apt-get upgrade -y \
       wget \
       gettext-base
 
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     python3-setuptools \
     python3-crcmod \
-    yq \
-    && python3 -m pip install --upgrade pyyaml 'gen3>4' --break-system-packages
+    yq
+
+RUN python3 -c "import yaml" || python3 -m pip install --break-system-packages pyyaml; \
+    python3 -m pip install --break-system-packages 'gen3>4'
 
 # aws cli v2
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
