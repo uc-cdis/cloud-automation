@@ -39,8 +39,6 @@ RUN apt-get update && apt-get upgrade -y \
       gettext-base
 
 #can remove once https://github.com/yaml/pyyaml/issues/724 is solved
-RUN pip install pyyaml==6.0.1
-
 # RUN  python3 -m pip install pip --upgrade 
 RUN apt-get update && apt-get install -y \
     python3-pyyaml \
