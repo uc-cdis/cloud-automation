@@ -39,13 +39,13 @@ RUN apt-get update && apt-get upgrade -y \
       gettext-base
 
 #can remove once https://github.com/yaml/pyyaml/issues/724 is solved
-RUN pip install pyyaml==6.0.1 --break-system-packages
+RUN pip install pyyaml==6.0.1
 
-# RUN  python3 -m pip install pip --upgrade --break-system-packages
-RUN  python3 -m pip install --upgrade setuptools --break-system-packages \
-    && python3 -m pip install -U crcmod --break-system-packages \
-    && python3 -m pip install --upgrade yq --break-system-packages \
-    && python3 -m pip install --upgrade 'gen3>4' --break-system-packages
+# RUN  python3 -m pip install pip --upgrade
+RUN  python3 -m pip install --upgrade setuptools \
+    && python3 -m pip install -U crcmod \
+    && python3 -m pip install --upgrade yq \
+    && python3 -m pip install --upgrade 'gen3>4'    
 
 # aws cli v2
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
