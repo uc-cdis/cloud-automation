@@ -183,7 +183,7 @@ class WorkspaceLaunchTest:
 
         Args:
             interval (int, optional): Interval (in seconds) to hit the options endpoint. Defaults to 10 seconds.
-            timeout_limit(int, optional): Time limit at which a workspace launch is considered a failure.
+            timeout_limit(int, optional): Time limit, in minutes, at which a workspace launch is considered a failure.
         """
         status_url = self.commons_url + "/lw-workspace/status"
 
