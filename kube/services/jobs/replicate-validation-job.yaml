@@ -41,6 +41,9 @@ spec:
         - name: creds-json-volume
           secret:
             secretName: "dcf-dataservice-json-secret"
+        - name: project-map-volume
+          configMap:
+            name: project-map-manifest
       containers:
       - name: datareplicate
         GEN3_DATAREPLICATE_IMAGE
@@ -64,6 +67,8 @@ spec:
             GEN3_FORCE_CREATE_MANIFEST
           - name: LOG_BUCKET
             GEN3_LOG_BUCKET
+          - name: MAP_FILE
+            value: "" # Default to empty string if not provided
         volumeMounts:
           - name: aws-cred-volume
             mountPath: "/root/.aws/credentials"
@@ -76,7 +81,9 @@ spec:
             subPath: "dcf_dataservice_settings"
           - name: "creds-json-volume"
             mountPath: "/secrets/dcf_dataservice_credentials.json"
-            subPath: "dcf_dataservice_credentials.json"
+          - name: "project-map-volume"
+            mountPath: "/dcf-dataservice/GDC_project_map.json"
+            subPath: "GDC_project_map.json"
         command: ["/bin/bash" ]
         args:
           - "-c"
@@ -85,9 +92,9 @@ spec:
             [default]
             region: us-east-1
             """ > ~/.aws/config
-            cat /secrets/dcf_dataservice_settings > ./scripts/settings.py
+            cat /secrets/dcf_dataservice_settings > ./dcfdataservice/settings.py
             gcloud auth activate-service-account --key-file=/secrets/google_service_account_creds
             export GOOGLE_APPLICATION_CREDENTIALS=/secrets/google_service_account_creds
             gsutil cp $IGNORED_FILE /dcf-dataservice/ignored_files_manifest.csv
-            python replicate.py validate --global_config "{\"release\": \"$RELEASE\", \"manifest_files\":\"$MANIFEST_FILES\", \"out_manifests\": \"$OUT_FILES\", \"FORCE_CREATE_MANIFEST\": \"$FORCE_CREATE_MANIFEST\", \"log_bucket\": \"$LOG_BUCKET\", \"save_copied_objects\": 1}"
+            python replicate.py validate --global_config "{\"release\": \"$RELEASE\", \"manifest_files\":\"$MANIFEST_FILES\", \"out_manifests\": \"$OUT_FILES\", \"FORCE_CREATE_MANIFEST\": \"$FORCE_CREATE_MANIFEST\", \"log_bucket\": \"$LOG_BUCKET\", \"map_file\": \"$MAP_FILE\", \"save_copied_objects\": 1}"
       restartPolicy: Never
