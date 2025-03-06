@@ -36,16 +36,10 @@ RUN apt-get update && apt-get upgrade -y \
       unzip \
       vim \
       wget \
+      python3-setuptools \
+      python3-crcmod \
+      yq \  
       gettext-base
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    python3-setuptools \
-    python3-crcmod \
-    yq
-
-RUN python3 -c "import yaml" || python3 -m pip install --break-system-packages pyyaml; \
-    python3 -m pip install --break-system-packages 'gen3>4'
 
 # aws cli v2
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
@@ -105,6 +99,9 @@ COPY --chown=ubuntu:ubuntu . cloud-automation/
 
 # COPY generates files owned by root regardless of USER
 RUN /bin/rm -rf ./cloud-automation/node_modules
+
+RUN python3 -c "import yaml" || python3 -m pip install --user pyyaml; \
+    python3 -m pip install --user 'gen3>4'
 
 RUN cp cloud-automation/Docker/awshelper/sshdStart.sh /opt/usersshd/ \
     && cp cloud-automation/Docker/awshelper/sshd_config /opt/usersshd/
