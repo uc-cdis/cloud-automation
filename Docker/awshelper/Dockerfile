@@ -14,6 +14,7 @@ RUN apt-get update && apt-get upgrade -y \
       dnsutils \
       ftp \
       gcc \
+      gettext-base \
       git \
       groff-base \
       iputils-ping \
@@ -27,25 +28,35 @@ RUN apt-get update && apt-get upgrade -y \
       openssh-client \
       openssh-server \
       python3 \
+      python3-crcmod \
       python3-dev \
       python3-pip \
       python3-setuptools \
+      python3-venv \
       ssh \
       sudo \
       tmux \
       unzip \
       vim \
       wget \
-      python3-setuptools \
-      python3-crcmod \
-      yq \  
-      gettext-base
+      yq
 
 # aws cli v2
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
     && unzip awscliv2.zip \
     && ./aws/install \
     && /bin/rm -rf awscliv2.zip ./aws
+
+# Set up virtual environment in /opt/gen3_venv
+RUN python3 -m venv /opt/gen3_venv && \
+    /opt/gen3_venv/bin/pip install --upgrade pip && \
+    /opt/gen3_venv/bin/pip install "gen3>4" pyyaml
+
+RUN echo 'export PATH="/opt/gen3_venv/bin:$PATH"' > /etc/profile.d/gen3.sh && \
+    chmod +x /etc/profile.d/gen3.sh
+
+# Set default shell path
+ENV PATH="/opt/gen3_venv/bin:$PATH"
 
 # From  https://hub.docker.com/r/google/cloud-sdk/~/dockerfile/
 RUN export CLOUD_SDK_REPO="cloud-sdk" && \
@@ -99,9 +110,6 @@ COPY --chown=ubuntu:ubuntu . cloud-automation/
 
 # COPY generates files owned by root regardless of USER
 RUN /bin/rm -rf ./cloud-automation/node_modules
-
-RUN python3 -c "import yaml" || python3 -m pip install --user pyyaml; \
-    python3 -m pip install --user 'gen3>4'
 
 RUN cp cloud-automation/Docker/awshelper/sshdStart.sh /opt/usersshd/ \
     && cp cloud-automation/Docker/awshelper/sshd_config /opt/usersshd/
