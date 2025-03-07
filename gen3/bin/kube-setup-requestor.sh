@@ -35,7 +35,7 @@ setup_database() {
     cat - > "$secretsFolder/requestor-config.yaml" <<EOM
 # Server
 
-DEBUG: true
+DEBUG: false
 
 # Database
 

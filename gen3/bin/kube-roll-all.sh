@@ -129,10 +129,18 @@ fi
 
 if g3k_manifest_lookup .versions.spark 2> /dev/null; then
   #
-  # Only if not already deployed - otherwise it may interrupt a running ETL
+  # Only if an ETL job is not running
   #
-  if ! g3kubectl get deployment spark-deployment > /dev/null 2>&1; then
+  # Save etl pods to a var
+  PODS=$(kubectl get pods -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.status.phase}{"\n"}{end}' | grep "etl" || true )
+  # Get any running ETL pods and save them to a var
+  RUNNING_POD=$(echo "$PODS" | grep " Running" || true)
+  echo $RUNNING_POD
+  if [ -z "$RUNNING_POD" ]; then
+    gen3_log_info "Running spark setup."
     gen3 kube-setup-spark &
+  else
+    gen3_log_info "ETL running, not rolling spark."
   fi
 else
   gen3_log_info "not deploying spark (required for ES ETL) - no manifest entry for .versions.spark"
@@ -243,6 +251,13 @@ else
   gen3_log_info "not deploying dicom-viewer - no manifest entry for '.versions[\"dicom-viewer\"]'"
 fi
 
+if g3k_manifest_lookup '.versions["ohif-viewer"]' 2> /dev/null || g3k_manifest_lookup '.versions["orthanc"]' 2> /dev/null; then
+  gen3 kube-setup-dicom &
+else
+  gen3_log_info "not deploying - no manifest entry for '.versions[\"ohif-viewer\"]' or '.versions[\"orthanc\"]'"
+fi
+
+
 if g3k_manifest_lookup '.versions["gen3-discovery-ai"]' 2> /dev/null; then
   gen3 kube-setup-gen3-discovery-ai &
 else
@@ -265,6 +280,12 @@ if g3k_manifest_lookup '.versions["cohort-middleware"]' 2> /dev/null; then
   gen3 kube-setup-cohort-middleware
 else
   gen3_log_info "not deploying cohort-middleware - no manifest entry for .versions[\"cohort-middleware\"]"
+fi
+
+if g3k_manifest_lookup '.versions["gen3-workflow"]' 2> /dev/null; then
+  gen3 kube-setup-gen3-workflow &
+else
+  gen3_log_info "not deploying gen3-workflow - no manifest entry for .versions[\"gen3-workflow\"]"
 fi
 
 gen3 kube-setup-revproxy

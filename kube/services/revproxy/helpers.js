@@ -38,6 +38,8 @@ function atob(input) {
   return output;
 }
 
+
+
 /**
  * nginscript helper for parsing user out of JWT tokens.
  * We appear to have access to the 'access_token' variable
@@ -279,3 +281,5 @@ function gen3_workspace_authorize_handler(req) {
     req.return(400, '{ "status": "redirect failed validation" }');
   }
 }
+
+export default {userid, isCredentialsAllowed, checkBlackList, getServiceReleases};
