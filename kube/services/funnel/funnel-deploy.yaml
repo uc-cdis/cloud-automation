@@ -1,0 +1,6 @@
+# The funnel service is deployed via helm by `gen3 kube-setup-gen3-workflow`.
+# This file is just to allow us to run `gen3 kube-setup-networkpolicy service funnel`.
+
+metadata:
+  annotations:
+    gen3.io/network-ingress: "gen3-workflow"

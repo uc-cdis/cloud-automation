@@ -33,6 +33,10 @@ EOM
   else
     helm upgrade --install funnel ohsu/funnel --namespace $namespace --values "$secretsFolder/funnel.conf" --version $version
   fi
+
+  if [[ "$(g3k_manifest_lookup .global.netpolicy)" == "on" ]]; then
+    gen3 kube-setup-networkpolicy service funnel
+  fi
 }
 
 setup_gen3_workflow_infra() {
@@ -40,7 +44,7 @@ setup_gen3_workflow_infra() {
 
   # grant the gen3-workflow service account the AWS access the service needs
   saName="gen3-workflow-sa"
-  gen3_log_info Setting up service account $saName
+  gen3_log_info "Setting up service account '$saName'"
   policy=$( cat <<EOM
 {
   "Version": "2012-10-17",
