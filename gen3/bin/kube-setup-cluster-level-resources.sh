@@ -11,7 +11,7 @@ read -p "Please provide a target revision for the cluster resources chart (defau
 read -p "Please provide a target revision for the cluster resources configuration (default is master): " config_target_revision
 # If user input is not empty, use it; otherwise, keep the default
 CHART_TARGET_REVISION=${user_target_revision:-$CHART_TARGET_REVISION}
-CONFIG_TARGET_REVISION=$(config_target_revision:-$CONFIG_TARGET_REVISION)
+CONFIG_TARGET_REVISION=${config_target_revision:-$CONFIG_TARGET_REVISION}
 
 # Ask for CLUSTER_NAME (no default value)
 read -p "Enter the name of the cluster: " CLUSTER_NAME
