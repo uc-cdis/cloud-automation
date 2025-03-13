@@ -31,7 +31,7 @@ spec:
       volumes:
         - name: cred-volume
           secret:
-            secretName: "dcf-aws-creds-secret"
+            secretName: "dcf-aws-fence-creds-secret"
         - name: google-cred-volume
           secret:
             secretName: "google-creds-secret"
