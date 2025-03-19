@@ -282,4 +282,4 @@ function gen3_workspace_authorize_handler(req) {
   }
 }
 
-module.exports = {userid, isCredentialsAllowed, checkBlackList, getServiceReleases};;
+module.exports = {userid, isCredentialsAllowed, checkBlackList, getServiceReleases};
