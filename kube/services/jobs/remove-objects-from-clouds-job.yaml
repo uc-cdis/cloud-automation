@@ -1,5 +1,5 @@
 # run with 
-# gen3 job run jobs/remove-objects-from-clouds-job.yaml RELEASE DR16 MANIFEST_S3 s3://giang816test/GDC_sample_redact_manifest.tsv LOG_BUCKET log_bucket IGNORED_FILE_S3 s3://giang816test/ignored_files_manifest.csv
+# gen3 job run jobs/remove-objects-from-clouds-job.yaml RELEASE DR17 MANIFEST_S3 s3://giang816test/GDC_sample_redact_manifest.tsv LOG_BUCKET log_bucket IGNORED_FILE_S3 s3://giang816test/ignored_files_manifest.csv
 apiVersion: batch/v1
 kind: Job
 metadata:
