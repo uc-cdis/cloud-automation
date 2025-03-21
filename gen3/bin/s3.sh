@@ -177,7 +177,7 @@ gen3_s3_info() {
   fi
 
   if [[ $(_bucket_exists $bucketName) -ne 0 ]]; then
-    gen3_log_err "Bucket does not exist"
+    gen3_log_err "Bucket '$bucketName' does not exist"
     return 1
   fi
 

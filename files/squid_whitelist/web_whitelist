@@ -17,6 +17,7 @@ ctds-planx.atlassian.net
 data.cityofchicago.org
 data.stage.qdr.org
 dataguids.org
+api.cloudflare.com
 api.login.yahoo.com
 apt.kubernetes.io
 argoproj.github.io
@@ -82,6 +83,7 @@ gopkg.in
 grafana.com
 grafana.github.io
 helm.elastic.co
+helm.localstack.cloud
 http.us.debian.org
 ifconfig.io
 ingress.coralogix.us
@@ -91,6 +93,7 @@ ks.osdc.io
 kubecost.github.io
 kubernetes.github.io
 kubernetes-sigs.github.io
+launchpad.net
 lib.stat.cmu.edu
 localstack.github.io
 login.mathworks.com
@@ -176,3 +179,5 @@ yahoo.com
 idp.stage.qdr.org
 stage.qdr.org
 data.qdr.syr.edu
+zenodo.org
+dataverse.harvard.edu

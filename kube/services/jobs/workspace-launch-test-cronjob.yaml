@@ -1,0 +1,203 @@
+# To run: gen3 job run workspace-launch-test-cronjob COMMONS_URL <commons base url> IMAGES <IMAGES name>
+# example: gen3 job run workspace-launch-test-cronjob COMMONS_URL https://qa-heal.planx-pla.net IMAGES "(Generic) Jupyter Lab Notebook with R Kernel+(Tutorials) Example Analysis Jupyter Lab Notebooks"
+# If IMAGES isn't provided, it defaults to '(Generic) Jupyter Lab Notebook with R Kernel'
+
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: workspace-launch-test
+spec:
+  schedule: "0 * * * *" # Schedule: Runs daily at 3 AM (adjust as needed)
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: gen3job
+            GEN3_ENV_LABEL
+            GEN3_HOSTNAME_LABEL
+        spec:
+          affinity:
+            nodeAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+              - weight: 100
+                preference:
+                  matchExpressions:
+                  - key: karpenter.sh/capacity-type
+                    operator: In
+                    values:
+                    - on-demand
+              - weight: 99
+                preference:
+                  matchExpressions:
+                  - key: eks.amazonaws.com/capacityType
+                    operator: In
+                    values:
+                    - ONDEMAND
+          containers:
+          - name: fence
+            GEN3_FENCE_IMAGE
+            imagePullPolicy: Always
+            env:
+              - name: PYTHONPATH
+                value: /var/www/fence
+              - name: TEST_OPERATOR
+                GEN3_TEST_OPERATOR|-value: "binamb@uchicago.edu"-|
+              - name: TOKEN_EXPIRATION
+                GEN3_TOKEN_EXPIRATION|-value: "3600"-|
+              - name: FENCE_PUBLIC_CONFIG
+                valueFrom:
+                  configMapKeyRef:
+                    name: manifest-fence
+                    key: fence-config-public.yaml
+                    optional: true
+            volumeMounts:
+              - name: "old-config-volume"
+                readOnly: true
+                mountPath: "/var/www/fence/local_settings.py"
+                subPath: local_settings.py
+              - name: "creds-volume"
+                readOnly: true
+                mountPath: "/var/www/fence/creds.json"
+                subPath: creds.json
+              - name: "config-helper"
+                readOnly: true
+                mountPath: "/var/www/fence/config_helper.py"
+                subPath: config_helper.py
+              - name: "json-secret-volume"
+                readOnly: true
+                mountPath: "/var/www/fence/fence_credentials.json"
+                subPath: fence_credentials.json
+    # -----------------------------------------------------------------------------
+              - name: "config-volume"
+                readOnly: true
+                mountPath: "/var/www/fence/fence-config-secret.yaml"
+                subPath: fence-config.yaml
+              - name: "yaml-merge"
+                readOnly: true
+                mountPath: "/var/www/fence/yaml_merge.py"
+                subPath: yaml_merge.py
+              - name: "fence-jwt-keys"
+                readOnly: true
+                mountPath: "/fence/jwt-keys.tar"
+                subPath: "jwt-keys.tar"
+              - name: shared-data
+                mountPath: /mnt/shared
+            command: ["/bin/bash"]
+            args:
+              - "-c"
+              - |
+                echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
+                python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
+                if [ -f /fence/jwt-keys.tar ]; then
+                  cd /fence
+                  tar xvf jwt-keys.tar
+                  if [ -d jwt-keys ]; then
+                    mkdir -p keys
+                    mv jwt-keys/* keys/
+                  fi
+                fi
+                echo "generate access token"
+                echo "fence-create --path fence token-create --type access_token --username $TEST_OPERATOR --scopes openid,user,test-client,credentials,data --exp $TOKEN_EXPIRATION"
+                tempFile="$(mktemp -p /tmp token.txt_XXXXXX)"
+                success=false
+                count=0
+                sleepTime=10
+                # retry loop
+                while [[ $count -lt 3 && $success == false ]]; do
+                  if fence-create --path fence token-create --type access_token --username $TEST_OPERATOR --scopes openid,user,test-client,credentials,data --exp $TOKEN_EXPIRATION > "$tempFile"; then
+                    echo "fence-create success!"
+                    tail -1 "$tempFile" > /mnt/shared/access_token.txt
+                    # base64 --decode complains about invalid characters - don't know why
+                    awk -F . '{ print $2 }' /mnt/shared/access_token.txt | base64 --decode 2> /dev/null
+                    success=true
+                  else
+                    echo "fence-create failed!"
+                    cat "$tempFile"
+                    echo "sleep for $sleepTime, then retry"
+                    sleep "$sleepTime"
+                    let sleepTime=$sleepTime+$sleepTime
+                  fi
+                  let count=$count+1
+                done
+                if [[ $success != true ]]; then
+                  echo "Giving up on fence-create after $count retries - failed to create valid access token"
+                fi
+                echo ""
+                echo "All Done - always succeed to avoid k8s retries"
+          - name: workspace-launch-test
+            env:
+              - name: COMMONS_URL
+                GEN3_COMMONS_URL|-value: ""-|
+              - name: IMAGES
+                GEN3_IMAGES|-value: ""-|
+            image: quay.io/cdis/awshelper:master
+            imagePullPolicy: Always
+            volumeMounts:
+              - name: shared-data
+                mountPath: /mnt/shared
+            resources:
+              limits:
+                cpu: 3
+                memory: "512Mi"
+              requests:
+                cpu: "1"
+                memory: "256Mi"
+            command: ["/bin/bash"]
+            args:
+              - "-c"
+              - |
+                # wait for the access token to be created in the sidecar "fence" container
+                let count = 0
+                while [[ ! -f /mnt/shared/access_token.txt && $count -lt 50 ]]; do
+                  echo "waiting for /mnt/shared/access_token.txt";
+                  sleep 2
+                  let count=$count+1
+                done
+
+                export ACCESS_TOKEN="$(cat /mnt/shared/access_token.txt)"
+
+                echo "Installing dependencies..."
+                python3 -m pip3 install requests
+                python3 -m pip3 install logging
+
+                cmd="python3 cloud-automation/files/scripts/workspaces_launch_test.py --commons-url $COMMONS_URL --access-token $ACCESS_TOKEN"
+
+                if [[ -n "$IMAGES" ]]; then
+                  echo "Running command:"
+                  echo $cmd --images "$IMAGES"  # this is the only way parsing the images works for some reason. If its not done like this, it parses only the first unbroken set of strings (until the first space) as the argument in the python command
+                  $cmd --images "$IMAGES"
+                else
+                  echo "Running command:"
+                  echo $cmd
+                  $cmd
+                fi
+
+                echo "Exit code: $?"
+
+          restartPolicy: Never
+          serviceAccountName: useryaml-job
+          volumes:
+            - name: yaml-merge
+              configMap:
+                name: "fence-yaml-merge"
+            - name: shared-data
+              emptyDir: {}
+            - name: old-config-volume
+              secret:
+                secretName: "fence-secret"
+            - name: creds-volume
+              secret:
+                secretName: "fence-creds"
+            - name: config-helper
+              configMap:
+                name: config-helper
+            - name: json-secret-volume
+              secret:
+                secretName: "fence-json-secret"
+            - name: config-volume
+              secret:
+                secretName: "fence-config"
+            - name: fence-jwt-keys
+              secret:
+                secretName: "fence-jwt-keys"
