@@ -30,7 +30,7 @@ export GEN3_PS1_OLD=${GEN3_PS1_OLD:-$PS1}
 #
 # Try to automate KUBECONFIG setup
 #
-if ! g3kubectl versions 2> /dev/null && [[ -z "$KUBECONFIG" && -f "$(gen3_secrets_folder)/kubeconfig" ]]; then
+if ! g3kubectl version 2> /dev/null && [[ -z "$KUBECONFIG" && -f "$(gen3_secrets_folder)/kubeconfig" ]]; then
   export KUBECONFIG="$(gen3_secrets_folder)/kubeconfig"
 fi
 
