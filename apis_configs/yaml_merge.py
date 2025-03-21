@@ -18,11 +18,24 @@ import sys
 import json
 from yaml import safe_load as yaml_load
 
+from datadog_submit_metrics import send_metric
+
 config1 = yaml_load(open(sys.argv[1]))
 config2 = yaml_load(open(sys.argv[2]))
 
 if config1 != None:
   for key in config1.keys():
     config2[key] = config1[key]
+
+# only execute the next instructions if DataDog metrics are enabled
+if DD_ENV in os.environ:
+  feature_flags = []
+
+  for k,v in config2.items():
+    if type(v) is bool:
+      feature_flags.append(f"{k}:{v}")
+
+  send_metric("feature_flags", feature_flags)
+
 
 print(json.dumps(config2, indent=2))
