@@ -22,7 +22,7 @@ stringData:
 
   security_cors_enabled: "true"
   security_origin: "*"
-  security_token_expiration: "900"
+  security_token_expiration: "960"
   security_ssl_enabled: "false"
 
   security_provider: AtlasRegularSecurity
