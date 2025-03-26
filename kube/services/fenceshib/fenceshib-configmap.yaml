@@ -400,67 +400,45 @@ data:
     1GGlErV2AyWShTOaDLW6NxdP
     -----END CERTIFICATE-----
   metadata.xml: |
-   <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-   <EntityDescriptor entityID="https://auth.nih.gov/IDP" xmlns="urn:oasis:names:tc:SAML:2.0:metadata" xmlns:alg="urn:oasis:names:tc:SAML:metadata:algsupport" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:icmd="http://id.incommon.org/metadata" xmlns:idpdisc="urn:oasis:names:tc:SAML:profiles:SSO:idp-discovery-protocol" xmlns:init="urn:oasis:names:tc:SAML:profiles:SSO:request-init" xmlns:mdattr="urn:oasis:names:tc:SAML:metadata:attribute" xmlns:mdrpi="urn:oasis:names:tc:SAML:metadata:rpi" xmlns:mdui="urn:oasis:names:tc:SAML:metadata:ui" xmlns:remd="http://refeds.org/metadata" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" xmlns:shibmd="urn:mace:shibboleth:metadata:1.0" xmlns:xenc="http://www.w3.org/2001/04/xmlenc#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-       <IDPSSODescriptor WantAuthnRequestsSigned="true" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
-          <Extensions>
-             <shibmd:Scope regexp="false">auth.nih.gov</shibmd:Scope>
-             <mdui:UIInfo>
-                 <mdui:DisplayName xml:lang="en">National Institutes of Health (NIH)</mdui:DisplayName>
-                 <mdui:Description xml:lang="en">The NIH Identity Provider (IdP) allows NIH staff to access resources for scientific research and collaboration at organizations across the United States and around the world.  (About NIH: The National Institutes of Health (NIH), an agency in the U.S. Department of Health and Human Services (HHS), is the medical research agency of the United States — making important discoveries that improve health and save lives.)</mdui:Description>
-                 <mdui:PrivacyStatementURL xml:lang="en">https://www.nih.gov/web-policies-notices</mdui:PrivacyStatementURL>
-                 <mdui:Logo height="150" width="150" xml:lang="en">https://auth.nih.gov/images/nih-logo-thumbnail.png</mdui:Logo>
-             </mdui:UIInfo>
-           </Extensions>
-           <KeyDescriptor use="signing">
-               <ds:KeyInfo xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
-                   <ds:X509Data>
-                       <ds:X509Certificate>
-   MIIGrDCCBZSgAwIBAgITKwAL5UokKuFiZ7VPlQAAAAvlSjANBgkqhkiG9w0B
-   AQsFADBOMRUwEwYKCZImiZPyLGQBGRYFTE9DQUwxHDAaBgoJkiaJk/IsZAEZ
-   FgxESEhTU0VDVVJJVFkxFzAVBgNVBAMTDk5JSC1EUEtJLUNBLTFBMB4XDTIy
-   MTIwNjE2NTUzNloXDTI0MTIwNTE2NTUzNlowgaMxCzAJBgNVBAYTAlVTMREw
-   DwYDVQQIEwhNYXJ5bGFuZDERMA8GA1UEBxMIQmV0aGVzZGExDDAKBgNVBAoT
-   A05JSDEMMAoGA1UECxMDQ0lUMSUwIwYDVQQDExx3YW1zaWduaW5nZmVkZXJh
-   dGlvbi5uaWguZ292MSswKQYJKoZIhvcNAQkBFhxuaWhsb2dpbnN1cHBvcnRA
-   bWFpbC5uaWguZ292MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA
-   o3aHcoq0SAof+GXCl6aZOw9w8CrWTSxz3hxEvG2RaJ4Bm0+UQEcQHArCiQ+Y
-   Wjmx8eORRwOblQKmcozpQAOxNRu7fbJn8msdryKdju+nBJg/gn0Ygn44EJEq
-   pZmBn+FBRgH/lADRdpLM8uO654i1x5Pr8TQtNMevGNot8oiacOZkB1A5N6+l
-   4guxToA2ZuNhHRhwrpd1wIyq6sgY3J8XpWlx54HjDc8bZvia0bEhJns/qZpM
-   mAh5wvIP1I2JngqJ55mpl/btbIXX+uTn3tIomWre3KKjDKh9ZjUQom8VqTzp
-   oGYHSjTExuopsHnnVpC1HTW0QJoxFa5yR1f2fiUTZwIDAQABo4IDKzCCAycw
-   HQYDVR0OBBYEFMqGnTB0W0rFy8tD2y6JnApAzRCyMB8GA1UdIwQYMBaAFHls
-   OIwZ0skZB3GmEPmJ8K3QgwWTMIIBEgYDVR0fBIIBCTCCAQUwggEBoIH+oIH7
-   hoHBbGRhcDovLy9DTj1OSUgtRFBLSS1DQS0xQSxDTj1OSUhEUEtJQ0FTVkMs
-   Q049Q0RQLENOPVB1YmxpYyUyMEtleSUyMFNlcnZpY2VzLENOPVNlcnZpY2Vz
-   LENOPUNvbmZpZ3VyYXRpb24sREM9REhIU1NFQ1VSSVRZLERDPUxPQ0FMP2Nl
-   cnRpZmljYXRlUmV2b2NhdGlvbkxpc3Q/YmFzZT9vYmplY3RDbGFzcz1jUkxE
-   aXN0cmlidXRpb25Qb2ludIY1aHR0cDovL05JSERQS0lDUkwuTklILkdPVi9D
-   ZXJ0RGF0YS9OSUgtRFBLSS1DQS0xQS5jcmwwggE5BggrBgEFBQcBAQSCASsw
-   ggEnMIG0BggrBgEFBQcwAoaBp2xkYXA6Ly8vQ049TklILURQS0ktQ0EtMUEs
-   Q049QUlBLENOPVB1YmxpYyUyMEtleSUyMFNlcnZpY2VzLENOPVNlcnZpY2Vz
-   LENOPUNvbmZpZ3VyYXRpb24sREM9REhIU1NFQ1VSSVRZLERDPUxPQ0FMP2NB
-   Q2VydGlmaWNhdGU/YmFzZT9vYmplY3RDbGFzcz1jZXJ0aWZpY2F0aW9uQXV0
-   aG9yaXR5MEEGCCsGAQUFBzAChjVodHRwOi8vTklIRFBLSUNSTC5OSUguR09W
-   L0NlcnREYXRhL05JSC1EUEtJLUNBLTFBLmNydDArBggrBgEFBQcwAYYfaHR0
-   cDovL05JSERQS0lPQ1NQLk5JSC5HT1Yvb2NzcDALBgNVHQ8EBAMCBaAwPQYJ
-   KwYBBAGCNxUHBDAwLgYmKwYBBAGCNxUIh7HCKIaR/BeG+Y8Ihu68c4G7nSUd
-   gZOnCYKOiSECAWQCAUwwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMC
-   MCcGCSsGAQQBgjcVCgQaMBgwCgYIKwYBBQUHAwEwCgYIKwYBBQUHAwIwDQYJ
-   KoZIhvcNAQELBQADggEBAGxvrAxX3RUmFXeUa1UewCWfzWCnI3wTMKkqvmI2
-   CySFEOniXNXC/hhu0i000QD9mS527u+lGqgN6eaUaEaSDXMszYR753whJ1Wf
-   xJ50zji2mvUWDyzdRbcvxbVfYe6h6+TzQl0gd8z1DjAxkUWydv9aAFYHNiIY
-   BbhPqvrlOT+oV8CYI8ghEg7qyxo1mso99aVGCbnBA+6IC+jt8lvwQYFISW8J
-   lxJbz5P9fyAbQFuMvcvSkx1WWCCK+d3WsLzU2JETjmYNoID5skFaIfrq+rV1
-   nBqQfCSKApojRaUMwn83IRcosSu0Y3dhpmxz2oDkOURbwOkuPJRgYnZRLBDn
-   e50=
-                       </ds:X509Certificate>
-                   </ds:X509Data>
-               </ds:KeyInfo>
-           </KeyDescriptor>
-           <NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:persistent</NameIDFormat>
-           <SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://auth.nih.gov/affwebservices/public/saml2sso"/>
-   		<SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://auth.nih.gov/affwebservices/public/saml2sso"/>
-    </IDPSSODescriptor>
-   </EntityDescriptor>
+    <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    <EntityDescriptor entityID="https://auth.nih.gov/IDP" xmlns="urn:oasis:names:tc:SAML:2.0:metadata">
+        <IDPSSODescriptor WantAuthnRequestsSigned="true" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+            <KeyDescriptor use="signing">
+                <ds:KeyInfo xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+                    <ds:X509Data>
+                        <ds:X509Certificate>
+    MIIEwTCCA6mgAwIBAgIJAKFRKRDmsx2GMA0GCSqGSIb3DQEBCwUAMIGbMQswCQYD
+    VQQGEwJVUzERMA8GA1UECBMITWFyeWxhbmQxETAPBgNVBAcTCEJldGhlc2RhMQww
+    CgYDVQQKEwNOSUgxDDAKBgNVBAsTA0NJVDEbMBkGA1UEAxMSd2Ftc2lnbmluZy5u
+    aWguZ292MS0wKwYJKoZIhvcNAQkBFh5uaWhsb2dpbi5pbnRlcm5hbEBtYWlsLm5p
+    aC5nb3YwHhcNMjQwOTExMjI0NzQ3WhcNMjkwOTEwMjI0NzQ3WjCBmzELMAkGA1UE
+    BhMCVVMxETAPBgNVBAgTCE1hcnlsYW5kMREwDwYDVQQHEwhCZXRoZXNkYTEMMAoG
+    A1UEChMDTklIMQwwCgYDVQQLEwNDSVQxGzAZBgNVBAMTEndhbXNpZ25pbmcubmlo
+    LmdvdjEtMCsGCSqGSIb3DQEJARYebmlobG9naW4uaW50ZXJuYWxAbWFpbC5uaWgu
+    Z292MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsK8acdA8mck3PLw4
+    CNo0qk2E3N4zkCu4TblsIjNzwSDVHJBwkuFENTPw7c8295sveOpbxd/F7mzqNISi
+    lT7KdgK8Q9d9XB2/ySFpyqK/ndoRvIwSnKi+mQplRLH1isjd7uiZGIiI23Wshl8j
+    VDCUogafVjMnD+9T8WE+lIAZtuMskGejWzQbaUqR6ejUPsxvUi4eo46/J0LyDBfJ
+    MOjoP/+WHW48eBO0vqaAjVrjS0ylas+IrgdY/J5YYbTyqs2lp0PBFR8npJroD4Ra
+    vk8C+XIPRNuDoKwmCtAJc7hcpqqSc+L94qEb1bdPxMXwKBrMebqwZT4jiE0dL6QZ
+    S1VcXQIDAQABo4IBBDCCAQAwHQYDVR0OBBYEFFrZ1loFG64/0XihD5Ek91w+0Nc+
+    MIHQBgNVHSMEgcgwgcWAFFrZ1loFG64/0XihD5Ek91w+0Nc+oYGhpIGeMIGbMQsw
+    CQYDVQQGEwJVUzERMA8GA1UECBMITWFyeWxhbmQxETAPBgNVBAcTCEJldGhlc2Rh
+    MQwwCgYDVQQKEwNOSUgxDDAKBgNVBAsTA0NJVDEbMBkGA1UEAxMSd2Ftc2lnbmlu
+    Zy5uaWguZ292MS0wKwYJKoZIhvcNAQkBFh5uaWhsb2dpbi5pbnRlcm5hbEBtYWls
+    Lm5paC5nb3aCCQChUSkQ5rMdhjAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBCwUA
+    A4IBAQAuMbbodjTRpiE8zTaMd/d+ew6m4IKeMmrp0MsAMxv1oxtWnOX6qh09FATr
+    jFRi5l2V6uBbtjIa6VhuUpQvdzApDdYFUewds0Kx1ySqFJ7liP5ANQas1Jhr0HGR
+    QQJwcnPnZMuBe7Rw0Chk9Iwtb6ZNzRrEDVXzl5kyxwaSwFWr5SNashrM7qpqU8xZ
+    hHn2eNq5Xjsbbi7Vngzm0/Xuwsy98pqY5dVb75jMweyTLznKuP60wZkJf2Z6g0nw
+    8MqNBKYGGXNa2Ff8+t0XJ4Zc+q8f6njIwGZY7X2cG6CaGp8fHS7k6ehTdDyZJb0h
+    cHzQqKNzzmDwrEoa9xTO/jAG7fN0
+                        </ds:X509Certificate>
+                    </ds:X509Data>
+                </ds:KeyInfo>
+            </KeyDescriptor>
+            <NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:persistent</NameIDFormat>
+            <SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://auth.nih.gov/affwebservices/public/saml2sso"/>
+            <SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://auth.nih.gov/affwebservices/public/saml2sso"/>
+        </IDPSSODescriptor>
+    </EntityDescriptor>
