@@ -1,5 +1,5 @@
 # run with 
-# gen3 job run jobs/remove-objects-from-clouds-job.yaml RELEASE DR16 MANIFEST_S3 s3://giang816test/GDC_sample_redact_manifest.tsv LOG_BUCKET log_bucket IGNORED_FILE_S3 s3://giang816test/ignored_files_manifest.csv
+# gen3 job run jobs/remove-objects-from-clouds-job.yaml RELEASE DR17 MANIFEST_S3 s3://giang816test/GDC_sample_redact_manifest.tsv LOG_BUCKET log_bucket IGNORED_FILE_S3 s3://giang816test/ignored_files_manifest.csv
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -31,7 +31,7 @@ spec:
       volumes:
         - name: cred-volume
           secret:
-            secretName: "dcf-aws-creds-secret"
+            secretName: "dcf-aws-fence-creds-secret"
         - name: google-cred-volume
           secret:
             secretName: "google-creds-secret"
@@ -64,7 +64,7 @@ spec:
             mountPath: "/secrets/google_service_account_creds"
             subPath: google_service_account_creds
           - name: "project-map-volume"
-            mountPath: "/dcf-dataservice/GDC_project_map.json"
+            mountPath: "/dcf_dataservice/GDC_project_map.json"
             subPath: "GDC_project_map.json"
           - name: "creds-json-volume"
             mountPath: "/secrets/dcf_dataservice_credentials.json"
