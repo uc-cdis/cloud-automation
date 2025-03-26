@@ -96,6 +96,8 @@ spec:
           - /bin/bash
           - ./start.sh
         env:
+          - name: PORT
+            value: "3000"
           - name: HOSTNAME
             value: revproxy-service
           - name: NEXT_PUBLIC_PORTAL_BASENAME
