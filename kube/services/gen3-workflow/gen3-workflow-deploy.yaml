@@ -96,3 +96,12 @@ spec:
             memory: 1Gi
           limits:
             memory: 1Gi
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          #!/bin/sh
+          # Set the prometheus multiproc dir to the env var
+          export PROMETHEUS_MULTIPROC_DIR=$(grep 'PROMETHEUS_MULTIPROC_DIR:' /src/gen3-workflow-config.yaml | awk -F': ' '{print $2}' | tr -d '"')
+          echo "PROMETHEUS_MULTIPROC_DIR is set to - $PROMETHEUS_MULTIPROC_DIR"
+          # Run the gen3-workflow server
+          poetry run gunicorn gen3workflow.app:app -k uvicorn.workers.UvicornWorker -c gunicorn.conf.py
