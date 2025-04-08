@@ -731,7 +731,7 @@ gen3_db_service_setup() {
     server="$1"
     shift
   fi
-  if [[ "$service" =~ ^server || (! $service =~ ^[a-z][a-z0-9_]{0,}$) ]]; then
+  if [[ "$service" =~ ^server || (! $service =~ ^[a-z][a-z0-9_-]{0,}$) ]]; then
     gen3_log_err "gen3_db_setup illegal service name: $service"
     return 1
   fi
