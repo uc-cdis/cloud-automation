@@ -198,7 +198,7 @@ update_fence_config() {
         local current_password
         current_password=$(jq -r '.fence.db_password' "$creds_json_path")
 
-        sed -i "s|DB: postgresql://.*:.*@.*:5432/.*|DB: postgresql://$db_username:$current_password@$db_host:5432/$db_database|" "$file_path"
+        sed -i -E "s|DB: *['\"]?postgresql://[^'\"]+@[^'\"]+['\"]?|DB: postgresql://$db_username:$current_password@$db_host:5432/$db_database|" "$file_path"
 
         # Verify the update
         local updated_entry
