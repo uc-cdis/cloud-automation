@@ -168,11 +168,11 @@ spec:
                 gen3_log_info "Source DB: $source_db_database, Username: $db_username, Current DB: $db_database, Target DB: $target_db"
 
                 # DB commands
-                gen3 psql aurora -c "GRANT $db_username TO $aurora_master_username"
+                gen3 psql aurora -c "GRANT \"$db_username\" TO \"$aurora_master_username\""
                 gen3 psql aurora -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '$source_db_database' AND pid <> pg_backend_pid()"
-                gen3 psql aurora -c "CREATE DATABASE $target_db WITH TEMPLATE $source_db_database OWNER $db_username"
-                pg_command="DO \$\$ DECLARE tbl record; BEGIN FOR tbl IN (SELECT table_schema || '.' || table_name AS full_table_name FROM information_schema.tables WHERE table_schema = 'public') LOOP EXECUTE 'ALTER TABLE ' || tbl.full_table_name || ' OWNER TO $db_username;'; END LOOP; END \$\$;"
-                PGPASSWORD=${aurora_master_password} psql -h $aurora_host_name -U $aurora_master_username -d "$target_db" -c "$pg_command"
+                gen3 psql aurora -c "CREATE DATABASE \"$target_db\" WITH TEMPLATE \"$source_db_database\" OWNER \"$db_username\""
+                pg_command="DO \$\$ DECLARE tbl record; BEGIN FOR tbl IN (SELECT table_schema || '.' || table_name AS full_table_name FROM information_schema.tables WHERE table_schema = 'public') LOOP EXECUTE 'ALTER TABLE ' || tbl.full_table_name || ' OWNER TO \"$db_username\";'; END LOOP; END \$\$;"
+                PGPASSWORD=${aurora_master_password} psql -h $aurora_host_name -U "$aurora_master_username" -d "$target_db" -c "$pg_command"
                 if [ $? -eq 0 ]; then
                   gen3_log_info "Successfully processed $database"
                   new_databases+=("$target_db")

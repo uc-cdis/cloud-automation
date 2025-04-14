@@ -20,7 +20,6 @@ spec:
         public: "yes"
         netnolimit: "yes"
         userhelper: "yes"
-        tags.datadoghq.com/service: "hatchery"
         GEN3_HATCHERY_VERSION
         GEN3_ENV_LABEL
         GEN3_DATE_LABEL
@@ -93,34 +92,6 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.namespace
-          - name: DD_ENABLED
-            valueFrom:
-              configMapKeyRef:
-                name: manifest-global
-                key: dd_enabled
-                optional: true
-          - name: DD_ENV
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.labels['tags.datadoghq.com/env']
-          - name: DD_SERVICE
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.labels['tags.datadoghq.com/service']
-          - name: DD_VERSION
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.labels['tags.datadoghq.com/version']
-          - name: DD_LOGS_INJECTION
-            value: "true"
-          - name: DD_PROFILING_ENABLED
-            value: "true"
-          - name: DD_TRACE_SAMPLE_RATE
-            value: "1"
-          - name: DD_AGENT_HOST
-            valueFrom:
-              fieldRef:
-                fieldPath: status.hostIP
           - name: PRISMA_ACCESS_KEY_ID
             valueFrom:
               secretKeyRef:

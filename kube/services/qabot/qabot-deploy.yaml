@@ -40,11 +40,16 @@ spec:
       - name: qabot
         image: "quay.io/cdis/qa-bot:latest"
         env:
-        - name: SLACK_API_TOKEN
+        - name: SLACK_BOT_TOKEN
           valueFrom:
             secretKeyRef:
               name: qabot-g3auto
-              key: "slacktoken.json"
+              key: "slack_bot_token.json"
+        - name: SLACK_APP_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: qabot-g3auto
+              key: "slack_app_token.json"
         - name: GITHUB_TOKEN
           valueFrom:
             secretKeyRef:

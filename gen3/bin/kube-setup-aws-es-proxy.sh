@@ -8,7 +8,6 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 
-# Deploy Datadog with argocd if flag is set in the manifest path
 manifestPath=$(g3k_manifest_path)
 es7="$(jq -r ".[\"global\"][\"es7\"]" < "$manifestPath" | tr '[:upper:]' '[:lower:]')"
 esDomain="$(jq -r ".[\"global\"][\"esDomain\"]" < "$manifestPath" | tr '[:upper:]' '[:lower:]')"
@@ -75,17 +74,17 @@ else
     if [ "$esDomain" != "null" ] && [ -n "$esDomain" ]; then
       ES_ENDPOINT="$(aws es describe-elasticsearch-domains --domain-names "${esDomain}" --query "DomainStatusList[*].Endpoints" --output text)"
       ES_ARN="$(aws es describe-elasticsearch-domains --domain-names "${esDomain}" --query "DomainStatusList[*].ARN" --output text)"
-    elif [ "$es7" = true ]; then
+    elif [ "$es7" = false ]; then
       if [ -n "$envname" ]; then
-        ES_ENDPOINT="$(aws es describe-elasticsearch-domains --domain-names "${envname}"-gen3-metadata-2 --query "DomainStatusList[*].Endpoints" --output text)" 
-        ES_ARN="$(aws es describe-elasticsearch-domains --domain-names "${envname}"-gen3-metadata-2 --query "DomainStatusList[*].ARN" --output text)"
+        ES_ENDPOINT="$(aws es describe-elasticsearch-domains --domain-names "${envname}"-gen3-metadata --query "DomainStatusList[*].Endpoints" --output text)" 
+        ES_ARN="$(aws es describe-elasticsearch-domains --domain-names "${envname}"-gen3-metadata --query "DomainStatusList[*].ARN" --output text)"
       else
         deploy=false
       fi
     else
       if [ -n "$envname" ]; then
-        ES_ENDPOINT="$(aws es describe-elasticsearch-domains --domain-names "${envname}"-gen3-metadata --query "DomainStatusList[*].Endpoints" --output text)" 
-        ES_ARN="$(aws es describe-elasticsearch-domains --domain-names "${envname}"-gen3-metadata --query "DomainStatusList[*].ARN" --output text)"
+        ES_ENDPOINT="$(aws es describe-elasticsearch-domains --domain-names "${envname}"-gen3-metadata-2 --query "DomainStatusList[*].Endpoints" --output text)" 
+        ES_ARN="$(aws es describe-elasticsearch-domains --domain-names "${envname}"-gen3-metadata-2 --query "DomainStatusList[*].ARN" --output text)"
       else
         deploy=false
       fi

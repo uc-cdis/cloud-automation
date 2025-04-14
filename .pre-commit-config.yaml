@@ -4,6 +4,7 @@ repos:
         hooks:
         -   id: detect-secrets
             args: ['--baseline', '.secrets.baseline']
+            additional_dependencies: ['gibberish-detector']
     -   repo: https://github.com/pre-commit/pre-commit-hooks
         rev: v4.6.0
         hooks:

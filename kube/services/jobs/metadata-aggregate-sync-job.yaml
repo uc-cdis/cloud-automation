@@ -85,7 +85,7 @@ spec:
           args:
             - "-c"
             - |
-              /env/bin/python /src/src/mds/populate.py --config /aggregate_config.json
+              /env/bin/python /src/src/mds/populate.py --config /aggregate_config.json || poetry run python /mds/src/mds/populate.py --config /aggregate_config.json
               if [ $? -ne 0 ]; then
                 echo "WARNING: non zero exit code: $?"
               else
