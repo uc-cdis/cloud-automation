@@ -8,14 +8,17 @@ spec:
   destination:
     namespace: argocd
     server: https://kubernetes.default.svc
-  source:
-    repoURL: https://github.com/uc-cdis/gen3-gitops.git
-    targetRevision: TARGET_REVISION
-    path: cluster-level-resources
-    helm:
-      valueFiles:
-        - ../CLUSTER_NAME/cluster-values/cluster-values.yaml
-      releaseName: cluster-level-resources
+  sources:
+    - repoURL: https://github.com/uc-cdis/gen3-helm
+      targetRevision: CHART_TARGET_REVISION
+      path: helm/cluster-level-resources
+      helm:
+        valueFiles:
+          - $values/CLUSTER_NAME/cluster-values/cluster-values.yaml
+        releaseName: cluster-level-resources
+    - repoURL: "https://github.com/uc-cdis/gen3-gitops"
+      targetRevision: CONFIG_TARGET_REVISION
+      ref: values
   syncPolicy:
     automated:
       selfHeal: true
