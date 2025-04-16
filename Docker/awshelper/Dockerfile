@@ -1,7 +1,7 @@
 # Build from root of cloud-automation/ repo:
 #   docker build -f Docker/awshelper/Dockerfile 
 #
-FROM quay.io/cdis/ubuntu:22.04
+FROM quay.io/cdis/ubuntu-fips-base:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -14,6 +14,7 @@ RUN apt-get update && apt-get upgrade -y \
       dnsutils \
       ftp \
       gcc \
+      gettext-base \
       git \
       groff-base \
       iputils-ping \
@@ -27,25 +28,18 @@ RUN apt-get update && apt-get upgrade -y \
       openssh-client \
       openssh-server \
       python3 \
+      python3-crcmod \
       python3-dev \
       python3-pip \
       python3-setuptools \
+      python3-venv \
       ssh \
       sudo \
       tmux \
       unzip \
       vim \
       wget \
-      gettext-base
-
-#can remove once https://github.com/yaml/pyyaml/issues/724 is solved
-RUN pip install pyyaml==5.3.1
-
-RUN  python3 -m pip install --upgrade pip \
-    && python3 -m pip install --upgrade setuptools \
-    && python3 -m pip install -U crcmod \
-    && python3 -m pip install --upgrade yq \
-    && python3 -m pip install --upgrade 'gen3>4'
+      yq
 
 # aws cli v2
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
@@ -53,11 +47,21 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
     && ./aws/install \
     && /bin/rm -rf awscliv2.zip ./aws
 
+# Set up virtual environment in /opt/gen3_venv
+RUN python3 -m venv /opt/gen3_venv && \
+    /opt/gen3_venv/bin/pip install --upgrade pip && \
+    /opt/gen3_venv/bin/pip install "gen3>4" pyyaml
+
+RUN echo 'export PATH="/opt/gen3_venv/bin:$PATH"' > /etc/profile.d/gen3.sh && \
+    chmod +x /etc/profile.d/gen3.sh
+
+# Set default shell path
+ENV PATH="/opt/gen3_venv/bin:$PATH"
+
 # From  https://hub.docker.com/r/google/cloud-sdk/~/dockerfile/
 RUN export CLOUD_SDK_REPO="cloud-sdk" && \
     echo "deb https://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" > /etc/apt/sources.list.d/google-cloud-sdk.list && \
     curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
-    curl -sL https://deb.nodesource.com/setup_14.x | bash - && \
     apt-get update && \
     apt-get install -y kubectl && \
     apt-get install -y --no-install-recommends nodejs && \
@@ -79,10 +83,7 @@ RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.15/
 RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.12.31/terraform_0.12.31_linux_amd64.zip \
    && unzip /tmp/terraform.zip -d /tmp && mv /tmp/terraform /usr/local/bin/terraform12 && /bin/rm /tmp/terraform.zip
 
-RUN useradd -m -s /bin/bash ubuntu && \
-    ( echo "ubuntu:gen3" | chpasswd )
-
-RUN npm install elasticdump -g
+RUN echo "ubuntu:gen3" | chpasswd
 
 # Setup scripts to run sshd for wetty - see kube/services/tty
 RUN mkdir -p /opt/usersshd \
@@ -114,7 +115,6 @@ RUN cp cloud-automation/Docker/awshelper/sshdStart.sh /opt/usersshd/ \
     && cp cloud-automation/Docker/awshelper/sshd_config /opt/usersshd/
 
 RUN cd ./cloud-automation \
-    && npm ci \
     && cat ./Docker/awshelper/bashrc_suffix.sh >> ~/.bashrc
 
 RUN export DEB_PYTHON_INSTALL_LAYOUT=deb && export POETRY_VERSION=1.1.15 && curl -sSL https://install.python-poetry.org | python3 -
