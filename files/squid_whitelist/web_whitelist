@@ -11,6 +11,7 @@ app.getambassador.io
 awslabs.github.io
 biodata-integration-tests.net
 marketing.biorender.com
+cdn.playwright.dev
 clinicaltrials.gov
 charts.bitnami.com
 ctds-planx.atlassian.net
@@ -134,6 +135,7 @@ ohsu-comp-bio.github.io
 opportunityinsights.org
 orcid.org
 pgp.mit.edu
+playwright.download.prss.microsoft.com
 ppa.launchpad.net
 prometheus-community.github.io
 proxy.golang.org
