@@ -127,4 +127,4 @@ RUN git config --global user.email gen3 \
 RUN export GEN3_HOME="$HOME/cloud-automation" \
     && bash -c 'source "$GEN3_HOME/gen3/gen3setup.sh" && gen3 help'
 
-CMD ["/bin/bash", "-c", "echo 'Waiting for debugger to attach...' && sleep infinity"]
+CMD ["/bin/bash"]
