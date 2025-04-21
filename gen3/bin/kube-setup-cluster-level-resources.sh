@@ -3,12 +3,15 @@ source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
 # Set default value for TARGET_REVISION
-TARGET_REVISION="master"
+CHART_TARGET_REVISION="master"
+CONFIG_TARGET_REVISION="master"
 
 # Ask for TARGET_REVISION
 read -p "Please provide a target revision for the cluster resources chart (default is master): " user_target_revision
+read -p "Please provide a target revision for the cluster resources configuration (default is master): " config_target_revision
 # If user input is not empty, use it; otherwise, keep the default
-TARGET_REVISION=${user_target_revision:-$TARGET_REVISION}
+CHART_TARGET_REVISION=${user_target_revision:-$CHART_TARGET_REVISION}
+CONFIG_TARGET_REVISION=${config_target_revision:-$CONFIG_TARGET_REVISION}
 
 # Ask for CLUSTER_NAME (no default value)
 read -p "Enter the name of the cluster: " CLUSTER_NAME
@@ -23,9 +26,10 @@ fi
 temp_file=$(mktemp)
 
 # Use sed to replace placeholders in the original file
-sed -e "s|TARGET_REVISION|$TARGET_REVISION|g" \
+sed -e "s|CHART_TARGET_REVISION|$TARGET_REVISION|g" \
+    -e "s|CONFIG_TARGET_REVISION|$CONFIG_TARGET_REVISION|g" \
     -e "s|CLUSTER_NAME|$CLUSTER_NAME|g" \
-    $GEN3_HOME/kube/services/cluster-level-resources/app.yaml > "$temp_file"
+    "$GEN3_HOME"/kube/services/cluster-level-resources/app.yaml > "$temp_file"
 
 echo "WARNING: Do you have a folder already set up for this environment in gen3-gitops, in the form of <cluster-name>/cluster-values/cluster-values.yaml? If not, this will not work."
 echo ""
