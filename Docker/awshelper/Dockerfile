@@ -50,7 +50,8 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
 # Set up virtual environment in /opt/gen3_venv
 RUN python3 -m venv /opt/gen3_venv && \
     /opt/gen3_venv/bin/pip install --upgrade pip && \
-    /opt/gen3_venv/bin/pip install "gen3>4" pyyaml
+    /opt/gen3_venv/bin/pip install "gen3>4" pyyaml && \
+    chown -R ubuntu: /opt/gen3_venv
 
 RUN echo 'export PATH="/opt/gen3_venv/bin:$PATH"' > /etc/profile.d/gen3.sh && \
     chmod +x /etc/profile.d/gen3.sh
