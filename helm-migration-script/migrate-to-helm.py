@@ -366,6 +366,7 @@ def upload_secret(secret_name: str, secret_data: str, description: str = "A secr
   '''
   Given the name of a secret and a string containing the secret's data, uploads it as a plain-text secret to AWS
   '''
+  global SECRETS_MANAGER_CLIENT
 
   if SECRETS_MANAGER_CLIENT is None:
      SECRETS_MANAGER_CLIENT = boto3.client('secretsmanager')
