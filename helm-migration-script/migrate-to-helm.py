@@ -4,7 +4,10 @@ import os
 import pathlib
 import base64
 import argparse
+import boto3
 from copy import deepcopy
+
+SECRETS_MANAGER_CLIENT = None
 
 def find_manifest_path():
     # Check if environment variable is set
@@ -344,6 +347,21 @@ def translate_manifest(manifest_path):
 
   return final_output
 
+def upload_secret(secret_name: str, secret_data: str, description: str = "A secret for Gen3" ):
+  '''
+  Given the name of a secret and a string containing the secret's data, uploads it as a plain-text secret to AWS
+  '''
+
+  if SECRETS_MANAGER_CLIENT is None:
+     SECRETS_MANAGER_CLIENT = boto3.client('secretsmanager')
+
+  response = SECRETS_MANAGER_CLIENT.create_secret(
+     Name = secret_name,
+     SecretString = secret_data,
+     Description = description
+  )
+
+  
 
 def main():
   parser = argparse.ArgumentParser(description='Process manifest data')
