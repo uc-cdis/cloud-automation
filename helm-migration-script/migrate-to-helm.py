@@ -359,7 +359,8 @@ def translate_secrets():
   if creds_data is not None:
      for key in creds_data.keys():
         if key in ["fence"]:
-           print(creds_data[key])
+          # TODO we have to fix the hardcoding on that, we should be able to read the environment somehow
+          upload_secret(f"aidan-{key}-db-creds", json.dumps(creds_data[key]))
 
 def upload_secret(secret_name: str, secret_data: str, description: str = "A secret for Gen3" ):
   '''
