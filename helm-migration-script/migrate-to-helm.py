@@ -356,7 +356,10 @@ def translate_secrets():
 
   creds_data = read_creds_file(GEN3_SECRETS_FOLDER)
 
-  print(creds_data)
+  if creds_data is not None:
+     for key in creds_data.keys():
+        if key in ["fence"]:
+           print(creds_data[key])
 
 def upload_secret(secret_name: str, secret_data: str, description: str = "A secret for Gen3" ):
   '''
