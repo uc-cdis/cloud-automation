@@ -378,7 +378,7 @@ def upload_secret(secret_name: str, secret_data: str, description: str = "A secr
       Description = description,
       ForceOverwriteReplicaSecret = True
     )
-  except boto3.SecretsManager.Client.exceptions.ResourceNotFoundException:
+  except botocore.errorfactory.ResourceExistsException:
     response = SECRETS_MANAGER_CLIENT.update_secret(
       SecretId = secret_name,
       Description = description,
