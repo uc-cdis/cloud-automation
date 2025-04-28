@@ -323,7 +323,7 @@ def merge_service_section(final_output, yaml_data, service_name):
       final_output[service_name] = yaml_data[service_name]
   return final_output
 
-def primary_action(manifest_path):
+def translate_manifest(manifest_path):
   manifest = read_manifest(manifest_path)
   scaling_data = read_scaling_data(manifest_path, manifest)
 
@@ -344,6 +344,7 @@ def primary_action(manifest_path):
 
   return final_output
 
+
 def main():
   parser = argparse.ArgumentParser(description='Process manifest data')
   parser.add_argument('--print', action='store_true', 
@@ -362,8 +363,8 @@ def main():
   
   full_manifest_path = f"{manifest_path}/{manifest_hostname}"
 
-  final_output = primary_action(full_manifest_path)
+  manifest_output = translate_manifest(full_manifest_path)
 
-  output(final_output, print_flag=print_flag, filename=filename)
+  output(manifest_output, print_flag=print_flag, filename=filename)
 
 main()
