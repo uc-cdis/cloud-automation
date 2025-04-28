@@ -347,6 +347,14 @@ def translate_manifest(manifest_path):
 
   return final_output
 
+def translate_secrets():
+  # TODO This may bite us in the future if we can't rigidly hold to this
+  GEN3_SECRETS_FOLDER = "~/Gen3Secrets"
+
+  creds_data = read_creds_file(GEN3_SECRETS_FOLDER)
+
+  print(creds_data)
+
 def upload_secret(secret_name: str, secret_data: str, description: str = "A secret for Gen3" ):
   '''
   Given the name of a secret and a string containing the secret's data, uploads it as a plain-text secret to AWS
@@ -361,6 +369,17 @@ def upload_secret(secret_name: str, secret_data: str, description: str = "A secr
      Description = description
   )
 
+def read_creds_file(gen3_secrets_path: str):
+  creds_file_path = os.path.join(gen3_secrets_path, "creds.json")
+  
+  # Check if the file exists
+  if os.path.isfile(creds_file_path):
+      # Read and parse the JSON file
+      with open(creds_file_path, 'r') as file:
+          creds_data = json.load(file)
+      return creds_data
+  else:
+      return None
   
 
 def main():
@@ -383,6 +402,8 @@ def main():
 
   manifest_output = translate_manifest(full_manifest_path)
 
-  output(manifest_output, print_flag=print_flag, filename=filename)
+  translate_secrets()
+
+  #output(manifest_output, print_flag=print_flag, filename=filename)
 
 main()
