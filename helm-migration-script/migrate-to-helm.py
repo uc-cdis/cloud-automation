@@ -371,12 +371,20 @@ def upload_secret(secret_name: str, secret_data: str, description: str = "A secr
   if SECRETS_MANAGER_CLIENT is None:
      SECRETS_MANAGER_CLIENT = boto3.client('secretsmanager')
 
-  response = SECRETS_MANAGER_CLIENT.create_secret(
-     Name = secret_name,
-     SecretString = secret_data,
-     Description = description,
-     ForceOverwriteReplicaSecret = True
-  )
+  try:
+    response = SECRETS_MANAGER_CLIENT.create_secret(
+      Name = secret_name,
+      SecretString = secret_data,
+      Description = description,
+      ForceOverwriteReplicaSecret = True
+    )
+  except boto3.botocore.errorfactory.ResourceNotFoundException:
+    response = SECRETS_MANAGER_CLIENT.update_secret(
+      SecretId = secret_name
+      Description = description
+      SecretString = secret_data   
+    )
+     
 
 def read_creds_file(gen3_secrets_path: str):
   creds_file_path = os.path.join(gen3_secrets_path, "creds.json")
