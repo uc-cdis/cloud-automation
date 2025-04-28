@@ -6,6 +6,7 @@ import base64
 import argparse
 import boto3
 from copy import deepcopy
+from pathlib import Path
 
 SECRETS_MANAGER_CLIENT = None
 
@@ -349,7 +350,9 @@ def translate_manifest(manifest_path):
 
 def translate_secrets():
   # TODO This may bite us in the future if we can't rigidly hold to this
-  GEN3_SECRETS_FOLDER = "~/Gen3Secrets"
+  home = Path.home()
+
+  GEN3_SECRETS_FOLDER = os.path.join(home, "Gen3Secrets")
 
   creds_data = read_creds_file(GEN3_SECRETS_FOLDER)
 
