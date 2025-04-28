@@ -5,6 +5,7 @@ import pathlib
 import base64
 import argparse
 import boto3
+import botocore
 from copy import deepcopy
 from pathlib import Path
 
