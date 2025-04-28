@@ -374,7 +374,7 @@ def upload_secret(secret_name: str, secret_data: str, description: str = "A secr
   response = SECRETS_MANAGER_CLIENT.create_secret(
      Name = secret_name,
      SecretString = secret_data,
-     Description = description
+     Description = description,
      ForceOverwriteReplicaSecret = True
   )
 
