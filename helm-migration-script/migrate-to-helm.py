@@ -375,6 +375,7 @@ def upload_secret(secret_name: str, secret_data: str, description: str = "A secr
      Name = secret_name,
      SecretString = secret_data,
      Description = description
+     ForceOverwriteReplicaSecret = True
   )
 
 def read_creds_file(gen3_secrets_path: str):
