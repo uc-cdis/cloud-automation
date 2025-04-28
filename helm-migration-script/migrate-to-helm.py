@@ -32,7 +32,7 @@ def find_manifest_hostname(manifest_path):
             with open(config_path, 'r') as config_file:
                 config_data = yaml.safe_load(config_file)
                 if config_data and 'hostname' in config_data["data"]:
-                    return config_data['hostname']
+                    return config_data["data"]['hostname']
         except Exception as e:
             print(f"Error reading config file: {e}")
     
