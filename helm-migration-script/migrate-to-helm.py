@@ -380,8 +380,8 @@ def upload_secret(secret_name: str, secret_data: str, description: str = "A secr
     )
   except boto3.botocore.errorfactory.ResourceNotFoundException:
     response = SECRETS_MANAGER_CLIENT.update_secret(
-      SecretId = secret_name
-      Description = description
+      SecretId = secret_name,
+      Description = description,
       SecretString = secret_data   
     )
      
