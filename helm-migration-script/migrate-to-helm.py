@@ -353,6 +353,7 @@ def translate_manifest(manifest_path):
   return final_output
 
 def translate_manifest_service_secrets(g3auto_path: str):
+  print("Processing manifestservice g3auto secret(s)")
   service_path = os.path.join(g3auto_path, "manifestservice")
   config_file_path = os.path.join(service_path, "config.json") 
 
@@ -391,7 +392,7 @@ def process_g3auto_secrets(gen3_secrets_path: str):
 # Dear god, is this fragile. We're all but locked into running on admin VMs (which is fine)
 def get_commons_name():
   global COMMONS_NAME
-  if COMMONS_NAME is not None:
+  if COMMONS_NAME is None:
     commons_name = subprocess.run("kubectl config view --minify | yq .contexts[0].context.namespace | tr -d '\"'", 
                                   shell=True, capture_output=True, text=True).stdout.strip("\n")
     if commons_name == "default":
