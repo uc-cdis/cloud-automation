@@ -88,6 +88,7 @@ setup_gen3_workflow_infra() {
       "Effect": "Allow",
       "Action": [
         "s3:CreateBucket",
+        "s3:DeleteBucket",
         "s3:ListBucket",
         "s3:GetObject",
         "s3:PutObject",
