@@ -6,6 +6,7 @@ import base64
 import argparse
 import boto3
 import botocore
+import sys
 from copy import deepcopy
 from pathlib import Path
 
@@ -349,6 +350,24 @@ def translate_manifest(manifest_path):
 
   return final_output
 
+def process_g3auto_secrets(gen3_secrets_path: str):
+  G3AUTO_PATH = os.path.join(gen3_secrets_path, "g3auto")
+
+  if not os.path.exists(G3AUTO_PATH):
+    print(f"G3AUTO_PATH directory does not exist: {G3AUTO_PATH}")
+    sys.exit(1)
+
+  # Get all items in the directory
+  all_items = os.listdir(G3AUTO_PATH)
+
+  # Filter only directories
+  directories = [item for item in all_items if os.path.isdir(os.path.join(G3AUTO_PATH, item))]
+
+  for dir in directories:
+     print(dir)
+
+   
+
 def translate_secrets():
   # TODO This may bite us in the future if we can't rigidly hold to this
   home = Path.home()
@@ -358,10 +377,12 @@ def translate_secrets():
   creds_data = read_creds_file(GEN3_SECRETS_FOLDER)
 
   if creds_data is not None:
-     for key in creds_data.keys():
-        if key in ["fence"]:
-          # TODO we have to fix the hardcoding on that, we should be able to read the environment somehow
-          upload_secret(f"aidan-{key}-db-creds", json.dumps(creds_data[key]))
+    for key in creds_data.keys():
+      if key in ["fence"]:
+        # TODO we have to fix the hardcoding on that, we should be able to read the environment somehow
+        upload_secret(f"aidan-{key}-db-creds", json.dumps(creds_data[key]))
+
+  process_g3auto_secrets(GEN3_SECRETS_FOLDER)
 
 def upload_secret(secret_name: str, secret_data: str, description: str = "A secret for Gen3" ):
   '''
