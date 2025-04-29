@@ -375,7 +375,7 @@ def process_g3auto_secrets(gen3_secrets_path: str):
 
 # Dear god, is this fragile. We're all but locked into running on admin VMs (which is fine)
 def get_commons_name():
-  commons_name = subprocess.run(["kubectl", "config view --minify", "| yq .contexts[0].context.namespace", "| tr -d '\"'"])
+  commons_name = subprocess.run(["kubectl", "config", "view", "--minify", "| yq .contexts[0].context.namespace", "| tr -d '\"'"])
   if commons_name == "default":
      commons_name = subprocess.run("echo $vpc_name")
 
