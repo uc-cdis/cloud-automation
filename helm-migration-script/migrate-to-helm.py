@@ -364,6 +364,16 @@ def translate_manifest_service_secrets(g3auto_path: str):
       string_contents = file.read()
       upload_secret(f"{commons_name}-manifestservice-g3auto", string_contents)
 
+def process_generic_g3auto_service(service_name: str, g3auto_path: str):
+  G3AUTO_SERVICE_PATH = os.path.join(g3auto_path, service_name)
+  G3AUTO_DBCREDS_LOCATION = os.path.join(G3AUTO_SERVICE_PATH, "dbcreds.json")
+
+  commons_name = get_commons_name()
+
+  if os.path.exists(G3AUTO_SERVICE_PATH):
+    if os.path.exists(G3AUTO_DBCREDS_LOCATION):
+      with open(G3AUTO_DBCREDS_LOCATION) as file:
+        upload_secret(f"{commons_name}-{service_name}-db-creds", file.read())    
 
 def process_g3auto_secrets(gen3_secrets_path: str):
   G3AUTO_PATH = os.path.join(gen3_secrets_path, "g3auto")
@@ -382,7 +392,7 @@ def process_g3auto_secrets(gen3_secrets_path: str):
     if dir == "requestor":
       print("Requestor function incoming")
     elif dir == "metadata":
-      print("Metadata function incoming")
+      process_generic_g3auto_service("metadata", G3AUTO_PATH)
     elif dir == "manifestservice":
       translate_manifest_service_secrets(G3AUTO_PATH)
     #... etc, etc
