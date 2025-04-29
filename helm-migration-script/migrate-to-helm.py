@@ -361,10 +361,10 @@ def process_g3auto_secrets(gen3_secrets_path: str):
   # Get all items in the directory
   all_items = os.listdir(G3AUTO_PATH)
 
-  print(all_items)
-
   # Filter only directories
   directories = [item for item in all_items if os.path.isdir(os.path.join(G3AUTO_PATH, item))]
+
+  print(directories)
 
   for dir in directories:
     if dir == "requestor":
