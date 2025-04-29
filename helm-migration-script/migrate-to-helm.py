@@ -379,9 +379,15 @@ def process_generic_g3auto_service(service_name: str, g3auto_path: str):
 
     # Now, we're creating the secret ending in g3auto
     files = [file for file in os.listdir(G3AUTO_SERVICE_PATH) if os.path.isfile(os.path.join(G3AUTO_SERVICE_PATH, file))]  
-  
-    print(files)
-    exit()
+    g3auto_dict = {}
+
+    for file in files:
+      full_path = os.path.join(G3AUTO_SERVICE_PATH, file)
+      with open(full_path) as open_file:
+         g3auto_dict[file] = open_file.read()
+    
+    upload_secret(f"{commons_name}-{service_name}-g3auto", json.dumps(g3auto_dict))
+
 
 def process_g3auto_secrets(gen3_secrets_path: str):
   G3AUTO_PATH = os.path.join(gen3_secrets_path, "g3auto")
