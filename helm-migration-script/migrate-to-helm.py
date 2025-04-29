@@ -361,6 +361,8 @@ def process_g3auto_secrets(gen3_secrets_path: str):
   # Get all items in the directory
   all_items = os.listdir(G3AUTO_PATH)
 
+  print(all_items)
+
   # Filter only directories
   directories = [item for item in all_items if os.path.isdir(os.path.join(G3AUTO_PATH, item))]
 
@@ -388,9 +390,6 @@ def translate_secrets():
   GEN3_SECRETS_FOLDER = os.path.join(home, "Gen3Secrets")
 
   commons_name = get_commons_name()
-
-  print(commons_name)
-  exit(1)
 
   creds_data = read_creds_file(GEN3_SECRETS_FOLDER)
 
