@@ -12,6 +12,7 @@ from copy import deepcopy
 from pathlib import Path
 
 SECRETS_MANAGER_CLIENT = None
+COMMONS_NAME = None
 
 def find_manifest_path():
     # Check if environment variable is set
@@ -351,6 +352,18 @@ def translate_manifest(manifest_path):
 
   return final_output
 
+def translate_manifest_service_secrets(g3auto_path: str):
+  service_path = os.path.join(g3auto_path, "manifestservice")
+  config_file_path = os.path.join(service_path, "config.json") 
+
+  commons_name = get_commons_name()
+
+  if os.path.exists(config_file_path):
+    with open(config_file_path) as file:
+      string_contents = file.read()
+      upload_secret(f"{commons_name}-manifestservice-g3auto", string_contents)
+
+
 def process_g3auto_secrets(gen3_secrets_path: str):
   G3AUTO_PATH = os.path.join(gen3_secrets_path, "g3auto")
 
@@ -366,22 +379,26 @@ def process_g3auto_secrets(gen3_secrets_path: str):
 
   for dir in directories:
     if dir == "requestor":
-      break
+      print("Requestor function incoming")
     elif dir == "metadata":
-      break
+      print("Metadata function incoming")
+    elif dir == "manifestservice":
+      translate_manifest_service_secrets(G3AUTO_PATH)
     #... etc, etc
     else:
       print(f"Don't know what to do with {dir}, so just skipping it.")
 
 # Dear god, is this fragile. We're all but locked into running on admin VMs (which is fine)
 def get_commons_name():
-  commons_name = subprocess.run("kubectl config view --minify | yq .contexts[0].context.namespace | tr -d '\"'", 
-                                shell=True, capture_output=True, text=True).stdout.strip("\n")
-  if commons_name == "default":
-     commons_name = subprocess.run("kubectl get configmap global -o yaml | yq .data.environment | tr -d '\"'", 
-                                   shell=True, capture_output=True, text=True).stdout.strip("\n")
-
-  return commons_name
+  global COMMONS_NAME
+  if COMMONS_NAME is not None:
+    commons_name = subprocess.run("kubectl config view --minify | yq .contexts[0].context.namespace | tr -d '\"'", 
+                                  shell=True, capture_output=True, text=True).stdout.strip("\n")
+    if commons_name == "default":
+      commons_name = subprocess.run("kubectl get configmap global -o yaml | yq .data.environment | tr -d '\"'", 
+                                    shell=True, capture_output=True, text=True).stdout.strip("\n")
+    COMMONS_NAME = commons_name
+  return COMMONS_NAME
 
 def translate_secrets():
   home = Path.home()
@@ -394,7 +411,6 @@ def translate_secrets():
   if creds_data is not None:
     for key in creds_data.keys():
       if key in ["fence", "indexd"]:
-        # TODO we have to fix the hardcoding on that, we should be able to read the environment somehow
         upload_secret(f"{commons_name}-{key}-db-creds", json.dumps(creds_data[key]))
 
   process_g3auto_secrets(GEN3_SECRETS_FOLDER)
