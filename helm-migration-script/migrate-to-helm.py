@@ -390,6 +390,7 @@ def translate_secrets():
   commons_name = get_commons_name()
 
   print(commons_name)
+  print("==========")
   exit(1)
 
   creds_data = read_creds_file(GEN3_SECRETS_FOLDER)
