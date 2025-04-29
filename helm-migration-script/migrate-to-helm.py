@@ -375,7 +375,13 @@ def process_generic_g3auto_service(service_name: str, g3auto_path: str):
   if os.path.exists(G3AUTO_SERVICE_PATH):
     if os.path.exists(G3AUTO_DBCREDS_LOCATION):
       with open(G3AUTO_DBCREDS_LOCATION) as file:
-        upload_secret(f"{commons_name}-{service_name}-db-creds", file.read())    
+        upload_secret(f"{commons_name}-{service_name}-db-creds", file.read())  
+
+    # Now, we're creating the secret ending in g3auto
+    files = [file for file in os.listdir(G3AUTO_SERVICE_PATH) if os.isfile(os.path.join(G3AUTO_SERVICE_PATH, file))]  
+  
+    print(files)
+    exit()
 
 def process_g3auto_secrets(gen3_secrets_path: str):
   G3AUTO_PATH = os.path.join(gen3_secrets_path, "g3auto")
