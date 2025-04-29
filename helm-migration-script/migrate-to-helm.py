@@ -380,6 +380,7 @@ def get_commons_name():
   if commons_name == "default":
      commons_name = subprocess.run("kubectl get configmap global -o yaml | yq .data.environment | tr -d '\"'", 
                                    shell=True, stdout=open(os.devnull, 'wb')).stdout
+     print(f"Why?: {commons_name}")
 
   return commons_name
 
