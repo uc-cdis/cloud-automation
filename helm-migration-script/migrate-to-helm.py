@@ -376,7 +376,7 @@ def process_g3auto_secrets(gen3_secrets_path: str):
 # Dear god, is this fragile. We're all but locked into running on admin VMs (which is fine)
 def get_commons_name():
   commons_name = subprocess.run("kubectl config view --minify | yq .contexts[0].context.namespace | tr -d '\"'", 
-                                shell=True, capture_output=True, text=True).stdout
+                                shell=True, capture_output=True).stdout
   if commons_name == "default":
      commons_name = subprocess.run("kubectl get configmap global -o yaml | yq .data.environment | tr -d '\"'", 
                                    shell=True, capture_output=True, text=True).stdout
@@ -390,7 +390,6 @@ def translate_secrets():
   commons_name = get_commons_name()
 
   print(commons_name)
-  print("==========")
   exit(1)
 
   creds_data = read_creds_file(GEN3_SECRETS_FOLDER)
