@@ -378,7 +378,7 @@ def get_commons_name():
   commons_name = subprocess.run("kubectl config view --minify | yq .contexts[0].context.namespace | tr -d '\"'", 
                                 shell=True, stdout=open(os.devnull, 'wb')).stdout
   if commons_name == "default":
-     commons_name = subprocess.run("kubectl get configmap global -o yaml | yq .data.environment", 
+     commons_name = subprocess.run("kubectl get configmap global -o yaml | yq .data.environment | tr -d '\"'", 
                                    shell=True, stdout=open(os.devnull, 'wb')).stdout
 
   return commons_name
