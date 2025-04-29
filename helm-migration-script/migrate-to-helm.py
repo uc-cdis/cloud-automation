@@ -364,13 +364,11 @@ def process_g3auto_secrets(gen3_secrets_path: str):
   # Filter only directories
   directories = [item for item in all_items if os.path.isdir(os.path.join(G3AUTO_PATH, item))]
 
-  print(directories)
-
   for dir in directories:
     if dir == "requestor":
-      return
+      break
     elif dir == "metadata":
-      return
+      break
     #... etc, etc
     else:
       print(f"Don't know what to do with {dir}, so just skipping it.")
