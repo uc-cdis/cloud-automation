@@ -387,7 +387,7 @@ def translate_secrets():
 
   commons_name = get_commons_name()
 
-  print(commons_name)
+ # print(commons_name)
   exit(1)
 
   GEN3_SECRETS_FOLDER = os.path.join(home, "Gen3Secrets")
