@@ -6,19 +6,51 @@ setup_funnel_infra() {
   helm repo add ohsu https://ohsu-comp-bio.github.io/helm-charts
   helm repo update ohsu
 
+  namespace="$(gen3 db namespace)"
   secretsFolder="$(gen3_secrets_folder)/g3auto/gen3workflow"
   if [[ ! -f "$secretsFolder/funnel.conf" ]]; then
     mkdir -p "$secretsFolder"
-    # NOTE: to update once Funnel supports per-user bucket credentials
+
+    hostname=$(gen3 api hostname)  # TODO try again to use internal fence endpoint
+    jobsNamespace="workflow-pods-$namespace"
+    gen3_log_info "Creating namespace '$jobsNamespace'"
+    kubectl create namespace $jobsNamespace || true
+
+    # TODO: create fence OIDC client and set ID+secret
     cat - > "$secretsFolder/funnel.conf" <<EOM
+image:
+  repository: quay.io/ohsu-comp-bio/funnel  # TODO can we remove 'repository'&'tag'?
+  tag: testing  # TODO update to something configurable
+  pullPolicy: Always
+  initContainer:
+    image: quay.io/cdis/funnel-gen3-plugin
+    tag: gen3-plugin  # TODO update to 'main' or something configurable
+    pullPolicy: Always
+    command:
+    - cp
+    - /app/build/plugins-go/authorizer
+    - /opt/funnel/plugin-binaries/auth-plugin
+
 AmazonS3:
-  Key: PLACEHOLDER
-  Secret: PLACEHOLDER
+  Disabled: true
+
+GenericS3:
+- Disabled: true
+
+Plugins:
   Disabled: false
+  Dir: plugin-binaries
+  Plugin: auth-plugin
+  Input: USER_ID
+  Host: 'N/A'
+  JsonConfig: '{ "s3_url": "http://gen3-workflow-service.$namespace.svc.cluster.local/s3", "oidc_token_url": "https://$hostname/user", "oidc_client_id": "PLACEHOLDER", "oidc_client_secret": "PLACEHOLDER" }'
 
 Kubernetes:
-  Bucket: PLACEHOLDER
-  Region: us-east-1
+  Bucket: 'N/A'
+  Region: 'N/A'
+
+  Namespace: pauline
+  JobsNamespace: $jobsNamespace
 
 Logger:
   # Logging levels: debug, info, error
@@ -26,13 +58,15 @@ Logger:
 EOM
   fi
 
-  namespace="$(gen3 db namespace)"
   version="$(g3k_manifest_lookup .versions.funnel)"
   if [ "$version" == "latest" ]; then
-    helm upgrade --install funnel ohsu/funnel --namespace $namespace --values "$secretsFolder/funnel.conf"
+    helm upgrade --install funnel-$namespace ohsu/funnel --namespace $namespace --values "$secretsFolder/funnel.conf"
   else
-    helm upgrade --install funnel ohsu/funnel --namespace $namespace --values "$secretsFolder/funnel.conf" --version $version
+    helm upgrade --install funnel-$namespace ohsu/funnel --namespace $namespace --values "$secretsFolder/funnel.conf" --version $version
   fi
+
+  # print the current version
+  helm list -n $namespace | grep -e CHART -e funnel
 
   if [[ "$(g3k_manifest_lookup .global.netpolicy)" == "on" ]]; then
     gen3 kube-setup-networkpolicy service funnel
