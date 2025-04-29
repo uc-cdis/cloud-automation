@@ -6,6 +6,7 @@ import base64
 import argparse
 import boto3
 import botocore
+import subprocess
 import sys
 from copy import deepcopy
 from pathlib import Path
@@ -372,11 +373,20 @@ def process_g3auto_secrets(gen3_secrets_path: str):
     else:
       print(f"Don't know what to do with {dir}, so just skipping it.")
 
-   
+# Dear god, is this fragile. We're all but locked into running on admin VMs (which is fine)
+def get_commons_name():
+  commons_name = subprocess.run("kubectl config view --minify | yq .contexts[0].context.namespace | tr -d '\"'")
+  if commons_name == "default":
+     commons_name = subprocess.run("echo $vpc_name")
 
 def translate_secrets():
   # TODO This may bite us in the future if we can't rigidly hold to this
   home = Path.home()
+
+  commons_name = get_commons_name()
+
+  print(commons_name)
+  exit(1)
 
   GEN3_SECRETS_FOLDER = os.path.join(home, "Gen3Secrets")
 
@@ -384,9 +394,9 @@ def translate_secrets():
 
   if creds_data is not None:
     for key in creds_data.keys():
-      if key in ["fence"]:
+      if key in ["fence", "indexd"]:
         # TODO we have to fix the hardcoding on that, we should be able to read the environment somehow
-        upload_secret(f"aidan-{key}-db-creds", json.dumps(creds_data[key]))
+        upload_secret(f"{commons_name}-{key}-db-creds", json.dumps(creds_data[key]))
 
   process_g3auto_secrets(GEN3_SECRETS_FOLDER)
 
