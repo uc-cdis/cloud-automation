@@ -379,6 +379,8 @@ def get_commons_name():
   if commons_name == "default":
      commons_name = subprocess.run("echo $vpc_name")
 
+  return commons_name
+
 def translate_secrets():
   # TODO This may bite us in the future if we can't rigidly hold to this
   home = Path.home()
