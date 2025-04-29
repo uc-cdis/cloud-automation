@@ -365,6 +365,8 @@ def translate_manifest_service_secrets(g3auto_path: str):
       upload_secret(f"{commons_name}-manifestservice-g3auto", string_contents)
 
 def process_generic_g3auto_service(service_name: str, g3auto_path: str):
+  print(f"Processing g3auto secret(s) for {service_name}")
+
   G3AUTO_SERVICE_PATH = os.path.join(g3auto_path, service_name)
   G3AUTO_DBCREDS_LOCATION = os.path.join(G3AUTO_SERVICE_PATH, "dbcreds.json")
 
