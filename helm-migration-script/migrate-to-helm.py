@@ -389,6 +389,7 @@ def process_generic_g3auto_service(service_name: str, g3auto_path: str):
     upload_secret(f"{commons_name}-{service_name}-g3auto", json.dumps(g3auto_dict))
 
 def process_fence_config(gen3_secrets_path: str):
+  print("Processing the fence config secret")
   FENCE_CONFIG_PATH = os.path.join(gen3_secrets_path, "apis_configs", "fence_config.yaml")
   commons_name = get_commons_name()
 
