@@ -390,15 +390,23 @@ def process_generic_g3auto_service(service_name: str, g3auto_path: str):
 
 def process_fence_config(gen3_secrets_path: str):
   print("Processing the fence config secret")
-  FENCE_CONFIG_PATH = os.path.join(gen3_secrets_path, "apis_configs", "fence-config.yaml")
+  APIS_CONFIGS_PATH = os.path.join(gen3_secrets_path, "apis_configs")
+  FENCE_CONFIG_PATH = os.path.join(APIS_CONFIGS_PATH, "fence-config.yaml")
+  FENCE_GOOGLE_APP_CREDS_PATH = os.path.join(APIS_CONFIGS_PATH, "fence_google_app_creds_secret.json")
   commons_name = get_commons_name()
 
   if os.path.exists(FENCE_CONFIG_PATH):
     with open(FENCE_CONFIG_PATH) as file:
       upload_secret(f"{commons_name}-fence-config", file.read())
-  else:
-     print(FENCE_CONFIG_PATH)
 
+  if os.path.exists(FENCE_GOOGLE_APP_CREDS_PATH):
+    if os.path.getsize(FENCE_GOOGLE_APP_CREDS_PATH):
+      with open(FENCE_GOOGLE_APP_CREDS_PATH) as file:
+        upload_secret(f"{commons_name}-fence-google-app-creds-secret", file.read())
+
+def process_fence_jwt_key(gen3_secrets_path: str):
+  print("Processing the fence JWT key")
+  FENCE_JWT_PATH = os.path.join(gen3_secrets_path, "apis_configs", "")
 def process_g3auto_secrets(gen3_secrets_path: str):
   G3AUTO_PATH = os.path.join(gen3_secrets_path, "g3auto")
 
