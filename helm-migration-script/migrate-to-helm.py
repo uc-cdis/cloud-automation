@@ -393,6 +393,7 @@ def process_fence_config(gen3_secrets_path: str):
   APIS_CONFIGS_PATH = os.path.join(gen3_secrets_path, "apis_configs")
   FENCE_CONFIG_PATH = os.path.join(APIS_CONFIGS_PATH, "fence-config.yaml")
   FENCE_GOOGLE_APP_CREDS_PATH = os.path.join(APIS_CONFIGS_PATH, "fence_google_app_creds_secret.json")
+  FENCE_GOOGLE_STORAGE_CREDS_PATH = os.path.join(APIS_CONFIGS_PATH, "fence_google_storage_creds_secret.json")
   commons_name = get_commons_name()
 
   if os.path.exists(FENCE_CONFIG_PATH):
@@ -403,6 +404,13 @@ def process_fence_config(gen3_secrets_path: str):
     if os.path.getsize(FENCE_GOOGLE_APP_CREDS_PATH):
       with open(FENCE_GOOGLE_APP_CREDS_PATH) as file:
         upload_secret(f"{commons_name}-fence-google-app-creds-secret", file.read())
+    else:
+      print(f"A file exists at {FENCE_GOOGLE_APP_CREDS_PATH}, but it's empty. Skipping")
+
+  if os.path.exists(FENCE_GOOGLE_STORAGE_CREDS_PATH):
+    if os.path.getsize(FENCE_GOOGLE_STORAGE_CREDS_PATH):
+      with open(FENCE_GOOGLE_STORAGE_CREDS_PATH) as file:
+        upload_secret(f"{commons_name}-fence-google-storage-creds-secret", file.read())
     else:
       print(f"A file exists at {FENCE_GOOGLE_APP_CREDS_PATH}, but it's empty. Skipping")
 
