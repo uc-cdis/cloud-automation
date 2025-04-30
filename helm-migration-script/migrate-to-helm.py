@@ -396,6 +396,8 @@ def process_fence_config(gen3_secrets_path: str):
   if os.path.exists(FENCE_CONFIG_PATH):
     with open(FENCE_CONFIG_PATH) as file:
       upload_secret(f"{commons_name}-fence-config", file.read())
+  else:
+     print(FENCE_CONFIG_PATH)
 
 def process_g3auto_secrets(gen3_secrets_path: str):
   G3AUTO_PATH = os.path.join(gen3_secrets_path, "g3auto")
