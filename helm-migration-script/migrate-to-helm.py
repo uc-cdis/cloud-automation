@@ -403,6 +403,8 @@ def process_fence_config(gen3_secrets_path: str):
     if os.path.getsize(FENCE_GOOGLE_APP_CREDS_PATH):
       with open(FENCE_GOOGLE_APP_CREDS_PATH) as file:
         upload_secret(f"{commons_name}-fence-google-app-creds-secret", file.read())
+    else:
+      print(f"A file exists at {FENCE_GOOGLE_APP_CREDS_PATH}, but it's empty. Skipping")
 
 def process_fence_jwt_key(gen3_secrets_path: str):
   print("Processing the fence JWT key")
