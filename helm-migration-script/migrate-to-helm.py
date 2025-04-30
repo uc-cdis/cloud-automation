@@ -388,6 +388,14 @@ def process_generic_g3auto_service(service_name: str, g3auto_path: str):
     
     upload_secret(f"{commons_name}-{service_name}-g3auto", json.dumps(g3auto_dict))
 
+def process_fence_config(gen3_secrets_path: str):
+  FENCE_CONFIG_PATH = os.path.join(gen3_secrets_path, "apis_configs", "fence_config.yaml")
+  commons_name = get_commons_name()
+
+  if os.path.exists(FENCE_CONFIG_PATH):
+    with open(FENCE_CONFIG_PATH) as file:
+      upload_secret(f"{commons_name}-fence-config", file.read())
+
 def process_g3auto_secrets(gen3_secrets_path: str):
   G3AUTO_PATH = os.path.join(gen3_secrets_path, "g3auto")
 
@@ -437,6 +445,7 @@ def translate_secrets():
         upload_secret(f"{commons_name}-{key}-db-creds", json.dumps(creds_data[key]))
 
   process_g3auto_secrets(GEN3_SECRETS_FOLDER)
+  process_fence_config(GEN3_SECRETS_FOLDER)
 
 def upload_secret(secret_name: str, secret_data: str, description: str = "A secret for Gen3" ):
   '''
