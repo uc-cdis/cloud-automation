@@ -390,7 +390,7 @@ def process_generic_g3auto_service(service_name: str, g3auto_path: str):
 
 def process_fence_config(gen3_secrets_path: str):
   print("Processing the fence config secret")
-  FENCE_CONFIG_PATH = os.path.join(gen3_secrets_path, "apis_configs", "fence_config.yaml")
+  FENCE_CONFIG_PATH = os.path.join(gen3_secrets_path, "apis_configs", "fence-config.yaml")
   commons_name = get_commons_name()
 
   if os.path.exists(FENCE_CONFIG_PATH):
