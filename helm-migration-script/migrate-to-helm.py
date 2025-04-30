@@ -388,7 +388,6 @@ def process_generic_g3auto_service(service_name: str, g3auto_path: str):
     
     upload_secret(f"{commons_name}-{service_name}-g3auto", json.dumps(g3auto_dict))
 
-
 def process_g3auto_secrets(gen3_secrets_path: str):
   G3AUTO_PATH = os.path.join(gen3_secrets_path, "g3auto")
 
@@ -401,12 +400,11 @@ def process_g3auto_secrets(gen3_secrets_path: str):
 
   # Filter only directories
   directories = [item for item in all_items if os.path.isdir(os.path.join(G3AUTO_PATH, item))]
+  generic_g3auto_services = ["arborist", "audit", "dashboard", "manifestservice", "metadata", "pelicanservice", "requestor", "wts"]
 
   for dir in directories:
-    if dir == "requestor":
-      print("Requestor function incoming")
-    elif dir == "metadata":
-      process_generic_g3auto_service("metadata", G3AUTO_PATH)
+    if dir in generic_g3auto_services:
+      process_generic_g3auto_service(dir, G3AUTO_PATH)
     elif dir == "manifestservice":
       translate_manifest_service_secrets(G3AUTO_PATH)
     #... etc, etc
