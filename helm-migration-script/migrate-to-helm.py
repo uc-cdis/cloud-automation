@@ -412,7 +412,7 @@ def process_fence_config(gen3_secrets_path: str):
       with open(FENCE_GOOGLE_STORAGE_CREDS_PATH) as file:
         upload_secret(f"{commons_name}-fence-google-storage-creds-secret", file.read())
     else:
-      print(f"A file exists at {FENCE_GOOGLE_APP_CREDS_PATH}, but it's empty. Skipping")
+      print(f"A file exists at {FENCE_GOOGLE_STORAGE_CREDS_PATH}, but it's empty. Skipping")
 
 def process_fence_jwt_key(gen3_secrets_path: str):
   print("Processing the fence JWT key")
@@ -436,7 +436,6 @@ def process_g3auto_secrets(gen3_secrets_path: str):
       process_generic_g3auto_service(dir, G3AUTO_PATH)
     elif dir == "manifestservice":
       translate_manifest_service_secrets(G3AUTO_PATH)
-    #... etc, etc
     else:
       print(f"Don't know what to do with {dir}, so just skipping it.")
 
