@@ -396,6 +396,8 @@ def process_fence_config(gen3_secrets_path: str):
   FENCE_GOOGLE_STORAGE_CREDS_PATH = os.path.join(APIS_CONFIGS_PATH, "fence_google_storage_creds_secret.json")
   commons_name = get_commons_name()
 
+  process_fence_jwt_key(gen3_secrets_path)
+
   if os.path.exists(FENCE_CONFIG_PATH):
     with open(FENCE_CONFIG_PATH) as file:
       upload_secret(f"{commons_name}-fence-config", file.read())
