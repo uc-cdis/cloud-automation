@@ -416,7 +416,26 @@ def process_fence_config(gen3_secrets_path: str):
 
 def process_fence_jwt_key(gen3_secrets_path: str):
   print("Processing the fence JWT key")
-  FENCE_JWT_PATH = os.path.join(gen3_secrets_path, "apis_configs", "")
+  FENCE_JWT_PATH = os.path.join(gen3_secrets_path, "jwt-keys")
+
+  if os.path.exists(FENCE_JWT_PATH):
+    directories = os.listdir(FENCE_JWT_PATH)
+
+    # TODO I think this will cover us for all Gen3Secrets folders, but there may be some that break the following assumptions
+    # 1. That there are only 2 directories in FENCE_JWT_PATH
+    # 2. That one is called key-01, and the other is a date code
+    # 3. That only the date code private key needs to be updated
+    # 4. That we only need to upload the private key to secrets manager
+    for directory in directories:
+      if directory != "key-01":
+        PRIV_KEY_LOCATION = os.path.join(FENCE_JWT_PATH, directory, "jwt_private_key.pem")
+        if os.path.exists(PRIV_KEY_LOCATION):
+          commons_name = get_commons_name()
+          with open(PRIV_KEY_LOCATION) as file:
+            upload_secret(f"{commons_name}-fence-jwt", file.read())
+           
+      
+
 def process_g3auto_secrets(gen3_secrets_path: str):
   G3AUTO_PATH = os.path.join(gen3_secrets_path, "g3auto")
 
@@ -489,7 +508,6 @@ def upload_secret(secret_name: str, secret_data: str, description: str = "A secr
       Description = description,
       SecretString = secret_data   
     )
-     
 
 def read_creds_file(gen3_secrets_path: str):
   creds_file_path = os.path.join(gen3_secrets_path, "creds.json")
