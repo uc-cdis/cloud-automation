@@ -360,7 +360,9 @@ def translate_manifest(manifest_path):
 
   # Again, these are sloppy, but I'm feeling lazy. May burn us
   if "manifestservice" in final_output.keys():
-    final_output["manifestservice"] = "Huh?"
+    final_output["manifestservice"]["externalSecrets"] = {
+      "manifestserviceG3auto": f"{commons_name}-manifestservice-g3auto"
+    }
   
   # if "sower" in final_output.keys():
   #   final_output["sower"] = {
@@ -369,7 +371,6 @@ def translate_manifest(manifest_path):
   #     }
   #   }
 
-  print(final_output["manifestservice"])
   return final_output
 
 def translate_manifest_service_secrets(g3auto_path: str):
@@ -594,6 +595,6 @@ def main():
 
   translate_secrets()
 
-  #output(manifest_output, print_flag=print_flag, filename=filename)
+  output(manifest_output, print_flag=print_flag, filename=filename)
 
 main()
