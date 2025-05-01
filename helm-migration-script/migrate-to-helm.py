@@ -516,8 +516,8 @@ def translate_secrets():
 
   if creds_data is not None:
     for key in creds_data.keys():
-      if key in ["fence", "indexd"]:
-        upload_secret(f"{commons_name}-{key}-db-creds", json.dumps(creds_data[key]))
+      if key in ["fence", "indexd", "sheepdog"]:
+        upload_secret(f"{commons_name}-{key}-creds", json.dumps(creds_data[key]))
 
   process_g3auto_secrets(GEN3_SECRETS_FOLDER)
   process_fence_config(GEN3_SECRETS_FOLDER)
