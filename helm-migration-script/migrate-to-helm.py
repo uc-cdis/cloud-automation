@@ -360,7 +360,7 @@ def translate_manifest(manifest_path):
 
   # Again, these are sloppy, but I'm feeling lazy. May burn us
   if "manifestservice" in final_output.keys():
-    final_output["manifestservice"]["externalSecrets"] = "Huh?"
+    final_output["manifestservice"] = "Huh?"
   
   # if "sower" in final_output.keys():
   #   final_output["sower"] = {
