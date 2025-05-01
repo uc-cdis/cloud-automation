@@ -332,6 +332,9 @@ def merge_service_section(final_output, yaml_data, service_name):
   return final_output
 
 def translate_manifest(manifest_path):
+  home = Path.home()
+  GEN3_SECRETS_FOLDER = os.path.join(home, "Gen3Secrets")
+
   manifest = read_manifest(manifest_path)
   scaling_data = read_scaling_data(manifest_path, manifest)
 
@@ -342,6 +345,7 @@ def translate_manifest(manifest_path):
   portal_yaml_data = template_portal_section(manifest, manifest_path)
   ssjdispatcher_yaml_data = template_ssjdispatcher_section(manifest, manifest_path)
   sower_yaml_data = template_sower_section(manifest, manifest_path)
+  fence_yaml_data = generate_fence_secret_config(GEN3_SECRETS_FOLDER)
 
   final_output = {**global_yaml_data, **versions_yaml_data}
 
@@ -349,6 +353,7 @@ def translate_manifest(manifest_path):
   final_output = merge_service_section(final_output, portal_yaml_data, "portal")
   final_output = merge_service_section(final_output, sower_yaml_data, "sower")
   final_output = merge_service_section(final_output, ssjdispatcher_yaml_data, "ssjdispatcher")
+  final_output = merge_service_section(final_output, fence_yaml_data, "fence")
 
   return final_output
 
@@ -436,7 +441,36 @@ def process_fence_jwt_key(gen3_secrets_path: str):
           with open(PRIV_KEY_LOCATION) as file:
             upload_secret(f"{commons_name}-fence-jwt", file.read())
            
-      
+def generate_fence_secret_config(gen3_secrets_path: str):
+  """
+  This is a weird one, so let me explain. We cant use the default names for Fence secrets, since they don't have the 
+  environment set. So, we need to generate a snippet of YAML config that tells Fence what secret names to use. This
+  function generates and returns that snippet, so we can merge it in with the rest of our YAML elsewhere
+  """
+  APIS_CONFIGS_PATH = os.path.join(gen3_secrets_path, "apis_configs")
+  FENCE_CONFIG_PATH = os.path.join(APIS_CONFIGS_PATH, "fence-config.yaml")
+  FENCE_GOOGLE_APP_CREDS_PATH = os.path.join(APIS_CONFIGS_PATH, "fence_google_app_creds_secret.json")
+  FENCE_GOOGLE_STORAGE_CREDS_PATH = os.path.join(APIS_CONFIGS_PATH, "fence_google_storage_creds_secret.json")
+  commons_name = get_commons_name()
+
+  fence_secret_config_dict = {}
+
+  if os.path.exists(FENCE_CONFIG_PATH):
+    fence_secret_config_dict["fenceConfig"] = f"{commons_name}-fence-config"
+
+  if os.path.exists(FENCE_GOOGLE_APP_CREDS_PATH):
+    if os.path.getsize(FENCE_GOOGLE_APP_CREDS_PATH):
+      fence_secret_config_dict["fenceGoogleAppCredsSecret"] = f"{commons_name}-fence-google-app-creds"
+
+  if os.path.exists(FENCE_GOOGLE_STORAGE_CREDS_PATH):
+    if os.path.getsize(FENCE_GOOGLE_STORAGE_CREDS_PATH):
+      fence_secret_config_dict["fenceGoogleStorageCredsSecret"] = f"{commons_name}-fence-google-storage-creds"
+
+  # TODO this is probably safe, but we're making a big assumption if some env doesn't have a JWT that we can migrate.
+  fence_secret_config_dict["fenceJwtKeys"] = f"{commons_name}-fence-jwt"
+  fence_secret_config_dict["createK8sGoogleAppSecrets"] = False
+
+  return { "externalSecrets": fence_secret_config_dict }
 
 def process_g3auto_secrets(gen3_secrets_path: str):
   G3AUTO_PATH = os.path.join(gen3_secrets_path, "g3auto")
@@ -546,6 +580,6 @@ def main():
 
   translate_secrets()
 
-  #output(manifest_output, print_flag=print_flag, filename=filename)
+  output(manifest_output, print_flag=print_flag, filename=filename)
 
 main()
