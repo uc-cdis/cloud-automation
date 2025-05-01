@@ -359,9 +359,7 @@ def translate_manifest(manifest_path):
   final_output = merge_service_section(final_output, fence_yaml_data, "fence")
 
   # Again, these are sloppy, but I'm feeling lazy. May burn us
-  print(final_output.keys())
   if "manifestservice" in final_output.keys():
-    print("Huh?")
     final_output["manifestservice"]["externalSecrets"] = {
       "manifestserviceG3auto": f"{commons_name}-manifestservice-g3auto"
     }
@@ -373,6 +371,7 @@ def translate_manifest(manifest_path):
   #     }
   #   }
 
+  print(final_output)
   return final_output
 
 def translate_manifest_service_secrets(g3auto_path: str):
