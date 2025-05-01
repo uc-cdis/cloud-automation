@@ -369,6 +369,7 @@ def translate_manifest(manifest_path):
   #     }
   #   }
 
+  print(final_output["manifestservice"])
   return final_output
 
 def translate_manifest_service_secrets(g3auto_path: str):
