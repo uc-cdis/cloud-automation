@@ -158,7 +158,6 @@ def template_global_section(manifest_data):
   # These are keys that have a directly corresponding value in values.yaml that we need to translate by converting 
   # to camel case
   DIRECT_TRANSLATE_KEYS = [
-    "environment", 
     "hostname", 
     "revproxy_arn", 
     "dictionary_url", 
@@ -187,6 +186,8 @@ def template_global_section(manifest_data):
       elif key == "netpolicy":
         if global_data[key] == "on":
           global_yaml_data["netPolicy"] = {"enabled": True}
+      elif key == "environment":
+        global_yaml_data["environment"] = get_commons_name()
       elif key not in DEPRECATED_KEYS:
         global_yaml_data["manifestGlobalExtraValues"][key] = global_data[key]
 
@@ -468,7 +469,6 @@ def generate_fence_secret_config(gen3_secrets_path: str):
 
   # TODO this is probably safe, but we're making a big assumption if some env doesn't have a JWT that we can migrate.
   fence_secret_config_dict["fenceJwtKeys"] = f"{commons_name}-fence-jwt"
-  fence_secret_config_dict["createK8sGoogleAppSecrets"] = False
 
   return { "externalSecrets": fence_secret_config_dict }
 
@@ -580,6 +580,6 @@ def main():
 
   translate_secrets()
 
-  output(manifest_output, print_flag=print_flag, filename=filename)
+  #output(manifest_output, print_flag=print_flag, filename=filename)
 
 main()
