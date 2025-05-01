@@ -361,6 +361,7 @@ def translate_manifest(manifest_path):
   # Again, these are sloppy, but I'm feeling lazy. May burn us
   print(final_output.keys())
   if "manifestservice" in final_output.keys():
+    print("Huh?")
     final_output["manifestservice"]["externalSecrets"] = {
       "manifestserviceG3auto": f"{commons_name}-manifestservice-g3auto"
     }
