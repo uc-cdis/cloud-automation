@@ -336,6 +336,8 @@ def translate_manifest(manifest_path):
   home = Path.home()
   GEN3_SECRETS_FOLDER = os.path.join(home, "Gen3Secrets")
 
+  commons_name = get_commons_name()
+
   manifest = read_manifest(manifest_path)
   scaling_data = read_scaling_data(manifest_path, manifest)
 
@@ -355,6 +357,19 @@ def translate_manifest(manifest_path):
   final_output = merge_service_section(final_output, sower_yaml_data, "sower")
   final_output = merge_service_section(final_output, ssjdispatcher_yaml_data, "ssjdispatcher")
   final_output = merge_service_section(final_output, fence_yaml_data, "fence")
+
+  # Again, these are sloppy, but I'm feeling lazy. May burn us
+  if "manifestservice" in final_output.keys():
+    final_output["manifestservice"]["externalSecrets"] = {
+      "manifestserviceG3auto": f"{commons_name}-manifestservice-g3auto"
+    }
+  
+  # if "sower" in final_output.keys():
+  #   final_output["sower"] = {
+  #     "externalSecrets": {
+         
+  #     }
+  #   }
 
   return final_output
 
