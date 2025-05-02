@@ -590,6 +590,9 @@ def translate_creds_structure(creds_text: str):
   first_brace_pos = return_text.find('{')
   return_text = return_text[:first_brace_pos + 1] + '\n  "dbcreated": "true",' + return_text[first_brace_pos+1::]
 
+  first_brace_pos = return_text.find('{')
+  return_text = return_text[:first_brace_pos + 1] + '\n  "port": "5432",' + return_text[first_brace_pos+1::]
+
   return return_text
 
 def main():
