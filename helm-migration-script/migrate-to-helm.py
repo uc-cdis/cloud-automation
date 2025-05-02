@@ -586,7 +586,7 @@ def main():
 
   # Set variables based on args
   print_flag = args.print
-  filename = args.filename if argsd.filename else f"{manifest_hostname}-values.yaml"
+  filename = args.filename if args.filename else f"{manifest_hostname}-values.yaml"
   
   full_manifest_path = f"{manifest_path}/{manifest_hostname}"
 
