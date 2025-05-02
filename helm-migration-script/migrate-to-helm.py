@@ -395,7 +395,8 @@ def process_generic_g3auto_service(service_name: str, g3auto_path: str):
   if os.path.exists(G3AUTO_SERVICE_PATH):
     if os.path.exists(G3AUTO_DBCREDS_LOCATION):
       with open(G3AUTO_DBCREDS_LOCATION) as file:
-        upload_secret(f"{commons_name}-{service_name}-creds", file.read())  
+        unedited_text = file.read()
+        upload_secret(f"{commons_name}-{service_name}-creds", translate_creds_structure(unedited_text))  
 
     # Now, we're creating the secret ending in g3auto
     files = [file for file in os.listdir(G3AUTO_SERVICE_PATH) if os.path.isfile(os.path.join(G3AUTO_SERVICE_PATH, file))]  
@@ -536,7 +537,8 @@ def translate_secrets():
   if creds_data is not None:
     for key in creds_data.keys():
       if key in ["fence", "indexd", "sheepdog"]:
-        upload_secret(f"{commons_name}-{key}-creds", json.dumps(creds_data[key]))
+        edited_key = translate_creds_structure(json.dumps(creds_data[key]))
+        upload_secret(f"{commons_name}-{key}-creds", edited_key)
 
   process_g3auto_secrets(GEN3_SECRETS_FOLDER)
   process_fence_config(GEN3_SECRETS_FOLDER)
@@ -576,6 +578,15 @@ def read_creds_file(gen3_secrets_path: str):
   else:
       return None
   
+def translate_creds_structure(creds_text: str):
+  return_text = creds_text
+
+  return_text = return_text.replace("db_host", "host")
+  return_text = return_text.replace("db_username", "username")
+  return_text = return_text.replace("db_password", "password")
+  return_text = return_text.replace("db_database", "database")
+
+  return return_text
 
 def main():
   parser = argparse.ArgumentParser(description='Process manifest data')
