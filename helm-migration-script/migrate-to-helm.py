@@ -364,12 +364,11 @@ def translate_manifest(manifest_path):
       "manifestserviceG3auto": f"{commons_name}-manifestservice-g3auto"
     }
   
-  # if "sower" in final_output.keys():
-  #   final_output["sower"] = {
-  #     "externalSecrets": {
-         
-  #     }
-  #   }
+  if "sower" in final_output.keys():
+    final_output["sower"]["externalSecrets"] = {
+      "pelicanServiceG3auto": f"{commons_name}-pelicanservice-g3auto",
+      "sowerJobsG3auto": f"{commons_name}-sower-jobs-g3auto"  
+    }
 
   return final_output
 
