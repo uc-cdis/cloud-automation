@@ -366,8 +366,8 @@ def translate_manifest(manifest_path):
   
   if "sower" in final_output.keys():
     final_output["sower"]["externalSecrets"] = {
-      "pelicanServiceG3auto": f"{commons_name}-pelicanservice-g3auto",
-      "sowerJobsG3auto": f"{commons_name}-sower-jobs-g3auto"  
+      "pelicanserviceG3auto": f"{commons_name}-pelicanservice-g3auto",
+      "sowerjobsG3auto": f"{commons_name}-sower-jobs-g3auto"  
     }
 
   return final_output
@@ -586,7 +586,7 @@ def main():
 
   # Set variables based on args
   print_flag = args.print
-  filename = args.filename if args.filename else f"{manifest_hostname}-values.yaml"
+  filename = args.filename if argsd.filename else f"{manifest_hostname}-values.yaml"
   
   full_manifest_path = f"{manifest_path}/{manifest_hostname}"
 
