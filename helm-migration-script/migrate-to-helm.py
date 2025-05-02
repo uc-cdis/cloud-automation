@@ -588,7 +588,7 @@ def translate_creds_structure(creds_text: str):
 
   #And now we add dbcreated: true, by far the hardest part of this whole function
   first_brace_pos = return_text.find('{')
-  return_text = return_text[:first_brace_pos + 1] + '\n  "dbcreated": "true",' + return_text[first_brace_pos::]
+  return_text = return_text[:first_brace_pos + 1] + '\n  "dbcreated": "true",' + return_text[first_brace_pos+1::]
 
   print(creds_text)
   print(return_text)
