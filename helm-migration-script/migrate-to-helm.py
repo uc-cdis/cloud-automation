@@ -586,6 +586,10 @@ def translate_creds_structure(creds_text: str):
   return_text = return_text.replace("db_password", "password")
   return_text = return_text.replace("db_database", "database")
 
+  #And now we add dbcreated: true, by far the hardest part of this whole function
+  first_brace_pos = return_text.find('{')
+  return_text = return_text[:first_brace_pos + 1] + '\n  "dbcreated": "true"'
+
   return return_text
 
 def main():
