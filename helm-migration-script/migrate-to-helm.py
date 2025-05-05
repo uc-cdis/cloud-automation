@@ -298,9 +298,13 @@ def template_versions_section(manifest_data, scaling_data):
   versions_yaml_data = {}
 
   for key in versions_data:
-    repo, tag = split_version_statement(versions_data[key])
+    if key == "audit-service":
+       realKey = "audit"
+    else:
+       realKey = key
+    repo, tag = split_version_statement(versions_data[realKey])
 
-    versions_yaml_data[key] = {
+    versions_yaml_data[realKey] = {
       "enabled": True,
       "image": {
         "repository": repo,
@@ -308,19 +312,19 @@ def template_versions_section(manifest_data, scaling_data):
       }
     }
 
-    if key in scaling_data.keys():
-      service_scaling_data = scaling_data[key]
+    if realKey in scaling_data.keys():
+      service_scaling_data = scaling_data[realKey]
       if service_scaling_data["strategy"] == "pin":
-        versions_yaml_data[key]["replicas"] = service_scaling_data["num"]
+        versions_yaml_data[realKey]["replicas"] = service_scaling_data["num"]
       elif service_scaling_data["strategy"] == "auto":
-        versions_yaml_data[key]["autoscaling"] = {}
-        versions_yaml_data[key]["autoscaling"]["enabled"] = True
-        versions_yaml_data[key]["autoscaling"]["minReplicas"] = service_scaling_data["min"]
-        versions_yaml_data[key]["autoscaling"]["maxReplicas"] = service_scaling_data["max"]
+        versions_yaml_data[realKey]["autoscaling"] = {}
+        versions_yaml_data[realKey]["autoscaling"]["enabled"] = True
+        versions_yaml_data[realKey]["autoscaling"]["minReplicas"] = service_scaling_data["min"]
+        versions_yaml_data[realKey]["autoscaling"]["maxReplicas"] = service_scaling_data["max"]
         if "targetCpu" in service_scaling_data.keys():
-          versions_yaml_data[key]["autoscaling"]["targetCPUUtilizationPercentage"] = service_scaling_data["targetCpu"]
+          versions_yaml_data[realKey]["autoscaling"]["targetCPUUtilizationPercentage"] = service_scaling_data["targetCpu"]
         else:
-          versions_yaml_data[key]["autoscaling"]["targetCPUUtilizationPercentage"] = 40
+          versions_yaml_data[realKey]["autoscaling"]["targetCPUUtilizationPercentage"] = 40
 
   return versions_yaml_data
 
@@ -370,8 +374,8 @@ def translate_manifest(manifest_path):
       "sowerjobsG3auto": f"{commons_name}-sower-jobs-g3auto"  
     }
 
-  if "audit-service" in final_output.keys():
-    final_output["audit-service"]["externalSecrets"] = {
+  if "audit" in final_output.keys():
+    final_output["audit"]["externalSecrets"] = {
       "auditG3auto": f"{commons_name}-audit-g3auto"
     }
 
