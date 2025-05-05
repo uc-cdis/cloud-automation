@@ -183,9 +183,9 @@ def template_global_section(manifest_data):
     for key in global_data:
       if key in DIRECT_TRANSLATE_KEYS:
         global_yaml_data[to_camel_case(key)] = global_data[key]
-      elif key == "netpolicy":
-        if global_data[key] == "on":
-          global_yaml_data["netPolicy"] = {"enabled": True}
+      # elif key == "netpolicy":
+      #   if global_data[key] == "on":
+      #     global_yaml_data["netPolicy"] = {"enabled": True}
       elif key == "environment":
         global_yaml_data["environment"] = get_commons_name()
       elif key not in DEPRECATED_KEYS:
@@ -368,6 +368,11 @@ def translate_manifest(manifest_path):
     final_output["sower"]["externalSecrets"] = {
       "pelicanserviceG3auto": f"{commons_name}-pelicanservice-g3auto",
       "sowerjobsG3auto": f"{commons_name}-sower-jobs-g3auto"  
+    }
+
+  if "audit" in final_output.keys():
+    final_output["audit"]["externalSecrets"] = {
+      "auditG3auto": f"{commons_name}-audit-g3auto"
     }
 
   return final_output
