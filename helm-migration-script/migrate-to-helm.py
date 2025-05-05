@@ -302,7 +302,7 @@ def template_versions_section(manifest_data, scaling_data):
        realKey = "audit"
     else:
        realKey = key
-    repo, tag = split_version_statement(versions_data[realKey])
+    repo, tag = split_version_statement(versions_data[key])
 
     versions_yaml_data[realKey] = {
       "enabled": True,
