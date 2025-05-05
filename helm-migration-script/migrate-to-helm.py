@@ -370,8 +370,8 @@ def translate_manifest(manifest_path):
       "sowerjobsG3auto": f"{commons_name}-sower-jobs-g3auto"  
     }
 
-  if "audit" in final_output.keys():
-    final_output["audit"]["externalSecrets"] = {
+  if "audit-service" in final_output.keys():
+    final_output["audit-service"]["externalSecrets"] = {
       "auditG3auto": f"{commons_name}-audit-g3auto"
     }
 
