@@ -379,6 +379,11 @@ def translate_manifest(manifest_path):
       "auditG3auto": f"{commons_name}-audit-g3auto"
     }
 
+  if "wts" in final_output.keys():
+    final_output["wts"]["externalSecrets"] = {
+      "metadataG3auto": f"{commons_name}-wts-g3auto"
+    }
+
   return final_output
 
 def translate_manifest_service_secrets(g3auto_path: str):
