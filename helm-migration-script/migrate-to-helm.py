@@ -393,6 +393,7 @@ def translate_manifest_service_secrets(g3auto_path: str):
       string_contents = file.read()
       upload_secret(f"{commons_name}-manifestservice-g3auto", string_contents)
 
+
 def process_generic_g3auto_service(service_name: str, g3auto_path: str):
   print(f"Processing g3auto secret(s) for {service_name}")
 
@@ -529,7 +530,7 @@ def process_g3auto_secrets(gen3_secrets_path: str):
 
   # Filter only directories
   directories = [item for item in all_items if os.path.isdir(os.path.join(G3AUTO_PATH, item))]
-  generic_g3auto_services = ["arborist", "dashboard", "manifestservice", "metadata", "pelicanservice", "requestor", "wts"]
+  generic_g3auto_services = ["arborist", "dashboard", "metadata", "pelicanservice", "requestor", "wts"]
 
   for dir in directories:
     if dir in generic_g3auto_services:
@@ -537,7 +538,9 @@ def process_g3auto_secrets(gen3_secrets_path: str):
     elif dir == "manifestservice":
       translate_manifest_service_secrets(G3AUTO_PATH)
     elif dir == "audit":
-       translate_audit_service_secrets(G3AUTO_PATH)
+      translate_audit_service_secrets(G3AUTO_PATH)
+    elif dir == "manifestservice":
+      translate_manifest_service_secrets(G3AUTO_PATH)
     else:
       print(f"Don't know what to do with {dir}, so just skipping it.")
 
