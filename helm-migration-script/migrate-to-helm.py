@@ -504,6 +504,19 @@ def generate_fence_secret_config(gen3_secrets_path: str):
 
   return { "externalSecrets": fence_secret_config_dict }
 
+def translate_audit_service_secrets(g3auto_path: str):
+  print("Processing audit service g3auto secret(s)")
+  service_path = os.path.join(g3auto_path, "audit")
+  config_file_path = os.path.join(service_path, "audit-service-config.yaml")
+
+  commons_name = get_commons_name()
+
+  if os.path.exists(config_file_path):
+    with open (config_file_path) as file:
+      string_contents = file.read()
+      upload_secret(f"{commons_name}-audit-g3auto", string_contents)
+  
+
 def process_g3auto_secrets(gen3_secrets_path: str):
   G3AUTO_PATH = os.path.join(gen3_secrets_path, "g3auto")
 
@@ -516,13 +529,15 @@ def process_g3auto_secrets(gen3_secrets_path: str):
 
   # Filter only directories
   directories = [item for item in all_items if os.path.isdir(os.path.join(G3AUTO_PATH, item))]
-  generic_g3auto_services = ["arborist", "audit", "dashboard", "manifestservice", "metadata", "pelicanservice", "requestor", "wts"]
+  generic_g3auto_services = ["arborist", "dashboard", "manifestservice", "metadata", "pelicanservice", "requestor", "wts"]
 
   for dir in directories:
     if dir in generic_g3auto_services:
       process_generic_g3auto_service(dir, G3AUTO_PATH)
     elif dir == "manifestservice":
       translate_manifest_service_secrets(G3AUTO_PATH)
+    elif dir == "audit":
+       translate_audit_service_secrets(G3AUTO_PATH)
     else:
       print(f"Don't know what to do with {dir}, so just skipping it.")
 
