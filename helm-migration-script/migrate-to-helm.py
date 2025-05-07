@@ -374,11 +374,16 @@ def translate_manifest(manifest_path):
       "sowerjobsG3auto": f"{commons_name}-sower-jobs-g3auto"  
     }
 
-  final_output["audit"] = {
-    "externalSecrets": {
-      "auditG3auto": f"{commons_name}-audit-g3auto"
-    }
+  audit_dict = {
+    "auditG3auto": f"{commons_name}-audit-g3auto"
   }
+
+  if "audit" in final_output.keys():
+    final_output["audit"]["externalSecrets"] = audit_dict
+  else:
+    final_output["audit"] = {
+      "externalSecrets": audit_dict
+    }
 
   if "wts" in final_output.keys():
     final_output["wts"]["externalSecrets"] = {
