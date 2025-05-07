@@ -402,7 +402,7 @@ def translate_manifest_service_secrets(g3auto_path: str):
   if os.path.exists(config_file_path):
     with open(config_file_path) as file:
       string_contents = file.read()
-      upload_secret(f"{commons_name}-manifestservice-g3auto", string_contents)
+      upload_secret(f"{commons_name}-manifestservice-g3auto", json.dumps(string_contents))
 
 
 def process_generic_g3auto_service(service_name: str, g3auto_path: str):
