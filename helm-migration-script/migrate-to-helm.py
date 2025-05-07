@@ -520,6 +520,7 @@ def translate_audit_service_secrets(g3auto_path: str):
   print("Processing audit service g3auto secret(s)")
   service_path = os.path.join(g3auto_path, "audit")
   config_file_path = os.path.join(service_path, "audit-service-config.yaml")
+  db_file_path = os.path.join(service_path, "dbcreds.json")
 
   commons_name = get_commons_name()
 
@@ -527,6 +528,11 @@ def translate_audit_service_secrets(g3auto_path: str):
     with open (config_file_path) as file:
       string_contents = file.read()
       upload_secret(f"{commons_name}-audit-g3auto", string_contents)
+
+  if os.path.exists(db_file_path):
+    with open(db_file_path) as file:
+      unedited_text = file.read()
+      upload_secret(f"{commons_name}-audit-creds", translate_creds_structure(unedited_text))  
   
 
 def process_g3auto_secrets(gen3_secrets_path: str):
@@ -550,8 +556,6 @@ def process_g3auto_secrets(gen3_secrets_path: str):
       translate_manifest_service_secrets(G3AUTO_PATH)
     elif dir == "audit":
       translate_audit_service_secrets(G3AUTO_PATH)
-    elif dir == "manifestservice":
-      translate_manifest_service_secrets(G3AUTO_PATH)
     else:
       print(f"Don't know what to do with {dir}, so just skipping it.")
 
