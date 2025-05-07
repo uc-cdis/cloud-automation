@@ -154,6 +154,21 @@ def to_camel_case(s):
   parts = s.split('_')
   return parts[0] + ''.join(word.capitalize() for word in parts[1:])
 
+def generate_aws_config():
+  return_dict = {}
+
+  return_dict["enabled"] = True
+
+  namespace = subprocess.run("kubectl config view --minify | yq .contexts[0].context.namespace | tr -d '\"'", 
+                              shell=True, capture_output=True, text=True).stdout.strip("\n")
+  account = subprocess.run("aws sts get-caller-identity | jq -r .Account", 
+                            shell=True, capture_output=True, text=True).stdout.strip("\n")
+
+  es_proxy_role_name = f"{get_commons_name}--{namespace}--es-access"
+
+  return_dict["awsEsProxyRole"] = es_proxy_role_name
+  return_dict["account"] = account
+
 def template_global_section(manifest_data):
   # These are keys that have a directly corresponding value in values.yaml that we need to translate by converting 
   # to camel case
@@ -190,6 +205,9 @@ def template_global_section(manifest_data):
         global_yaml_data["environment"] = get_commons_name()
       elif key not in DEPRECATED_KEYS:
         global_yaml_data["manifestGlobalExtraValues"][key] = global_data[key]
+
+
+    global_yaml_data["aws"] = generate_aws_config()
 
     return {"global": global_yaml_data}
 
