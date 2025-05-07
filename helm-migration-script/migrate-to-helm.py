@@ -272,7 +272,7 @@ def template_portal_section(manifest_data, manifest_path):
 
     portal_yaml_data["gitops"]["sponsors"] = files_b64
 
-  return {portal_yaml_data}
+  return portal_yaml_data
 
 def template_sower_section(manifest_data, manifest_path):
   sower_data = read_manifest_data(manifest_data, manifest_path, "sower")
