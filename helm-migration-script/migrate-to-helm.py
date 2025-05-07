@@ -374,16 +374,16 @@ def translate_manifest(manifest_path):
       "sowerjobsG3auto": f"{commons_name}-sower-jobs-g3auto"  
     }
 
-  if "audit" in final_output.keys():
-    final_output["audit"]["externalSecrets"] = {
+  final_output["audit"] = {
+    "externalSecrets": {
       "auditG3auto": f"{commons_name}-audit-g3auto"
     }
-
-  final_output["wts"] = {
-    "externalSecrets": {
-      "metadataG3auto": f"{commons_name}-wts-g3auto"
-    }
   }
+
+  if "wts" in final_output.keys():
+    final_output["wts"]["externalSecrets"] = {
+      "wtsG3auto": f"{commons_name}-wts-g3auto"
+    }
 
   return final_output
 
