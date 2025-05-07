@@ -451,20 +451,36 @@ def process_fence_config(gen3_secrets_path: str):
 
   if os.path.exists(FENCE_GOOGLE_APP_CREDS_PATH):
     if os.path.getsize(FENCE_GOOGLE_APP_CREDS_PATH):
-      with open(FENCE_GOOGLE_APP_CREDS_PATH) as file:
-        final_structure = {"fence_google_app_creds_secret.json": json.load(file)}
-        upload_secret(f"{commons_name}-fence-google-app-creds", json.dumps(final_structure))
+      APP_CREDS_EXISTS = True
     else:
-      print(f"A file exists at {FENCE_GOOGLE_APP_CREDS_PATH}, but it's empty. Skipping")
+      APP_CREDS_EXISTS = False
+  else:
+    APP_CREDS_EXISTS = False  
 
   if os.path.exists(FENCE_GOOGLE_STORAGE_CREDS_PATH):
     if os.path.getsize(FENCE_GOOGLE_STORAGE_CREDS_PATH):
-      with open(FENCE_GOOGLE_STORAGE_CREDS_PATH) as file:
-        # May I be forgiven for what I am about to do here
-        final_structure = {"fence_google_storage_creds_secret.json": json.load(file)}
-        upload_secret(f"{commons_name}-fence-google-storage-creds", json.dumps(final_structure))
+      STORAGE_CREDS_EXISTS = True
     else:
-      print(f"A file exists at {FENCE_GOOGLE_STORAGE_CREDS_PATH}, but it's empty. Skipping")
+      STORAGE_CREDS_EXISTS = False
+  else:
+    STORAGE_CREDS_EXISTS = False  
+
+  UPLOAD_FENCE_SECRETS = (APP_CREDS_EXISTS or STORAGE_CREDS_EXISTS)
+
+  if UPLOAD_FENCE_SECRETS:
+    with open(FENCE_GOOGLE_APP_CREDS_PATH) as file:
+      final_structure = {"fence_google_app_creds_secret.json": json.load(file)}
+      upload_secret(f"{commons_name}-fence-google-app-creds", json.dumps(final_structure))
+  else:
+    print(f"A file exists at {FENCE_GOOGLE_APP_CREDS_PATH}, but it's empty. Skipping")
+
+  if UPLOAD_FENCE_SECRETS:
+    with open(FENCE_GOOGLE_STORAGE_CREDS_PATH) as file:
+      # May I be forgiven for what I am about to do here
+      final_structure = {"fence_google_storage_creds_secret.json": json.load(file)}
+      upload_secret(f"{commons_name}-fence-google-storage-creds", json.dumps(final_structure))
+  else:
+    print(f"A file exists at {FENCE_GOOGLE_STORAGE_CREDS_PATH}, but it's empty. Skipping")
 
 def process_fence_jwt_key(gen3_secrets_path: str):
   print("Processing the fence JWT key")
