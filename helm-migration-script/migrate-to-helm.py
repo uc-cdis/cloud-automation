@@ -469,15 +469,23 @@ def process_fence_config(gen3_secrets_path: str):
 
   if UPLOAD_FENCE_SECRETS:
     with open(FENCE_GOOGLE_APP_CREDS_PATH) as file:
-      final_structure = {"fence_google_app_creds_secret.json": json.load(file)}
+      if APP_CREDS_EXISTS:
+        value = json.load(file)
+      else:
+        value = ""
+      final_structure = {"fence_google_app_creds_secret.json": value}
       upload_secret(f"{commons_name}-fence-google-app-creds", json.dumps(final_structure))
   else:
     print(f"A file exists at {FENCE_GOOGLE_APP_CREDS_PATH}, but it's empty. Skipping")
 
   if UPLOAD_FENCE_SECRETS:
     with open(FENCE_GOOGLE_STORAGE_CREDS_PATH) as file:
+      if STORAGE_CREDS_EXISTS:
+        value = json.load(file)
+      else:
+        value = ""
       # May I be forgiven for what I am about to do here
-      final_structure = {"fence_google_storage_creds_secret.json": json.load(file)}
+      final_structure = {"fence_google_storage_creds_secret.json": value}
       upload_secret(f"{commons_name}-fence-google-storage-creds", json.dumps(final_structure))
   else:
     print(f"A file exists at {FENCE_GOOGLE_STORAGE_CREDS_PATH}, but it's empty. Skipping")
