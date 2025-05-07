@@ -159,7 +159,8 @@ def generate_aws_config():
 
   return_dict["enabled"] = True
 
-  vpc = subprocess.run("gen3 api environment", shell=True, capture_output=True, text=True).stdout.strip("\n")
+  vpc = subprocess.run("kubectl get configmaps global -ojsonpath='{ .data.environment }'",
+                        shell=True, capture_output=True, text=True).stdout.strip("\n")
 
   namespace = subprocess.run("kubectl config view --minify | yq .contexts[0].context.namespace | tr -d '\"'", 
                               shell=True, capture_output=True, text=True).stdout.strip("\n")
