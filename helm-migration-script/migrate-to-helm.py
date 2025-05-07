@@ -385,6 +385,11 @@ def translate_manifest(manifest_path):
       "wtsG3auto": f"{commons_name}-wts-g3auto"
     }
 
+  if "ssjdispatcher" in final_output.keys():
+    final_output["ssjdispatcher"]["externalSecrets"] = {
+      "credsFile": f"{commons_name}-ssjdispatcher-creds"
+    }
+
   return final_output
 
 def translate_manifest_service_secrets(g3auto_path: str):
@@ -575,6 +580,9 @@ def translate_secrets():
       if key in ["fence", "indexd", "sheepdog"]:
         edited_key = translate_creds_structure(json.dumps(creds_data[key]))
         upload_secret(f"{commons_name}-{key}-creds", edited_key)
+      if key == "ssjdispatcher":
+        secret_string = creds_data[key]
+        upload_secret(f"{commons_name}-ssjdispatcher-creds", secret_string)
 
   process_g3auto_secrets(GEN3_SECRETS_FOLDER)
   process_fence_config(GEN3_SECRETS_FOLDER)
