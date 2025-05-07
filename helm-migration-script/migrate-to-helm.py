@@ -159,12 +159,14 @@ def generate_aws_config():
 
   return_dict["enabled"] = True
 
+  vpc = subprocess.run("gen3 api environment", shell=True, capture_output=True, text=True).stdout.strip("\n")
+
   namespace = subprocess.run("kubectl config view --minify | yq .contexts[0].context.namespace | tr -d '\"'", 
                               shell=True, capture_output=True, text=True).stdout.strip("\n")
   account = subprocess.run("aws sts get-caller-identity | jq -r .Account", 
                             shell=True, capture_output=True, text=True).stdout.strip("\n")
 
-  es_proxy_role_name = f"{get_commons_name()}--{namespace}--es-access"
+  es_proxy_role_name = f"{vpc}--{namespace}--es-access"
 
   return_dict["awsEsProxyRole"] = es_proxy_role_name
   return_dict["account"] = account
