@@ -524,24 +524,34 @@ def generate_fence_secret_config(gen3_secrets_path: str):
 
   fence_secret_config_dict = {}
 
-  DEPLOY_GOOGLE_SECRETS = True
+  if os.path.exists(FENCE_GOOGLE_APP_CREDS_PATH):
+    if os.path.getsize(FENCE_GOOGLE_APP_CREDS_PATH):
+      APP_CREDS_EXISTS = True
+    else:
+      APP_CREDS_EXISTS = False
+  else:
+    APP_CREDS_EXISTS = False  
+
+  if os.path.exists(FENCE_GOOGLE_STORAGE_CREDS_PATH):
+    if os.path.getsize(FENCE_GOOGLE_STORAGE_CREDS_PATH):
+      STORAGE_CREDS_EXISTS = True
+    else:
+      STORAGE_CREDS_EXISTS = False
+  else:
+    STORAGE_CREDS_EXISTS = False  
+
+  DEPLOY_GOOGLE_SECRETS = (APP_CREDS_EXISTS or STORAGE_CREDS_EXISTS)
 
   if os.path.exists(FENCE_CONFIG_PATH):
     fence_secret_config_dict["fenceConfig"] = f"{commons_name}-fence-config"
 
-  if os.path.exists(FENCE_GOOGLE_APP_CREDS_PATH):
-    if os.path.getsize(FENCE_GOOGLE_APP_CREDS_PATH):
-      DEPLOY_GOOGLE_SECRETS = False
-      fence_secret_config_dict["fenceGoogleAppCredsSecret"] = f"{commons_name}-fence-google-app-creds"
-
-  if os.path.exists(FENCE_GOOGLE_STORAGE_CREDS_PATH):
-    if os.path.getsize(FENCE_GOOGLE_STORAGE_CREDS_PATH):
-      DEPLOY_GOOGLE_SECRETS = False
-      fence_secret_config_dict["fenceGoogleStorageCredsSecret"] = f"{commons_name}-fence-google-storage-creds"
+  if DEPLOY_GOOGLE_SECRETS:
+    fence_secret_config_dict["fenceGoogleAppCredsSecret"] = f"{commons_name}-fence-google-app-creds"
+    fence_secret_config_dict["fenceGoogleStorageCredsSecret"] = f"{commons_name}-fence-google-storage-creds"
 
   # TODO this is probably safe, but we're making a big assumption if some env doesn't have a JWT that we can migrate.
   fence_secret_config_dict["fenceJwtKeys"] = f"{commons_name}-fence-jwt"
-  fence_secret_config_dict["createK8sGoogleAppSecrets"] = DEPLOY_GOOGLE_SECRETS
+  fence_secret_config_dict["createK8sGoogleAppSecrets"] = not DEPLOY_GOOGLE_SECRETS
 
   return { "externalSecrets": fence_secret_config_dict }
 
