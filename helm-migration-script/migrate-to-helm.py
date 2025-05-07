@@ -402,7 +402,7 @@ def translate_manifest_service_secrets(g3auto_path: str):
   if os.path.exists(config_file_path):
     with open(config_file_path) as file:
       string_contents = file.read()
-      upload_secret(f"{commons_name}-manifestservice-g3auto", json.dumps(string_contents))
+      upload_secret(f"{commons_name}-manifestservice-g3auto", string_contents)
 
 
 def process_generic_g3auto_service(service_name: str, g3auto_path: str):
@@ -581,7 +581,7 @@ def translate_secrets():
         edited_key = translate_creds_structure(json.dumps(creds_data[key]))
         upload_secret(f"{commons_name}-{key}-creds", edited_key)
       if key == "ssjdispatcher":
-        secret_string = creds_data[key]
+        secret_string = json.dumps(creds_data[key])
         upload_secret(f"{commons_name}-ssjdispatcher-creds", secret_string)
 
   process_g3auto_secrets(GEN3_SECRETS_FOLDER)
