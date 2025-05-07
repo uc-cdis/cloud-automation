@@ -169,6 +169,8 @@ def generate_aws_config():
   return_dict["awsEsProxyRole"] = es_proxy_role_name
   return_dict["account"] = account
 
+  return return_dict
+
 def template_global_section(manifest_data):
   # These are keys that have a directly corresponding value in values.yaml that we need to translate by converting 
   # to camel case
