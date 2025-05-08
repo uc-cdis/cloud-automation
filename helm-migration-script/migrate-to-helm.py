@@ -418,6 +418,11 @@ def translate_manifest(manifest_path):
       "credsFile": f"{commons_name}-ssjdispatcher-creds"
     }
 
+  if "cohort-middleware" in final_output.keys():
+    final_output["cohort-middleware"]["externalSecrets"] = {
+      "cohortMiddlewareG3Auto": f"{commons_name}-cohort-middleware-g3auto"
+    }
+
   return final_output
 
 def translate_manifest_service_secrets(g3auto_path: str):
