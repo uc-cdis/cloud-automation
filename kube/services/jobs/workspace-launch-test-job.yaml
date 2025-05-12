@@ -124,11 +124,24 @@ spec:
               echo "All Done - always succeed to avoid k8s retries"
       - name: workspace-launch-test
         env:
-          - name: COMMONS_URL
-            GEN3_COMMONS_URL|-value: ""-|
-          - name: IMAGES
-            GEN3_IMAGES|-value: ""-|
-        image: quay.io/cdis/awshelper:master
+          - name: GEN3_HOSTNAME
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: hostname
+          - name: WORKSPACE_LAUNCH_IMAGES
+            WORKSPACE_LAUNCH_IMAGES|-value: ""-|
+          - name: WORKSPACE_LAUNCH_IMAGES_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: workspace-launch-images-g3auto
+                key: "workspace_launch_images.txt"
+          - name: WORKSPACE_LAUNCH_TEST_OPERATOR
+            valueFrom:
+              secretKeyRef:
+                name: workspace-launch-test-g3auto
+                key: "workspace_launch_test_operator.txt"
+        image: quay.io/cdis/awshelper:chore_improve_workspace_launch_test
         imagePullPolicy: Always
         volumeMounts:
           - name: shared-data
@@ -144,6 +157,29 @@ spec:
         args:
             - "-c"
             - |
+              if [[ -z "$WORKSPACE_LAUNCH_IMAGES" ]]; then
+                if [[ ! -z "$WORKSPACE_LAUNCH_IMAGES_SECRET" ]]; then
+                  echo "WORKSPACE_LAUNCH_IMAGES is from g3auto secret"
+                  export WORKSPACE_LAUNCH_IMAGES=$WORKSPACE_LAUNCH_IMAGES_SECRET
+                else
+                  echo -e "ERROR: WORKSPACE_LAUNCH_IMAGES must be in secret or on command line" 1>&2
+                  exit 0
+                fi
+              else
+                echo "WORKSPACE_LAUNCH_IMAGES is from command line parameter"
+              fi
+              if [[ -z "$WORKSPACE_LAUNCH_TEST_OPERATOR" ]]; then
+                if [[ ! -z "$WORKSPACE_LAUNCH_TEST_OPERATOR" ]]; then
+                  echo "WORKSPACE_LAUNCH_TEST_OPERATOR is from g3auto secret"
+                  export WORKSPACE_LAUNCH_TEST_OPERATOR=$WORKSPACE_LAUNCH_TEST_OPERATOR
+                else
+                  echo -e "ERROR: WORKSPACE_LAUNCH_TEST_OPERATOR must be in secret or on command line" 1>&2
+                  exit 0
+                fi
+              else
+                echo "WORKSPACE_LAUNCH_TEST_OPERATOR is from command line parameter"
+              fi
+          
               # wait for the access token to be created in the sidecar "fence" container
               let count = 0
               while [[ ! -f /mnt/shared/access_token.txt && $count -lt 50 ]]; do

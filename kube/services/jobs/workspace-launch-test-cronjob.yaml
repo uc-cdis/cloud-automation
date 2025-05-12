@@ -127,8 +127,11 @@ spec:
                 echo "All Done - always succeed to avoid k8s retries"
           - name: workspace-launch-test
             env:
-              - name: COMMONS_URL
-                GEN3_COMMONS_URL|-value: ""-|
+              - name: GEN3_HOSTNAME
+                valueFrom:
+                  configMapKeyRef:
+                    name: manifest-global
+                    key: hostname
               - name: IMAGES
                 GEN3_IMAGES|-value: ""-|
             image: quay.io/cdis/awshelper:master
