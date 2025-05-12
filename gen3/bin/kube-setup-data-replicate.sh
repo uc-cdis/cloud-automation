@@ -36,6 +36,12 @@ if [[ -d ${secret_folder}/apis_configs/dcf_dataservice ]]; then
 
   cp ${GEN3_MANIFEST_HOME}/${hostname}/manifests/datarefresh/GDC_project_map.json ${secret_folder}/apis_configs/dcf_dataservice/GDC_project_map.json
 
+  if [ $? -ne 0 ]; then
+    echo "Error: cp command for GDC_project_map.json failed, it is necessary for data replication jobs."
+    echo "Check in ${GEN3_MANIFEST_HOME}/${hostname}/manifests/datarefresh/"
+    exit 1
+  fi
+
   GDC_TOKEN=$(cat ${secret_folder}/apis_configs/dcf_dataservice/creds.json | jq '.GDC_TOKEN')
   INDEXD_CRED=$(cat ${secret_folder}/apis_configs/dcf_dataservice/creds.json | jq '.INDEXD')
 
@@ -52,9 +58,24 @@ IGNORED_FILES = "/dcf-dataservice/ignored_files_manifest.csv"
 EOL
 
   g3kubectl create secret generic dcf-aws-creds-secret --from-file=credentials=${secret_folder}/apis_configs/dcf_dataservice/aws_creds_secret
+  if [ $? -ne 0 ]; then
+    echo "Create secret failed! Proceeding to next command"
+  fi
   g3kubectl create secret generic dcf-aws-fence-creds-secret --from-file=credentials=${secret_folder}/apis_configs/dcf_dataservice/aws_fence_bot_secret
+  if [ $? -ne 0 ]; then
+    echo "Create secret failed! Proceeding to next command"
+  fi
   g3kubectl create secret generic google-creds-secret --from-file=google_service_account_creds=${secret_folder}/apis_configs/dcf_dataservice/gcloud-creds-secret
+  if [ $? -ne 0 ]; then
+    echo "Create secret failed! Proceeding to next command"
+  fi
   g3kubectl create secret generic dcf-dataservice-json-secret --from-file=dcf_dataservice_credentials.json=${secret_folder}/apis_configs/dcf_dataservice/creds.json
+  if [ $? -ne 0 ]; then
+    echo "Create secret failed! Proceeding to next command"
+  fi
   g3kubectl create secret generic dcf-dataservice-settings-secrets --from-file=dcf_dataservice_settings=${secret_folder}/apis_configs/dcf_dataservice/dcf_dataservice_settings
+  if [ $? -ne 0 ]; then
+    echo "Create secret failed! Proceeding to next command"
+  fi
   g3kubectl create configmap project-map-manifest --from-file=GDC_project_map.json=${secret_folder}/apis_configs/dcf_dataservice/GDC_project_map.json
 fi
