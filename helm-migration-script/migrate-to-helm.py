@@ -261,11 +261,6 @@ def template_portal_section(manifest_data, manifest_path):
   if os.path.exists(gitops_css_path):
      with open(gitops_css_path, 'r') as gitops:
         gitops_css_string = gitops.read()
-
-
-        print(gitops_css_path)
-        print(gitops_css_string)
-
         portal_yaml_data["gitops"]["css"] = gitops_css_string
 
   gitops_favicon_path = f"{portal_manifest_path}/gitops-favicon.ico" 
