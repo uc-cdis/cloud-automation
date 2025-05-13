@@ -38,8 +38,11 @@ spec:
         env:
           - name: PYTHONPATH
             value: /var/www/fence
-          - name: TEST_OPERATOR
-            GEN3_TEST_OPERATOR|-value: "binamb@uchicago.edu"-|
+          - name: WORKSPACE_LAUNCH_TEST_OPERATOR
+            valueFrom:
+              secretKeyRef:
+                name: workspace-launch-test-g3auto
+                key: "workspace_launch_test_operator.txt"
           - name: TOKEN_EXPIRATION
             GEN3_TOKEN_EXPIRATION|-value: "3600"-|
           - name: FENCE_PUBLIC_CONFIG
@@ -84,6 +87,18 @@ spec:
         args:
             - "-c"
             - |
+              if [[ -z "$WORKSPACE_LAUNCH_TEST_OPERATOR" ]]; then
+                if [[ ! -z "$WORKSPACE_LAUNCH_TEST_OPERATOR_SECRET" ]]; then
+                  echo "WORKSPACE_LAUNCH_TEST_OPERATOR is from g3auto secret"
+                  export WORKSPACE_LAUNCH_TEST_OPERATOR=$WORKSPACE_LAUNCH_TEST_OPERATOR_SECRET
+                else
+                  echo -e "ERROR: WORKSPACE_LAUNCH_TEST_OPERATOR must be in secret or on command line" 1>&2
+                  exit 0
+                fi
+              else
+                echo "WORKSPACE_LAUNCH_TEST_OPERATOR is from command line parameter"
+              fi
+
               echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
               python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
               if [ -f /fence/jwt-keys.tar ]; then
@@ -95,14 +110,14 @@ spec:
                 fi
               fi
               echo "generate access token"
-              echo "fence-create --path fence token-create --type access_token --username $TEST_OPERATOR --scopes openid,user,test-client,credentials,data --exp $TOKEN_EXPIRATION"
+              echo "fence-create --path fence token-create --type access_token --username $WORKSPACE_LAUNCH_TEST_OPERATOR --scopes openid,user,test-client,credentials,data --exp $TOKEN_EXPIRATION"
               tempFile="$(mktemp -p /tmp token.txt_XXXXXX)"
               success=false
               count=0
               sleepTime=10
               # retry loop
               while [[ $count -lt 3 && $success == false ]]; do
-                if fence-create --path fence token-create --type access_token --username $TEST_OPERATOR --scopes openid,user,test-client,credentials,data --exp $TOKEN_EXPIRATION > "$tempFile"; then
+                if fence-create --path fence token-create --type access_token --username $WORKSPACE_LAUNCH_TEST_OPERATOR --scopes openid,user,test-client,credentials,data --exp $TOKEN_EXPIRATION > "$tempFile"; then
                   echo "fence-create success!"
                   tail -1 "$tempFile" > /mnt/shared/access_token.txt
                   # base64 --decode complains about invalid characters - don't know why
@@ -136,11 +151,6 @@ spec:
               secretKeyRef:
                 name: workspace-launch-test-g3auto
                 key: "workspace_launch_images.txt"
-          - name: WORKSPACE_LAUNCH_TEST_OPERATOR
-            valueFrom:
-              secretKeyRef:
-                name: workspace-launch-test-g3auto
-                key: "workspace_launch_test_operator.txt"
         image: quay.io/cdis/awshelper:chore_improve_workspace_launch_test
         imagePullPolicy: Always
         volumeMounts:
@@ -168,17 +178,6 @@ spec:
               else
                 echo "WORKSPACE_LAUNCH_IMAGES is from command line parameter"
               fi
-              if [[ -z "$WORKSPACE_LAUNCH_TEST_OPERATOR" ]]; then
-                if [[ ! -z "$WORKSPACE_LAUNCH_TEST_OPERATOR" ]]; then
-                  echo "WORKSPACE_LAUNCH_TEST_OPERATOR is from g3auto secret"
-                  export WORKSPACE_LAUNCH_TEST_OPERATOR=$WORKSPACE_LAUNCH_TEST_OPERATOR
-                else
-                  echo -e "ERROR: WORKSPACE_LAUNCH_TEST_OPERATOR must be in secret or on command line" 1>&2
-                  exit 0
-                fi
-              else
-                echo "WORKSPACE_LAUNCH_TEST_OPERATOR is from command line parameter"
-              fi
           
               # wait for the access token to be created in the sidecar "fence" container
               let count = 0
@@ -194,12 +193,12 @@ spec:
               python3 -m pip3 install requests
               python3 -m pip3 install logging
 
-              cmd="python3 cloud-automation/files/scripts/workspaces_launch_test.py --commons-url $COMMONS_URL --access-token $ACCESS_TOKEN"
+              cmd="python3 cloud-automation/files/scripts/workspaces_launch_test.py --commons-url $GEN3_HOSTNAME --access-token $ACCESS_TOKEN"
 
               if [[ -n "$IMAGES" ]]; then
                 echo "Running command:"
-                echo $cmd --images "$IMAGES"  # this is the only way parsing the images works for some reason. If its not done like this, it parses only the first unbroken set of strings (until the first space) as the argument in the python command
-                $cmd --images "$IMAGES"
+                echo $cmd --images "$WORKSPACE_LAUNCH_IMAGES"  # this is the only way parsing the images works for some reason. If its not done like this, it parses only the first unbroken set of strings (until the first space) as the argument in the python command
+                $cmd --images "$WORKSPACE_LAUNCH_IMAGES"
               else
                 echo "Running command:"
                 echo $cmd
