@@ -134,7 +134,7 @@ spec:
           - name: WORKSPACE_LAUNCH_IMAGES_SECRET
             valueFrom:
               secretKeyRef:
-                name: workspace-launch-images-g3auto
+                name: workspace-launch-test-g3auto
                 key: "workspace_launch_images.txt"
           - name: WORKSPACE_LAUNCH_TEST_OPERATOR
             valueFrom:
