@@ -56,7 +56,9 @@ PROJECT_ACL = $(cat ${secret_folder}/apis_configs/dcf_dataservice/GDC_project_ma
 
 IGNORED_FILES = "/dcf-dataservice/ignored_files_manifest.csv"
 EOL
-
+# "|| true" is added to make the script continue to try to create other secrets if one or more create command fails 
+# So we know which secrets are failing to create all at once and need solutions
+# Error messages will still show from the gen3 commands
   g3kubectl create secret generic dcf-aws-creds-secret --from-file=credentials=${secret_folder}/apis_configs/dcf_dataservice/aws_creds_secret || true
   g3kubectl create secret generic dcf-aws-fence-creds-secret --from-file=credentials=${secret_folder}/apis_configs/dcf_dataservice/aws_fence_bot_secret || true
   g3kubectl create secret generic google-creds-secret --from-file=google_service_account_creds=${secret_folder}/apis_configs/dcf_dataservice/gcloud-creds-secret || true
