@@ -25,8 +25,8 @@ def add_https_to_url(url_string):
     """
     parsed_url = urlparse(url_string)
     if parsed_url.scheme == '':
-      parsed_url = parsed_url._replace(scheme='https')
-    return urlunparse(parsed_url)
+      return "https://" + parsed_url.geturl()
+    return url_string
 
 def main():
     args = parse_args()
