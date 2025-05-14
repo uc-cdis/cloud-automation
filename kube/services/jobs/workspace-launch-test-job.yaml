@@ -195,7 +195,7 @@ spec:
 
               cmd="python3 cloud-automation/files/scripts/workspaces_launch_test.py --commons-url $GEN3_HOSTNAME --access-token $ACCESS_TOKEN"
 
-              if [[ -n "$IMAGES" ]]; then
+              if [[ -n "$WORKSPACE_LAUNCH_IMAGES" ]]; then
                 echo "Running command:"
                 echo $cmd --images "$WORKSPACE_LAUNCH_IMAGES"  # this is the only way parsing the images works for some reason. If its not done like this, it parses only the first unbroken set of strings (until the first space) as the argument in the python command
                 $cmd --images "$WORKSPACE_LAUNCH_IMAGES"

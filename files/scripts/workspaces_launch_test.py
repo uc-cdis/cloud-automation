@@ -9,9 +9,24 @@ import json
 import logging
 
 import requests
+from urllib.parse import urlparse, urlunparse
 
 workspace_internal_url = "http://workspace-token-service"
 logging.basicConfig(level=logging.INFO, format='%(message)s')
+
+
+def add_https_to_url(url_string):
+    """
+    Adds https to the url if it is not already present.
+    Args:
+        url_string (str): The url string to check.
+    Returns:
+        str: The url string with https added if it was not present.
+    """
+    parsed_url = urlparse(url_string)
+    if parsed_url.scheme == '':
+      parsed_url = parsed_url._replace(scheme='https')
+    return urlunparse(parsed_url)
 
 def main():
     args = parse_args()
@@ -42,7 +57,7 @@ def parse_args():
 
 class WorkspaceLaunchTest:
     def __init__(self, commons_url, access_token, images=["(Generic, Limited Gen3-licensed) Stata image"]):
-        self.commons_url = commons_url
+        self.commons_url = add_https_to_url(commons_url)
         self.workspace_internal_url = workspace_internal_url
         self.token_expiration = 0
         self.headers = {}
