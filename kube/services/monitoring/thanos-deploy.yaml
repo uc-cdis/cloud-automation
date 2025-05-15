@@ -21,19 +21,17 @@ spec:
         - name: thanos-query
           image: quay.io/thanos/thanos:v0.25.2
           args:
-            - 'query'
-            - '--log.level=debug'
-            - '--query.replica-label=prometheus_replica'
-            - '--store=prometheus-kube-prometheus-thanos-discovery.monitoring.svc:10901'
-            - '--web.external-prefix=/thanos-query/'
-            - '--web.route-prefix=/thanos-query/'
+            - "query"
+            - "--log.level=debug"
+            - "--query.replica-label=prometheus_replica"
+            - "--store=prometheus-kube-prometheus-thanos-discovery.monitoring.svc:10901"
+            - "--web.external-prefix=/thanos-query/"
+            - "--web.route-prefix=/thanos-query/"
           resources:
             requests:
-              cpu: '100m'
-              memory: '64Mi'
+              memory: "64Mi"
             limits:
-              cpu: '250m'
-              memory: '256Mi'
+              memory: "256Mi"
           ports:
             - name: http
               containerPort: 10902
@@ -74,7 +72,7 @@ spec:
       app: thanos-query
   namespaceSelector:
     matchNames:
-      - 'monitoring'
+      - "monitoring"
   endpoints:
     - port: http-query
       path: /metrics
@@ -90,7 +88,7 @@ metadata:
   labels:
     app: thanos-store
 spec:
-  serviceName: 'thanos-store'
+  serviceName: "thanos-store"
   replicas: 1
   selector:
     matchLabels:
@@ -105,10 +103,10 @@ spec:
         - name: thanos-store
           image: quay.io/thanos/thanos:v0.25.2
           args:
-            - 'store'
-            - '--log.level=debug'
-            - '--data-dir=/var/thanos/store'
-            - '--objstore.config-file=/config/thanos.yaml'
+            - "store"
+            - "--log.level=debug"
+            - "--data-dir=/var/thanos/store"
+            - "--objstore.config-file=/config/thanos.yaml"
           ports:
             - name: http
               containerPort: 10902
@@ -155,7 +153,7 @@ metadata:
   labels:
     app: thanos-compactor
 spec:
-  serviceName: 'thanos-compactor'
+  serviceName: "thanos-compactor"
   replicas: 1
   selector:
     matchLabels:
@@ -170,12 +168,12 @@ spec:
         - name: thanos-compactor
           image: quay.io/thanos/thanos:v0.25.2
           args:
-            - 'compact'
-            - '--log.level=debug'
-            - '--data-dir=/var/thanos/store'
-            - '--objstore.config-file=/config/thanos.yaml'
-            - '--wait'
-            - '--web.external-prefix=/thanos-compactor/'
+            - "compact"
+            - "--log.level=debug"
+            - "--data-dir=/var/thanos/store"
+            - "--objstore.config-file=/config/thanos.yaml"
+            - "--wait"
+            - "--web.external-prefix=/thanos-compactor/"
           ports:
             - name: http
               containerPort: 10902
