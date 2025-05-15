@@ -62,10 +62,7 @@ spec:
             mountPath: /gen3discoveryai/knowledge
         imagePullPolicy: Always
         resources:
-          requests:
-            cpu: 1
           limits:
-            cpu: 2
             memory: 512Mi
         command: ["/bin/bash"]
         args:
@@ -111,10 +108,7 @@ spec:
             mountPath: /gen3discoveryai/knowledge
         imagePullPolicy: Always
         resources:
-          requests:
-            cpu: 1
           limits:
-            cpu: 2
             memory: 512Mi
         command: ["/bin/bash"]
         args:
@@ -173,9 +167,5 @@ spec:
             mountPath: /gen3discoveryai/knowledge
         imagePullPolicy: Always
         resources:
-          requests:
-            cpu: 1
-          limits:
-            cpu: 2
             # NOTE: If the configured data for the knowledge library (vector database) is large, you may need to bump this
             memory: 512Mi

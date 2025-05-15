@@ -44,10 +44,8 @@ spec:
         imagePullPolicy: Always
         resources:
           requests:
-            cpu: 1
             memory: 1024Mi
           limits:
-            cpu: 2
             memory: 2048Mi
       initContainers:
         - name: gen3-user-data-library-db-migrate
@@ -60,7 +58,6 @@ spec:
               subPath: gen3-user-data-library.env
           resources:
             limits:
-              cpu: 0.8
               memory: 512Mi
           command: [ "/bin/sh" ]
           args:

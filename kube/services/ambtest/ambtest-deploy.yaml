@@ -72,7 +72,6 @@ spec:
           subPath: default.conf
         resources:
           limits:
-            cpu: 0.3
             memory: 512Mi
       - name: awshelper
         GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
