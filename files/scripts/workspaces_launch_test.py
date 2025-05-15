@@ -9,7 +9,7 @@ import json
 import logging
 
 import requests
-from urllib.parse import urlparse, urlunparse
+from urllib.parse import urlparse
 
 workspace_internal_url = "http://workspace-token-service"
 logging.basicConfig(level=logging.INFO, format='%(message)s')
@@ -30,6 +30,9 @@ def add_https_to_url(url_string):
 
 def main():
     args = parse_args()
+    print("--------args--------")
+    print(args)
+    print(args.images)
     tester = WorkspaceLaunchTest(commons_url=args.commons_url, access_token=args.access_token, images=args.images.split("+")) # Images passed from the kubernetes jobs is separated by a plus sign "+"
     tester.initialize_workspace_launch_test()
 
