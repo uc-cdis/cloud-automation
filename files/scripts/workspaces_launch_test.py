@@ -30,10 +30,9 @@ def add_https_to_url(url_string):
 
 def main():
     args = parse_args()
-    print("--------args--------")
-    print(args)
-    print(args.images)
-    tester = WorkspaceLaunchTest(commons_url=args.commons_url, access_token=args.access_token, images=args.images.split("+")) # Images passed from the kubernetes jobs is separated by a plus sign "+"
+    images = args.images.rstrip('\n')
+    images = images.split("+")
+    tester = WorkspaceLaunchTest(commons_url=args.commons_url, access_token=args.access_token, images=images) # Images passed from the kubernetes jobs is separated by a plus sign "+"
     tester.initialize_workspace_launch_test()
 
 def parse_args():
