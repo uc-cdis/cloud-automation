@@ -341,8 +341,17 @@ def template_versions_section(manifest_data, scaling_data):
       elif service_scaling_data["strategy"] == "auto":
         versions_yaml_data[realKey]["autoscaling"] = {}
         versions_yaml_data[realKey]["autoscaling"]["enabled"] = True
-        versions_yaml_data[realKey]["autoscaling"]["minReplicas"] = service_scaling_data["min"]
-        versions_yaml_data[realKey]["autoscaling"]["maxReplicas"] = service_scaling_data["max"]
+
+        min_replicas = 1
+        if "min" in service_scaling_data.keys():
+          min_replicas = service_scaling_data["min"]
+
+        max_replicas = 1
+        if "max" in service_scaling_data.keys():
+          max_replicas = service_scaling_data["max"]
+
+        versions_yaml_data[realKey]["autoscaling"]["minReplicas"] = min_replicas
+        versions_yaml_data[realKey]["autoscaling"]["maxReplicas"] = max_replicas
         if "targetCpu" in service_scaling_data.keys():
           versions_yaml_data[realKey]["autoscaling"]["targetCPUUtilizationPercentage"] = service_scaling_data["targetCpu"]
         else:
