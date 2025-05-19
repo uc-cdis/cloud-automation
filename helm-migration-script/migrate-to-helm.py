@@ -684,7 +684,7 @@ def translate_secrets():
         upload_secret(f"{commons_name}-{key}-creds", edited_key)
 
         edited_service_creds_key = translate_service_creds_structure(creds_data[key]["user_db"])
-        upload_secret(f"{commons_name}-indexd-service-creds")
+        upload_secret(f"{commons_name}-indexd-service-creds", edited_service_creds_key)
 
   process_g3auto_secrets(GEN3_SECRETS_FOLDER)
   process_fence_config(GEN3_SECRETS_FOLDER)
