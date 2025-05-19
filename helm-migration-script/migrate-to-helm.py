@@ -156,6 +156,7 @@ def to_camel_case(s):
 
 def generate_aws_config():
   return_dict = {}
+  commons_name = get_commons_name()
 
   return_dict["enabled"] = True
 
@@ -171,6 +172,10 @@ def generate_aws_config():
 
   return_dict["awsEsProxyRole"] = es_proxy_role_name
   return_dict["account"] = account
+  return_dict["secretStoreServiceAccount"] = {
+    "enabled": True,
+    "roleArn": f"arn:aws:iam::{account}:role/{commons_name}-external-secrets-sa"
+  }
 
   return return_dict
 
