@@ -422,6 +422,23 @@ def translate_manifest(manifest_path):
       "cohortMiddlewareG3Auto": f"{commons_name}-cohort-middleware-g3auto"
     }
 
+  if "metadata" in final_output.keys():
+    final_output["metadata"]["externalSecrets"] = {
+      "metadataG3auto": f"{commons_name}-metadata-g3auto"
+    }
+
+  if "indexd" in final_output.keys():
+    final_output["indexd"]["externalSecrets"] = {
+      "serviceCreds": f"{commons_name}-indexd-service-creds"
+    }
+
+  if "revproxy" in final_output.keys():
+    final_output["revproxy"]["ingress"] = {
+      "aws": {
+        "group": f"{commons_name}-helm"
+      }
+    }
+
   return final_output
 
 def translate_manifest_service_secrets(g3auto_path: str):
@@ -631,7 +648,7 @@ def get_commons_name():
   if COMMONS_NAME is None:
     commons_name = subprocess.run("kubectl config view --minify | yq .contexts[0].context.namespace | tr -d '\"'", 
                                   shell=True, capture_output=True, text=True).stdout.strip("\n")
-    if commons_name == "default":
+    if commons_name == "default" or commons_name == "null":
       commons_name = subprocess.run("kubectl get configmap global -o yaml | yq .data.environment | tr -d '\"'", 
                                     shell=True, capture_output=True, text=True).stdout.strip("\n")
     COMMONS_NAME = commons_name
@@ -647,15 +664,32 @@ def translate_secrets():
 
   if creds_data is not None:
     for key in creds_data.keys():
-      if key in ["fence", "indexd", "sheepdog"]:
+      if key in ["fence", "sheepdog"]:
         edited_key = translate_creds_structure(json.dumps(creds_data[key]))
         upload_secret(f"{commons_name}-{key}-creds", edited_key)
-      if key == "ssjdispatcher":
+      elif key == "ssjdispatcher":
         secret_string = json.dumps(creds_data[key])
         upload_secret(f"{commons_name}-ssjdispatcher-creds", secret_string)
+      elif key == "indexd":
+        edited_key = translate_creds_structure(json.dumps(creds_data[key]))
+        upload_secret(f"{commons_name}-{key}-creds", edited_key)
+
+        edited_service_creds_key = translate_service_creds_structure(creds_data[key]["user_db"])
+        upload_secret(f"{commons_name}-indexd-service-creds")
 
   process_g3auto_secrets(GEN3_SECRETS_FOLDER)
   process_fence_config(GEN3_SECRETS_FOLDER)
+
+def translate_service_creds_structure(user_db_data):
+  yaml_dict = {}
+
+  for key in user_db_data.keys():
+    if key == "gdcapi":
+      yaml_dict["sheepdog"] = user_db_data[key]
+    else:
+      yaml_dict[key] = user_db_data[key]
+
+  return yaml.dump(yaml_dict)
 
 def upload_secret(secret_name: str, secret_data: str, description: str = "A secret for Gen3" ):
   '''
