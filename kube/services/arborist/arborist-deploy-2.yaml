@@ -88,7 +88,6 @@ spec:
           subPath: dbcreds.json
         resources:
           requests:
-            cpu: 100m
             memory: 200Mi
           limits:
             memory: 1000Mi
