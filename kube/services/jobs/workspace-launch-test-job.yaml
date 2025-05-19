@@ -1,6 +1,14 @@
-# To run: gen3 job run workspace-launch-test COMMONS_URL <commons base url> IMAGES <IMAGE name>
-# example: gen3 job run workspace-launch-test COMMONS_URL https://qa-heal.planx-pla.net IMAGES "(Generic) Jupyter Lab Notebook with R Kernel+(Tutorials) Example Analysis Jupyter Lab Notebooks"
-# If IMAGES isn't provided, it defaults to '(Generic) Jupyter Lab Image with R Kernel'
+# To run: gen3 job run workspace-launch-test [WORKSPACE_LAUNCH_TEST_OPERATOR $workspace_launch_operator_direcrtory] [WORKSPACE_LAUNCH_IMAGES $workspace_launch_images_directory] 
+# WORKSPACE_LAUNCH_TEST_OPERATOR
+#   The workspace launch test operator will be read from 'workspace_launch_test_operator.txt' in the /g3auto/workspace-launch-test/ directory. Add user id without any quotes.
+#   You can override the secret value with an optional command line argument.
+#
+# WORKSPACE_LAUNCH_IMAGES
+#   The workspace launch images will be read from 'workspace_launch_images.txt' in the /g3auto/workspace-launch-test/ directory. Add image names without any quotes.
+#   Separate multiple images with plus '+' sign. For example: image1+image2+image3
+#   You can override the secret value with an optional command line argument.
+#   If images aren't provided, it defaults to '(Generic) Jupyter Lab Image with R Kernel'
+
 
 apiVersion: batch/v1
 kind: Job
@@ -151,7 +159,7 @@ spec:
               secretKeyRef:
                 name: workspace-launch-test-g3auto
                 key: "workspace_launch_images.txt"
-        image: quay.io/cdis/awshelper:chore_improve_workspace_launch_test
+        image: quay.io/cdis/awshelper:master
         imagePullPolicy: Always
         volumeMounts:
           - name: shared-data
@@ -178,7 +186,7 @@ spec:
               else
                 echo "WORKSPACE_LAUNCH_IMAGES is from command line parameter"
               fi
-          
+
               # wait for the access token to be created in the sidecar "fence" container
               let count = 0
               while [[ ! -f /mnt/shared/access_token.txt && $count -lt 50 ]]; do
@@ -238,6 +246,3 @@ spec:
         - name: fence-jwt-keys
           secret:
             secretName: "fence-jwt-keys"
-
-
-      
