@@ -703,7 +703,7 @@ def translate_service_creds_structure(user_db_data):
     else:
       yaml_dict[key] = user_db_data[key]
 
-  return yaml.dump(yaml_dict)
+  return json.dumps(yaml_dict)
 
 def upload_secret(secret_name: str, secret_data: str, description: str = "A secret for Gen3" ):
   '''
