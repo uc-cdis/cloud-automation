@@ -662,6 +662,7 @@ def translate_wts_secrets(g3auto_path: str):
         secret_value_dict["client_secret"] = appcreds_dict["oidc_client_secret"] 
 
       if make_secret:
+        print("UPloading wts-client secret")
         upload_secret(f"{get_commons_name()}-wts-client-secret", json.dumps(secret_value_dict))
 
 
