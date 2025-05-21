@@ -631,6 +631,40 @@ def translate_audit_service_secrets(g3auto_path: str):
       unedited_text = file.read()
       upload_secret(f"{commons_name}-audit-creds", translate_creds_structure(unedited_text))  
   
+def translate_wts_secrets(g3auto_path: str):
+  APPCREDS_PATH = os.path.join(g3auto_path, "appcreds.json")
+
+  process_generic_g3auto_service("wts", g3auto_path)
+
+  if os.path.exists(APPCREDS_PATH):
+    with open(APPCREDS_PATH) as file:
+      raw_string = file.read()
+      appcreds_dict = json.load(raw_string)
+
+      oidc_client_exists = "oidc_client_id" in appcreds_dict.keys()
+      oidc_secret_exists = "oidc_client_secret" in appcreds_dict.keys()
+
+      secret_value_dict = {}
+      make_secret = True
+
+      if not oidc_client_exists and not oidc_secret_exists:
+        print("No OIDC client found for WTS. This may get interesting...")
+        make_secret = False
+      
+      if oidc_client_exists and not oidc_secret_exists:
+        print("Only OIDC client exists, this may get VERY interesting...")
+      elif not oidc_client_exists and oidc_secret_exists:
+        print("Only OIDC secret exists, this may get VERY interesting...")
+
+      if oidc_client_exists:
+        secret_value_dict["client_id"] = appcreds_dict["oidc_client_id"] 
+      if oidc_secret_exists:
+        secret_value_dict["client_secret"] = appcreds_dict["oidc_client_secret"] 
+
+      if make_secret:
+        upload_secret(f"{get_commons_name()}-wts-client-secret", json.dumps(secret_value_dict))
+
+
 
 def process_g3auto_secrets(gen3_secrets_path: str):
   G3AUTO_PATH = os.path.join(gen3_secrets_path, "g3auto")
@@ -644,7 +678,7 @@ def process_g3auto_secrets(gen3_secrets_path: str):
 
   # Filter only directories
   directories = [item for item in all_items if os.path.isdir(os.path.join(G3AUTO_PATH, item))]
-  generic_g3auto_services = ["arborist", "dashboard", "metadata", "pelicanservice", "requestor", "wts", "cohort-middleware"]
+  generic_g3auto_services = ["arborist", "dashboard", "metadata", "pelicanservice", "requestor", "cohort-middleware"]
 
   for dir in directories:
     if dir in generic_g3auto_services:
@@ -653,6 +687,8 @@ def process_g3auto_secrets(gen3_secrets_path: str):
       translate_manifest_service_secrets(G3AUTO_PATH)
     elif dir == "audit":
       translate_audit_service_secrets(G3AUTO_PATH)
+    elif dir == "wts":
+      translate_wts_secrets(G3AUTO_PATH)
     else:
       print(f"Don't know what to do with {dir}, so just skipping it.")
 
