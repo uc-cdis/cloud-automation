@@ -424,7 +424,8 @@ def translate_manifest(manifest_path):
   if "wts" in final_output.keys():
     final_output["wts"]["externalSecrets"] = {
       "wtsG3auto": f"{commons_name}-wts-g3auto",
-      "wtsOidcClient": f"{commons_name}-wts-client-secret"
+      "wtsOidcClient": f"{commons_name}-wts-client-secret",
+      "createWtsOidcClientSecret": False
     }
 
   if "ssjdispatcher" in final_output.keys():
@@ -713,7 +714,7 @@ def translate_secrets():
 
   if creds_data is not None:
     for key in creds_data.keys():
-      if key in ["fence", "sheepdog"]:
+      if key in ["fence", "sheepdog", "peregrine"]:
         edited_key = translate_creds_structure(json.dumps(creds_data[key]))
         upload_secret(f"{commons_name}-{key}-creds", edited_key)
       elif key == "ssjdispatcher":
