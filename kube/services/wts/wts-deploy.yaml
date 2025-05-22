@@ -104,7 +104,6 @@ spec:
             port: 80
         resources:
           requests:
-            cpu: 100m
             memory: 200Mi
           limits:
             memory: 512Mi
@@ -128,7 +127,6 @@ spec:
             value: "/var/www/wts/appcreds.json"
           resources:
             limits:
-              cpu: 0.8
               memory: 512Mi
           command: ["/bin/sh"]
           args:
