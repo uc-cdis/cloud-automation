@@ -423,7 +423,8 @@ def translate_manifest(manifest_path):
 
   if "wts" in final_output.keys():
     final_output["wts"]["externalSecrets"] = {
-      "wtsG3auto": f"{commons_name}-wts-g3auto"
+      "wtsG3auto": f"{commons_name}-wts-g3auto",
+      "wtsOidcClient": f"{get_commons_name()}-wts-client-secret"
     }
 
   if "ssjdispatcher" in final_output.keys():
@@ -663,8 +664,6 @@ def translate_wts_secrets(g3auto_path: str):
       if make_secret:
         print("UPloading wts-client secret")
         upload_secret(f"{get_commons_name()}-wts-client-secret", json.dumps(secret_value_dict))
-
-
 
 def process_g3auto_secrets(gen3_secrets_path: str):
   G3AUTO_PATH = os.path.join(gen3_secrets_path, "g3auto")
