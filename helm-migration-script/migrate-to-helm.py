@@ -632,7 +632,7 @@ def translate_audit_service_secrets(g3auto_path: str):
       upload_secret(f"{commons_name}-audit-creds", translate_creds_structure(unedited_text))  
   
 def translate_wts_secrets(g3auto_path: str):
-  APPCREDS_PATH = os.path.join(g3auto_path, "appcreds.json")
+  APPCREDS_PATH = os.path.join(g3auto_path, "wts", "appcreds.json")
 
   process_generic_g3auto_service("wts", g3auto_path)
 
