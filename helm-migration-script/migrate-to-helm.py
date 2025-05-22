@@ -424,7 +424,7 @@ def translate_manifest(manifest_path):
   if "wts" in final_output.keys():
     final_output["wts"]["externalSecrets"] = {
       "wtsG3auto": f"{commons_name}-wts-g3auto",
-      "wtsOidcClient": f"{get_commons_name()}-wts-client-secret"
+      "wtsOidcClient": f"{commons_name}-wts-client-secret"
     }
 
   if "ssjdispatcher" in final_output.keys():
