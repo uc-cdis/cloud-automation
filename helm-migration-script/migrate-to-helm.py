@@ -638,8 +638,7 @@ def translate_wts_secrets(g3auto_path: str):
 
   if os.path.exists(APPCREDS_PATH):
     with open(APPCREDS_PATH) as file:
-      raw_string = file.read()
-      appcreds_dict = json.load(raw_string)
+      appcreds_dict = json.load(file)
 
       oidc_client_exists = "oidc_client_id" in appcreds_dict.keys()
       oidc_secret_exists = "oidc_client_secret" in appcreds_dict.keys()
