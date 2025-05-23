@@ -1,6 +1,14 @@
-# To run: gen3 job run workspace-launch-test COMMONS_URL <commons base url> IMAGES <IMAGE name>
-# example: gen3 job run workspace-launch-test COMMONS_URL https://qa-heal.planx-pla.net IMAGES "(Generic) Jupyter Lab Notebook with R Kernel+(Tutorials) Example Analysis Jupyter Lab Notebooks"
-# If IMAGES isn't provided, it defaults to '(Generic) Jupyter Lab Image with R Kernel'
+# To run: gen3 job run workspace-launch-test [WORKSPACE_LAUNCH_TEST_OPERATOR $workspace_launch_operator_direcrtory] [WORKSPACE_LAUNCH_IMAGES $workspace_launch_images_directory] 
+# WORKSPACE_LAUNCH_TEST_OPERATOR
+#   The workspace launch test operator will be read from 'workspace_launch_test_operator.txt' in the /g3auto/workspace-launch-test/ directory. Add user id without any quotes.
+#   You can override the secret value with an optional command line argument.
+#
+# WORKSPACE_LAUNCH_IMAGES
+#   The workspace launch images will be read from 'workspace_launch_images.txt' in the /g3auto/workspace-launch-test/ directory. Add image names without any quotes.
+#   Separate multiple images with plus '+' sign. For example: image1+image2+image3
+#   You can override the secret value with an optional command line argument.
+#   If images aren't provided, it defaults to '(Generic) Jupyter Lab Image with R Kernel'
+
 
 apiVersion: batch/v1
 kind: Job
@@ -38,8 +46,11 @@ spec:
         env:
           - name: PYTHONPATH
             value: /var/www/fence
-          - name: TEST_OPERATOR
-            GEN3_TEST_OPERATOR|-value: "binamb@uchicago.edu"-|
+          - name: WORKSPACE_LAUNCH_TEST_OPERATOR
+            valueFrom:
+              secretKeyRef:
+                name: workspace-launch-test-g3auto
+                key: "workspace_launch_test_operator.txt"
           - name: TOKEN_EXPIRATION
             GEN3_TOKEN_EXPIRATION|-value: "3600"-|
           - name: FENCE_PUBLIC_CONFIG
@@ -84,6 +95,18 @@ spec:
         args:
             - "-c"
             - |
+              if [[ -z "$WORKSPACE_LAUNCH_TEST_OPERATOR" ]]; then
+                if [[ ! -z "$WORKSPACE_LAUNCH_TEST_OPERATOR_SECRET" ]]; then
+                  echo "WORKSPACE_LAUNCH_TEST_OPERATOR is from g3auto secret"
+                  export WORKSPACE_LAUNCH_TEST_OPERATOR=$WORKSPACE_LAUNCH_TEST_OPERATOR_SECRET
+                else
+                  echo -e "ERROR: WORKSPACE_LAUNCH_TEST_OPERATOR must be in secret or on command line" 1>&2
+                  exit 0
+                fi
+              else
+                echo "WORKSPACE_LAUNCH_TEST_OPERATOR is from command line parameter"
+              fi
+
               echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
               python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
               if [ -f /fence/jwt-keys.tar ]; then
@@ -95,14 +118,14 @@ spec:
                 fi
               fi
               echo "generate access token"
-              echo "fence-create --path fence token-create --type access_token --username $TEST_OPERATOR --scopes openid,user,test-client,credentials,data --exp $TOKEN_EXPIRATION"
+              echo "fence-create --path fence token-create --type access_token --username $WORKSPACE_LAUNCH_TEST_OPERATOR --scopes openid,user,test-client,credentials,data --exp $TOKEN_EXPIRATION"
               tempFile="$(mktemp -p /tmp token.txt_XXXXXX)"
               success=false
               count=0
               sleepTime=10
               # retry loop
               while [[ $count -lt 3 && $success == false ]]; do
-                if fence-create --path fence token-create --type access_token --username $TEST_OPERATOR --scopes openid,user,test-client,credentials,data --exp $TOKEN_EXPIRATION > "$tempFile"; then
+                if fence-create --path fence token-create --type access_token --username $WORKSPACE_LAUNCH_TEST_OPERATOR --scopes openid,user,test-client,credentials,data --exp $TOKEN_EXPIRATION > "$tempFile"; then
                   echo "fence-create success!"
                   tail -1 "$tempFile" > /mnt/shared/access_token.txt
                   # base64 --decode complains about invalid characters - don't know why
@@ -124,10 +147,18 @@ spec:
               echo "All Done - always succeed to avoid k8s retries"
       - name: workspace-launch-test
         env:
-          - name: COMMONS_URL
-            GEN3_COMMONS_URL|-value: ""-|
-          - name: IMAGES
-            GEN3_IMAGES|-value: ""-|
+          - name: GEN3_HOSTNAME
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: hostname
+          - name: WORKSPACE_LAUNCH_IMAGES
+            WORKSPACE_LAUNCH_IMAGES|-value: ""-|
+          - name: WORKSPACE_LAUNCH_IMAGES_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: workspace-launch-test-g3auto
+                key: "workspace_launch_images.txt"
         image: quay.io/cdis/awshelper:master
         imagePullPolicy: Always
         volumeMounts:
@@ -144,6 +175,18 @@ spec:
         args:
             - "-c"
             - |
+              if [[ -z "$WORKSPACE_LAUNCH_IMAGES" ]]; then
+                if [[ ! -z "$WORKSPACE_LAUNCH_IMAGES_SECRET" ]]; then
+                  echo "WORKSPACE_LAUNCH_IMAGES is from g3auto secret"
+                  export WORKSPACE_LAUNCH_IMAGES=$WORKSPACE_LAUNCH_IMAGES_SECRET
+                else
+                  echo -e "ERROR: WORKSPACE_LAUNCH_IMAGES must be in secret or on command line" 1>&2
+                  exit 0
+                fi
+              else
+                echo "WORKSPACE_LAUNCH_IMAGES is from command line parameter"
+              fi
+
               # wait for the access token to be created in the sidecar "fence" container
               let count = 0
               while [[ ! -f /mnt/shared/access_token.txt && $count -lt 50 ]]; do
@@ -158,12 +201,12 @@ spec:
               python3 -m pip3 install requests
               python3 -m pip3 install logging
 
-              cmd="python3 cloud-automation/files/scripts/workspaces_launch_test.py --commons-url $COMMONS_URL --access-token $ACCESS_TOKEN"
+              cmd="python3 cloud-automation/files/scripts/workspaces_launch_test.py --commons-url $GEN3_HOSTNAME --access-token $ACCESS_TOKEN"
 
-              if [[ -n "$IMAGES" ]]; then
+              if [[ -n "$WORKSPACE_LAUNCH_IMAGES" ]]; then
                 echo "Running command:"
-                echo $cmd --images "$IMAGES"  # this is the only way parsing the images works for some reason. If its not done like this, it parses only the first unbroken set of strings (until the first space) as the argument in the python command
-                $cmd --images "$IMAGES"
+                echo $cmd --images "$WORKSPACE_LAUNCH_IMAGES"  # this is the only way parsing the images works for some reason. If its not done like this, it parses only the first unbroken set of strings (until the first space) as the argument in the python command
+                $cmd --images "$WORKSPACE_LAUNCH_IMAGES"
               else
                 echo "Running command:"
                 echo $cmd
@@ -203,6 +246,3 @@ spec:
         - name: fence-jwt-keys
           secret:
             secretName: "fence-jwt-keys"
-
-
-      

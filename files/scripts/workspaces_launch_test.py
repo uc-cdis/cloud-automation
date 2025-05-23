@@ -9,13 +9,30 @@ import json
 import logging
 
 import requests
+from urllib.parse import urlparse
 
 workspace_internal_url = "http://workspace-token-service"
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 
+
+def add_https_to_url(url_string):
+    """
+    Adds https to the url if it is not already present.
+    Args:
+        url_string (str): The url string to check.
+    Returns:
+        str: The url string with https added if it was not present.
+    """
+    parsed_url = urlparse(url_string)
+    if parsed_url.scheme == '':
+      return "https://" + parsed_url.geturl()
+    return url_string
+
 def main():
     args = parse_args()
-    tester = WorkspaceLaunchTest(commons_url=args.commons_url, access_token=args.access_token, images=args.images.split("+")) # Images passed from the kubernetes jobs is separated by a plus sign "+"
+    images = args.images.rstrip('\n')
+    images = images.split("+")
+    tester = WorkspaceLaunchTest(commons_url=args.commons_url, access_token=args.access_token, images=images) # Images passed from the kubernetes jobs is separated by a plus sign "+"
     tester.initialize_workspace_launch_test()
 
 def parse_args():
@@ -42,7 +59,7 @@ def parse_args():
 
 class WorkspaceLaunchTest:
     def __init__(self, commons_url, access_token, images=["(Generic, Limited Gen3-licensed) Stata image"]):
-        self.commons_url = commons_url
+        self.commons_url = add_https_to_url(commons_url)
         self.workspace_internal_url = workspace_internal_url
         self.token_expiration = 0
         self.headers = {}
