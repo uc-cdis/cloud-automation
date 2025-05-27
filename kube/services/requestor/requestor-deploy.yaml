@@ -98,7 +98,6 @@ spec:
             subPath: "requestor-config.yaml"
         resources:
           requests:
-            cpu: 100m
             memory: 100Mi
           limits:
             memory: 300Mi
@@ -118,7 +117,6 @@ spec:
               subPath: "requestor-config.yaml"
           resources:
             limits:
-              cpu: 0.8
               memory: 512Mi
           command: ["/bin/sh"]
           args:

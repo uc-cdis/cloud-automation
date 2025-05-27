@@ -83,8 +83,6 @@ spec:
             ${BINARY} -endpoint "https://$ES_ENDPOINT" -verbose -listen ":9200"
         resources:
           requests:
-            cpu: 250m
             memory: 256Mi
           limits:
-            cpu: 1000m
             memory: 2Gi

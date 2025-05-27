@@ -57,10 +57,8 @@ spec:
         GEN3_AMBASSADOR_IMAGE
         resources:
           limits:
-            cpu: 1
             memory: 400Mi
           requests:
-            cpu: 100m
             memory: 100Mi
         env:
         - name: AMBASSADOR_NAMESPACE

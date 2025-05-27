@@ -197,11 +197,9 @@ spec:
             mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
             subPath: "ca.pem"
         resources:
-          requests:  
-            cpu: 0.5
+          requests:
             memory: 1024Mi
           limits:
-            cpu: 1.0
             memory: 2048Mi
         command: ["/bin/sh" ]
         args:
