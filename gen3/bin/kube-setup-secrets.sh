@@ -317,8 +317,28 @@ if ! g3kubectl get configmaps/fence-sshconfig > /dev/null 2>&1; then
   g3kubectl create configmap fence-sshconfig --from-file=./apis_configs/.ssh/config
 fi
 
-if ! g3kubectl get configmaps/fence-knownhosts > /dev/null 2>&1; then
-  g3kubectl create configmap fence-knownhosts --from-file=./apis_configs/.ssh/known_hosts
+CONFIGMAP_NAME="fence-knownhosts"
+KNOWN_HOSTS_PATH="./apis_configs/.ssh/known_hosts"
+SFTP_HOST="sftp-qa.planx-pla.net"
+SFTP_PORT="22"
+
+if ! g3kubectl get configmap "$CONFIGMAP_NAME" &>/dev/null; then
+  if [[ ! -f "$KNOWN_HOSTS_PATH" ]]; then
+    echo "File '$KNOWN_HOSTS_PATH' not found. Running ssh-keyscan..."
+    mkdir -p "$(dirname "$KNOWN_HOSTS_PATH")"
+    
+    if ! ssh-keyscan -p "$SFTP_PORT" "$SFTP_HOST" > "$KNOWN_HOSTS_PATH" 2>/dev/null; then
+      echo "Error: ssh-keyscan failed for $SFTP_HOST:$SFTP_PORT" >&2
+      exit 1
+    fi
+
+    echo "known_hosts populated with SSH key for $SFTP_HOST"
+  fi
+
+  echo "Creating ConfigMap: $CONFIGMAP_NAME"
+  g3kubectl create configmap "$CONFIGMAP_NAME" --from-file="$KNOWN_HOSTS_PATH"
+else
+  echo "ConfigMap '$CONFIGMAP_NAME' already exists. Skipping creation."
 fi
 
 ##  update mailgun secret
