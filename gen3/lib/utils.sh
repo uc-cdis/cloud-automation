@@ -485,7 +485,7 @@ _entity_has_policy() {
 
 wait_for_esproxy() {
   COUNT=0
-  while [[ -z $(kubectl get pods --selector=app=esproxy -o go-template='{{range $index, $element := .items}}{{range .status.containerStatuses}}{{if .ready}}{{$element.metadata.name}}{{"\n"}}{{end}}{{end}}{{end}}') ]]; do
+  while [[ -z $(g3kubectl get pods --selector=app=esproxy -o go-template='{{range $index, $element := .items}}{{range .status.containerStatuses}}{{if .ready}}{{$element.metadata.name}}{{"\n"}}{{end}}{{end}}{{end}}') ]]; do
     if [[ COUNT -gt 50 ]]; then
       echo "wait too long for esproxy"
       exit 1
