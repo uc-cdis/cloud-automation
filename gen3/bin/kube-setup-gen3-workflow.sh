@@ -50,6 +50,7 @@ setup_gen3_workflow_infra() {
       "Effect": "Allow",
       "Action": [
         "s3:CreateBucket",
+        "s3:GetBucketLocation",
         "s3:DeleteBucket",
         "s3:ListBucket",
         "s3:GetObject",
@@ -72,7 +73,8 @@ setup_gen3_workflow_infra() {
           "kms:GenerateDataKey",
           "kms:CreateAlias",
           "kms:DescribeKey",
-          "kms:TagResource"
+          "kms:TagResource",
+          "kms:Decrypt"
       ],
       "Resource": "*"
     }
