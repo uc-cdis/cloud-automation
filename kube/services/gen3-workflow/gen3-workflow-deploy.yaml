@@ -16,6 +16,9 @@ spec:
       maxUnavailable: 0
   template:
     metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /metrics/
       labels:
         app: gen3-workflow
         release: production
@@ -92,7 +95,6 @@ spec:
             subPath: "gen3-workflow-config.yaml"
         resources:
           requests:
-            cpu: 100m
             memory: 1Gi
           limits:
             memory: 1Gi

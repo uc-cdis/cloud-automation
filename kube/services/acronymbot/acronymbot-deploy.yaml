@@ -35,10 +35,7 @@ spec:
               key: "githubtoken.json"
         imagePullPolicy: Always
         resources:
-          requests:
-            cpu: 100m
           limits:
-            cpu: 500m
             memory: 128Mi
         volumeMounts:
         - name: slacktoken

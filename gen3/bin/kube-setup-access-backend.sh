@@ -23,7 +23,7 @@ setup_access_backend() {
   fi
   local hostname
   if ! hostname="$(gen3 api hostname)"; then
-    gen3_log_err "could not determine hostname from manifest-global - bailing out of sower-jobs setup"
+    gen3_log_err "could not determine hostname from manifest-global - bailing out of access-backend setup"
     return 1
   fi
 

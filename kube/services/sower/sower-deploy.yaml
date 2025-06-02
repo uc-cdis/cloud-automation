@@ -99,7 +99,6 @@ spec:
             subPath: sower_config.json
         resources:
           requests:
-            cpu: 100m
             memory: 20Mi
           limits:
             memory: 400Mi 

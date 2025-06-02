@@ -11,6 +11,7 @@ app.getambassador.io
 awslabs.github.io
 biodata-integration-tests.net
 marketing.biorender.com
+cdn.playwright.dev
 clinicaltrials.gov
 charts.bitnami.com
 ctds-planx.atlassian.net
@@ -35,6 +36,7 @@ centos.mirrors.tds.net
 centos.mirrors.wvstateu.edu
 cernvm.cern.ch
 charts.authelia.com
+charts.crossplane.io
 charts.helm.sh
 cloud.r-project.org
 coredns.github.io
@@ -124,6 +126,7 @@ mirrors.gigenet.com
 mirrors.lga7.us.voxel.net
 mirrors.nics.utk.edu
 mirrors.syringanetworks.net
+moonbeam-nyc.github.io
 mps.csb.pitt.edu
 mran.microsoft.com
 neuro.debian.net
@@ -134,6 +137,7 @@ ohsu-comp-bio.github.io
 opportunityinsights.org
 orcid.org
 pgp.mit.edu
+playwright.download.prss.microsoft.com
 ppa.launchpad.net
 prometheus-community.github.io
 proxy.golang.org

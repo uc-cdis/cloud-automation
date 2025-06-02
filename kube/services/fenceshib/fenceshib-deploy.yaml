@@ -226,7 +226,6 @@ spec:
             subPath: "incommon-login.bionimbus.org.crt"
         resources:
             requests:
-              cpu: 100m
               memory: 500Mi
             limits:
               memory: 2400Mi

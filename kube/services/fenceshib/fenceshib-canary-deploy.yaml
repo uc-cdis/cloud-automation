@@ -181,7 +181,6 @@ spec:
             subPath: "jwt-keys.tar"
         resources:
             limits:
-              cpu: 0.3
               memory: 1200Mi
         command: ["/bin/bash"]
         args:

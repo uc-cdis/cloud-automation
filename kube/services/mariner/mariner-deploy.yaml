@@ -70,7 +70,6 @@ spec:
         resources:
           limits:
             memory: "256Mi"
-            cpu: "250m"
         env:
           - name: AWS_STS_REGIONAL_ENDPOINTS
             value: regional
