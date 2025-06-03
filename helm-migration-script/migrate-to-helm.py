@@ -247,7 +247,47 @@ def template_guppy_section(manifest_data, manifest_path):
     for key in guppy_data:
       guppy_yaml_data[to_camel_case(key)] = guppy_data[key]
 
-    return {"guppy": guppy_yaml_data}
+    # Hardcode esEndpoint
+    guppy_yaml_data["esEndpoint"] = "http://elasticsearch:9200"
+
+    return guppy_yaml_data
+
+def template_aws_es_proxy_section():
+    # esproxy_data = read_manifest_data(manifest_data, manifest_path, "aws-es-proxy")
+    esproxy_yaml_data = {}
+    # Step 1: Get the environment name from the ConfigMap
+    vpc = subprocess.run(
+        ["kubectl", "get", "configmaps", "global", "-ojsonpath={.data.environment}"],
+        capture_output=True, text=True
+    ).stdout.strip()
+
+    # Step 2: Build the domain name
+    domain_name = f"{vpc}-gen3-metadata-2"
+
+    # Step 3: Call AWS CLI to get the endpoint
+    result = subprocess.run(
+        [
+            "aws", "es", "describe-elasticsearch-domain",
+            "--domain-name", domain_name,
+            "--query", "DomainStatus.Endpoints",
+            "--output", "text"
+        ],
+        capture_output=True, text=True
+    )
+
+    esproxy_endpoint = result.stdout.strip()
+
+    # Step 4: Hardcode esEndpoint
+    esproxy_yaml_data["esEndpoint"] = esproxy_endpoint
+
+    return esproxy_yaml_data
+    # vpc = subprocess.run("kubectl get configmaps global -ojsonpath='{ .data.environment }'",
+    #                     shell=True, capture_output=True, text=True).stdout.strip("\n")
+
+    # esproxy_endpoint= "$(aws es describe-elasticsearch-domains --domain-names "${envname}"-gen3-metadata-2 --query "DomainStatusList[*].Endpoints" --output text)
+
+    # # Hardcode esEndpoint
+    # esproxy_yaml_data["esEndpoint"] = esproxy_endpoint
 
 def template_metadata_section(manifest_data, manifest_path):
   metadata_data = read_manifest_data(manifest_data, manifest_path, "metadata")
@@ -411,6 +451,7 @@ def translate_manifest(manifest_path):
   global_yaml_data = template_global_section(manifest)
   versions_yaml_data = template_versions_section(manifest, scaling_data)
   guppy_yaml_data = template_guppy_section(manifest, manifest_path)
+  esproxy_yaml_data = template_aws_es_proxy_section()
   portal_yaml_data = template_portal_section(manifest, manifest_path)
   metadata_yaml_data = template_metadata_section(manifest, manifest_path)
   ssjdispatcher_yaml_data = template_ssjdispatcher_section(manifest, manifest_path)
@@ -420,6 +461,7 @@ def translate_manifest(manifest_path):
   final_output = {**global_yaml_data, **versions_yaml_data}
 
   final_output = merge_service_section(final_output, guppy_yaml_data, "guppy")
+  final_output = merge_service_section(final_output, esproxy_yaml_data, "aws-es-proxy")
   final_output = merge_service_section(final_output, portal_yaml_data, "portal")
   final_output = merge_service_section(final_output, sower_yaml_data, "sower")
   final_output = merge_service_section(final_output, ssjdispatcher_yaml_data, "ssjdispatcher")
