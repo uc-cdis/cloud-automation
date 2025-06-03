@@ -14,6 +14,21 @@ from pathlib import Path
 SECRETS_MANAGER_CLIENT = None
 COMMONS_NAME = None
 
+# Custom representer to use block style (|) for multiline strings
+def str_presenter(dumper, data):
+    try:
+
+        dlen = len(data.splitlines())
+        if (dlen > 1) or len(data) > 1000:
+            return dumper.represent_scalar('tag:yaml.org,2002:str', data, style='|')
+    except TypeError as ex:
+        return dumper.represent_scalar('tag:yaml.org,2002:str', data)
+    return dumper.represent_scalar('tag:yaml.org,2002:str', data)
+
+
+yaml.add_representer(str, str_presenter)
+
+
 def find_manifest_path():
     # Check if environment variable is set
     env_path = os.environ.get('GEN3_MANIFEST_HOME')
@@ -234,16 +249,28 @@ def template_guppy_section(manifest_data, manifest_path):
 
     return {"guppy": guppy_yaml_data}
 
-def template_metdata_section(manifest_data, manifest_path):
+def template_metadata_section(manifest_data, manifest_path):
   metadata_data = read_manifest_data(manifest_data, manifest_path, "metadata")
   metadata_yaml_data = {}
 
   if "USE_AGG_MDS" in metadata_data.keys():
-    metadata_yaml_data["useAggMds"] = manifest_data["USE_AGG_MDS"]
+    metadata_yaml_data["useAggMds"] = metadata_data["USE_AGG_MDS"]
   if "AGG_MDS_NAMESPACE" in metadata_data.keys():
-    metadata_yaml_data["addMdsNamespace"] = manifest_data["AGG_MDS_NAMESPACE"]
+    metadata_yaml_data["addMdsNamespace"] = metadata_data["AGG_MDS_NAMESPACE"]
+  if "AGG_MDS_DEFAULT_DATA_DICT_FIELD" in metadata_data.keys():
+    metadata_yaml_data["aggMdsDefaultDataDictField"] = metadata_data["AGG_MDS_DEFAULT_DATA_DICT_FIELD"]
+
+
+  # AggMDS config
+  agg_mds_config_path = f"{manifest_path}/metadata/aggregate_config.json"
+  if os.path.exists(agg_mds_config_path):
+    with open(agg_mds_config_path, 'r') as aggmds:
+        agg_mds_string = aggmds.read()
+        metadata_yaml_data["aggMdsConfig"] = agg_mds_string
+
+  metadata_yaml_data["esEndpoint"] = "http://elasticsearch:9200"
   
-  return { "metadata": metadata_yaml_data }
+  return metadata_yaml_data
 
 def template_portal_section(manifest_data, manifest_path):
   portal_data = read_manifest_data(manifest_data, manifest_path, "portal")
@@ -383,9 +410,9 @@ def translate_manifest(manifest_path):
 
   global_yaml_data = template_global_section(manifest)
   versions_yaml_data = template_versions_section(manifest, scaling_data)
-
   guppy_yaml_data = template_guppy_section(manifest, manifest_path)
   portal_yaml_data = template_portal_section(manifest, manifest_path)
+  metadata_yaml_data = template_metadata_section(manifest, manifest_path)
   ssjdispatcher_yaml_data = template_ssjdispatcher_section(manifest, manifest_path)
   sower_yaml_data = template_sower_section(manifest, manifest_path)
   fence_yaml_data = generate_fence_secret_config(GEN3_SECRETS_FOLDER)
@@ -397,6 +424,7 @@ def translate_manifest(manifest_path):
   final_output = merge_service_section(final_output, sower_yaml_data, "sower")
   final_output = merge_service_section(final_output, ssjdispatcher_yaml_data, "ssjdispatcher")
   final_output = merge_service_section(final_output, fence_yaml_data, "fence")
+  final_output = merge_service_section(final_output, metadata_yaml_data, "metadata")
 
   # Again, these are sloppy, but I'm feeling lazy. May burn us
   if "manifestservice" in final_output.keys():
@@ -644,7 +672,7 @@ def process_g3auto_secrets(gen3_secrets_path: str):
 
   # Filter only directories
   directories = [item for item in all_items if os.path.isdir(os.path.join(G3AUTO_PATH, item))]
-  generic_g3auto_services = ["arborist", "dashboard", "metadata", "pelicanservice", "requestor", "wts", "cohort-middleware", "sower-jobs"]
+  generic_g3auto_services = ["sower-jobs", "arborist", "dashboard", "metadata", "pelicanservice", "requestor", "wts", "cohort-middleware"]
 
   for dir in directories:
     if dir in generic_g3auto_services:
