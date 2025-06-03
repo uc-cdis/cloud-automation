@@ -253,18 +253,15 @@ def template_guppy_section(manifest_data, manifest_path):
     return guppy_yaml_data
 
 def template_aws_es_proxy_section():
-    # esproxy_data = read_manifest_data(manifest_data, manifest_path, "aws-es-proxy")
     esproxy_yaml_data = {}
-    # Step 1: Get the environment name from the ConfigMap
+
     vpc = subprocess.run(
         ["kubectl", "get", "configmaps", "global", "-ojsonpath={.data.environment}"],
         capture_output=True, text=True
     ).stdout.strip()
 
-    # Step 2: Build the domain name
     domain_name = f"{vpc}-gen3-metadata-2"
 
-    # Step 3: Call AWS CLI to get the endpoint
     result = subprocess.run(
         [
             "aws", "es", "describe-elasticsearch-domain",
@@ -277,17 +274,9 @@ def template_aws_es_proxy_section():
 
     esproxy_endpoint = result.stdout.strip()
 
-    # Step 4: Hardcode esEndpoint
     esproxy_yaml_data["esEndpoint"] = esproxy_endpoint
 
     return esproxy_yaml_data
-    # vpc = subprocess.run("kubectl get configmaps global -ojsonpath='{ .data.environment }'",
-    #                     shell=True, capture_output=True, text=True).stdout.strip("\n")
-
-    # esproxy_endpoint= "$(aws es describe-elasticsearch-domains --domain-names "${envname}"-gen3-metadata-2 --query "DomainStatusList[*].Endpoints" --output text)
-
-    # # Hardcode esEndpoint
-    # esproxy_yaml_data["esEndpoint"] = esproxy_endpoint
 
 def template_metadata_section(manifest_data, manifest_path):
   metadata_data = read_manifest_data(manifest_data, manifest_path, "metadata")
