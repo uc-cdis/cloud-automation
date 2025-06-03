@@ -23,8 +23,8 @@ kind: Job
 metadata:
   name: usersync
 spec:
-  # Kill the job if it has not finished within 4 hours
-  activeDeadlineSeconds: 14400
+  # Kill the job if it has not finished within 6 hours
+  activeDeadlineSeconds: 21600
   backoffLimit: 0
   template:
     metadata:
