@@ -301,6 +301,20 @@ def template_metadata_section(manifest_data, manifest_path):
   
   return metadata_yaml_data
 
+def template_etl_section(manifest_data, manifest_path):
+  etl_yaml_data = {}
+
+  # ETL Mapping
+  etl_config_path = f"{manifest_path}/etlMapping.yaml"
+  if os.path.exists(etl_config_path):
+    with open(etl_config_path, 'r') as etlmap:
+        etl_mapping_data = yaml.safe_load(etlmap)
+        etl_yaml_data.update(etl_mapping_data)
+
+  etl_yaml_data["esEndpoint"] = "elasticsearch"
+  
+  return {"etl": etl_yaml_data}
+
 def template_portal_section(manifest_data, manifest_path):
   portal_data = read_manifest_data(manifest_data, manifest_path, "portal")
   portal_yaml_data = {"gitops": {}}
@@ -440,6 +454,7 @@ def translate_manifest(manifest_path):
   global_yaml_data = template_global_section(manifest)
   versions_yaml_data = template_versions_section(manifest, scaling_data)
   guppy_yaml_data = template_guppy_section(manifest, manifest_path)
+  etl_yaml_data = template_etl_section(manifest, manifest_path)
   esproxy_yaml_data = template_aws_es_proxy_section()
   portal_yaml_data = template_portal_section(manifest, manifest_path)
   metadata_yaml_data = template_metadata_section(manifest, manifest_path)
@@ -450,6 +465,7 @@ def translate_manifest(manifest_path):
   final_output = {**global_yaml_data, **versions_yaml_data}
 
   final_output = merge_service_section(final_output, guppy_yaml_data, "guppy")
+  final_output = merge_service_section(final_output, etl_yaml_data, "etl")
   final_output = merge_service_section(final_output, esproxy_yaml_data, "aws-es-proxy")
   final_output = merge_service_section(final_output, portal_yaml_data, "portal")
   final_output = merge_service_section(final_output, sower_yaml_data, "sower")
