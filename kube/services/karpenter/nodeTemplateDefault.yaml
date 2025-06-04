@@ -3,9 +3,6 @@ kind: AWSNodeTemplate
 metadata:
   name: default
 spec:
-  amiSelector:
-    aws::name: EKS-FIPS*
-    aws::owners: "143731057154"
   subnetSelector:
     karpenter.sh/discovery: VPC_NAME
   securityGroupSelector:
