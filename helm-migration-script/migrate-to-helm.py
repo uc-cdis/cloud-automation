@@ -453,6 +453,10 @@ def translate_manifest(manifest_path):
       }
     }
 
+  final_output["mutatingWebhook"] = {
+    "enabled": True
+  }
+
   return final_output
 
 def translate_manifest_service_secrets(g3auto_path: str):
