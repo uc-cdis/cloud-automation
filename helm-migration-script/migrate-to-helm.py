@@ -186,6 +186,7 @@ def generate_aws_config():
   es_proxy_role_name = f"{vpc}--{namespace}--es-access"
 
   return_dict["awsEsProxyRole"] = es_proxy_role_name
+  return_dict["hatchery_role"] = f"gen3_service/{vpc}--{namespace}--hatchery-sa"
   return_dict["account"] = account
   return_dict["secretStoreServiceAccount"] = {
     "enabled": True,
@@ -242,13 +243,15 @@ def template_global_section(manifest_data):
 
 def template_guppy_section(manifest_data, manifest_path):
     guppy_data = read_manifest_data(manifest_data, manifest_path, "guppy")
+    
     guppy_yaml_data = {}
 
-    for key in guppy_data:
-      guppy_yaml_data[to_camel_case(key)] = guppy_data[key]
+    if guppy_data != {}:
+      for key in guppy_data:
+        guppy_yaml_data[to_camel_case(key)] = guppy_data[key]
 
-    # Hardcode esEndpoint
-    guppy_yaml_data["esEndpoint"] = "http://elasticsearch:9200"
+      # Hardcode esEndpoint
+      guppy_yaml_data["esEndpoint"] = "http://elasticsearch:9200"
 
     return guppy_yaml_data
 
@@ -311,7 +314,7 @@ def template_etl_section(manifest_data, manifest_path):
         etl_mapping_data = yaml.safe_load(etlmap)
         etl_yaml_data.update(etl_mapping_data)
 
-  etl_yaml_data["esEndpoint"] = "elasticsearch"
+    etl_yaml_data["esEndpoint"] = "elasticsearch"
   
   return {"etl": etl_yaml_data}
 
@@ -370,6 +373,20 @@ def template_portal_section(manifest_data, manifest_path):
     portal_yaml_data["gitops"]["sponsors"] = files_b64
 
   return portal_yaml_data
+
+def template_hatchery_section(manifest_data, manifest_path):
+  hatchery_manifest_path = f"{manifest_path}/manifests/hatchery/"
+
+  hatchery_yaml_data = {}
+  hatchery_json_path = f"{hatchery_manifest_path}/hatchery.json"
+  if os.path.exists(hatchery_json_path):
+     with open(hatchery_json_path, 'r') as hatchery_json:
+        hatchery_json_string = hatchery_json.read()
+        hatchery_json_obj = json.loads(hatchery_json_string)  # Parse JSON string to Python dict
+        hatchery_yaml_data = {"hatchery": {"json": hatchery_json_string }}
+
+
+  return hatchery_yaml_data
 
 def template_sower_section(manifest_data, manifest_path):
   sower_data = read_manifest_data(manifest_data, manifest_path, "sower")
@@ -461,17 +478,19 @@ def translate_manifest(manifest_path):
   ssjdispatcher_yaml_data = template_ssjdispatcher_section(manifest, manifest_path)
   sower_yaml_data = template_sower_section(manifest, manifest_path)
   fence_yaml_data = generate_fence_secret_config(GEN3_SECRETS_FOLDER)
+  hatchery_yaml_data = template_hatchery_section(manifest, manifest_path)
 
   final_output = {**global_yaml_data, **versions_yaml_data}
 
-  final_output = merge_service_section(final_output, guppy_yaml_data, "guppy")
-  final_output = merge_service_section(final_output, etl_yaml_data, "etl")
-  final_output = merge_service_section(final_output, esproxy_yaml_data, "aws-es-proxy")
   final_output = merge_service_section(final_output, portal_yaml_data, "portal")
   final_output = merge_service_section(final_output, sower_yaml_data, "sower")
   final_output = merge_service_section(final_output, ssjdispatcher_yaml_data, "ssjdispatcher")
   final_output = merge_service_section(final_output, fence_yaml_data, "fence")
   final_output = merge_service_section(final_output, metadata_yaml_data, "metadata")
+  final_output = merge_service_section(final_output, guppy_yaml_data, "guppy")
+  final_output = merge_service_section(final_output, etl_yaml_data, "etl")
+  final_output = merge_service_section(final_output, esproxy_yaml_data, "aws-es-proxy")
+  final_output = merge_service_section(final_output, hatchery_yaml_data, "hatchery")
 
   # Again, these are sloppy, but I'm feeling lazy. May burn us
   if "manifestservice" in final_output.keys():
