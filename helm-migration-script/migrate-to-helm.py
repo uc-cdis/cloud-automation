@@ -456,9 +456,9 @@ def template_dashboard_section(gen3_secrets_path):
   DASHBOARD_CONFIG_PATH = os.path.join(gen3_secrets_path, "g3auto", "dashboard", "config.json")
 
   if os.path.exists(DASHBOARD_CONFIG_PATH):
-    dashboard_data = json.load(DASHBOARD_CONFIG_PATH)
-
-    dashboard_yaml_data["dashboardConfig"] = dashboard_data
+    with open(DASHBOARD_CONFIG_PATH) as file:
+      dashboard_data = json.load(file)
+      dashboard_yaml_data["dashboardConfig"] = dashboard_data
 
   return dashboard_yaml_data
 
