@@ -458,16 +458,17 @@ def template_dashboard_section(gen3_secrets_path):
   if os.path.exists(DASHBOARD_CONFIG_PATH):
     with open(DASHBOARD_CONFIG_PATH) as file:
       dashboard_data = json.load(file)
+
       dashboard_yaml_data["dashboardConfig"] = dashboard_data
 
-  return dashboard_yaml_data
+  return {"dashboard": dashboard_yaml_data}
 
 def merge_service_section(final_output, yaml_data, service_name):
   if yaml_data != {}:
     if service_name in final_output.keys():
       final_output[service_name] = {**final_output[service_name], **yaml_data}
     else:
-      final_output[service_name] = yaml_data
+      final_output[service_name] = yaml_data[service_name]
   return final_output
 
 def translate_manifest(manifest_path):
