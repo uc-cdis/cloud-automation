@@ -316,7 +316,7 @@ def template_etl_section(manifest_data, manifest_path):
 
     etl_yaml_data["esEndpoint"] = "elasticsearch"
   
-  return {"etl": etl_yaml_data}
+  return etl_yaml_data
 
 def template_portal_section(manifest_data, manifest_path):
   portal_data = read_manifest_data(manifest_data, manifest_path, "portal")
@@ -383,7 +383,7 @@ def template_hatchery_section(manifest_data, manifest_path):
      with open(hatchery_json_path, 'r') as hatchery_json:
         hatchery_json_string = hatchery_json.read()
         hatchery_json_obj = json.loads(hatchery_json_string)  # Parse JSON string to Python dict
-        hatchery_yaml_data = {"hatchery": {"json": hatchery_json_string }}
+        hatchery_yaml_data = {"json": hatchery_json_string }
 
 
   return hatchery_yaml_data
@@ -461,14 +461,14 @@ def template_dashboard_section(gen3_secrets_path):
 
       dashboard_yaml_data["dashboardConfig"] = dashboard_data
 
-  return {"dashboard": dashboard_yaml_data}
+  return dashboard_yaml_data
 
 def merge_service_section(final_output, yaml_data, service_name):
   if yaml_data != {}:
     if service_name in final_output.keys():
       final_output[service_name] = {**final_output[service_name], **yaml_data}
     else:
-      final_output[service_name] = yaml_data[service_name]
+      final_output[service_name] = yaml_data
   return final_output
 
 def translate_manifest(manifest_path):
