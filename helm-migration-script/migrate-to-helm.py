@@ -451,6 +451,17 @@ def template_versions_section(manifest_data, scaling_data):
 
   return versions_yaml_data
 
+def template_dashboard_section(gen3_secrets_path):
+  dashboard_yaml_data = {}
+  DASHBOARD_CONFIG_PATH = os.path.join(gen3_secrets_path, "g3auto", "dashboard", "config.json")
+
+  if os.path.exists(DASHBOARD_CONFIG_PATH):
+    dashboard_data = json.load(DASHBOARD_CONFIG_PATH)
+
+    dashboard_yaml_data["dashboardConfig"] = dashboard_data
+
+  return dashboard_yaml_data
+
 def merge_service_section(final_output, yaml_data, service_name):
   if yaml_data != {}:
     if service_name in final_output.keys():
@@ -479,6 +490,7 @@ def translate_manifest(manifest_path):
   sower_yaml_data = template_sower_section(manifest, manifest_path)
   fence_yaml_data = generate_fence_secret_config(GEN3_SECRETS_FOLDER)
   hatchery_yaml_data = template_hatchery_section(manifest, manifest_path)
+  dashboard_yaml_data = template_dashboard_section(GEN3_SECRETS_FOLDER)
 
   final_output = {**global_yaml_data, **versions_yaml_data}
 
@@ -491,6 +503,7 @@ def translate_manifest(manifest_path):
   final_output = merge_service_section(final_output, etl_yaml_data, "etl")
   final_output = merge_service_section(final_output, esproxy_yaml_data, "aws-es-proxy")
   final_output = merge_service_section(final_output, hatchery_yaml_data, "hatchery")
+  final_output = merge_service_section(final_output, dashboard_yaml_data, "dashboard")
 
   # Again, these are sloppy, but I'm feeling lazy. May burn us
   if "manifestservice" in final_output.keys():
@@ -738,7 +751,7 @@ def process_g3auto_secrets(gen3_secrets_path: str):
 
   # Filter only directories
   directories = [item for item in all_items if os.path.isdir(os.path.join(G3AUTO_PATH, item))]
-  generic_g3auto_services = ["sower-jobs", "arborist", "dashboard", "metadata", "pelicanservice", "requestor", "wts", "cohort-middleware"]
+  generic_g3auto_services = ["sower-jobs", "arborist", "metadata", "pelicanservice", "requestor", "wts", "cohort-middleware"]
 
   for dir in directories:
     if dir in generic_g3auto_services:
