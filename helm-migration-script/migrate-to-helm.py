@@ -268,7 +268,7 @@ def template_aws_es_proxy_section():
         capture_output=True, text=True
     )
 
-    result_dict = yaml.safe_load(result.stdout.strip)
+    result_dict = yaml.safe_load(result.stdout.strip())
 
     esproxy_endpoint = result_dict["spec"]["template"]["spec"]["containers"][0]["env"][0]["value"]
     print(esproxy_endpoint)
