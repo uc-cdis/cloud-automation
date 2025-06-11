@@ -263,21 +263,15 @@ def template_aws_es_proxy_section():
         capture_output=True, text=True
     ).stdout.strip()
 
-    domain_name = f"{vpc}-gen3-metadata-2"
-
     result = subprocess.run(
-        [
-            "aws", "es", "describe-elasticsearch-domain",
-            "--domain-name", domain_name,
-            "--query", "DomainStatus.Endpoints",
-            "--output", "text"
-        ],
+        ["kubectl get deployment aws-es-proxy-deployment -o yaml"],
         capture_output=True, text=True
     )
 
-    print(result)
+    result_dict = yaml.safe_load(result)
 
-    esproxy_endpoint = result.stdout.strip()
+    esproxy_endpoint = result_dict["spec"]["template"]["spec"]["containers"][0]["env"][0]["value"]
+    print(esproxy_endpoint)
 
     esproxy_yaml_data["esEndpoint"] = esproxy_endpoint
 
