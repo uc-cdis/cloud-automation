@@ -275,6 +275,8 @@ def template_aws_es_proxy_section():
         capture_output=True, text=True
     )
 
+    print(result)
+
     esproxy_endpoint = result.stdout.strip()
 
     esproxy_yaml_data["esEndpoint"] = esproxy_endpoint
