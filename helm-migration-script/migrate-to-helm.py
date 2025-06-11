@@ -506,10 +506,32 @@ def translate_manifest(manifest_path):
   final_output = merge_service_section(final_output, hatchery_yaml_data, "hatchery")
   final_output = merge_service_section(final_output, dashboard_yaml_data, "dashboard")
 
+  account = subprocess.run("aws sts get-caller-identity | jq -r .Account", 
+                          shell=True, capture_output=True, text=True).stdout.strip("\n")
+  
+  vpc = subprocess.run("kubectl get configmaps global -ojsonpath='{ .data.environment }'",
+                        shell=True, capture_output=True, text=True).stdout.strip("\n")
+  
+  commons_name = get_commons_name()
+  new_commons_name = f"{commons_name}-helm"
+
   # Again, these are sloppy, but I'm feeling lazy. May burn us
   if "manifestservice" in final_output.keys():
     final_output["manifestservice"]["externalSecrets"] = {
       "manifestserviceG3auto": f"{commons_name}-manifestservice-g3auto"
+    }
+
+    final_output["manifestservice"]["serviceAccount"] = {
+      "annotations": {
+        "eks.amazonaws.com/role-arn": f"arn:aws:iam::{account}:role/{vpc}--{new_commons_name}--manifest-service-sa"
+      }
+    }
+
+  if "dashboard" in final_output.keys():
+    final_output["dashboard"]["serviceAccount"] = {
+      "annotations": {
+        "eks.amazonaws.com/role-arn": f"arn:aws:iam::{account}:role/{vpc}--{new_commons_name}--dashboard-access"
+      }
     }
   
   if "sower" in final_output.keys():
@@ -518,15 +540,27 @@ def translate_manifest(manifest_path):
       "sowerjobsG3auto": f"{commons_name}-sower-jobs-g3auto"  
     }
 
-  audit_dict = {
-    "auditG3auto": f"{commons_name}-audit-g3auto"
-  }
-
   if "audit" in final_output.keys():
-    final_output["audit"]["externalSecrets"] = audit_dict
+    final_output["audit"]["externalSecrets"] = {
+      "auditG3auto": f"{commons_name}-audit-g3auto"
+    }
+
+    final_output["audit"]["serviceAccount"] = {
+      "annotations": {
+        "eks.amazonaws.com/role-arn": f"arn:aws:iam::{account}:role/{vpc}--{new_commons_name}--audit-sqs-receiver"
+      }
+    }
   else:
     final_output["audit"] = {
-      "externalSecrets": audit_dict
+      "externalSecrets": {
+        "auditG3auto": f"{commons_name}-audit-g3auto"
+      },
+
+      "serviceAccount": {
+        "annotations": {
+          "eks.amazonaws.com/role-arn": f"arn:aws:iam::{account}:role/{vpc}--{new_commons_name}--audit-sqs-receiver"
+        }
+      }
     }
 
   if "wts" in final_output.keys():
