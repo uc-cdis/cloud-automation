@@ -182,11 +182,12 @@ def generate_aws_config():
                               shell=True, capture_output=True, text=True).stdout.strip("\n")
   account = subprocess.run("aws sts get-caller-identity | jq -r .Account", 
                             shell=True, capture_output=True, text=True).stdout.strip("\n")
+  
+  commons_name = get_commons_name()
+  new_commons_name = f"{commons_name}-helm"
 
-  es_proxy_role_name = f"{vpc}--{namespace}--es-access"
-
-  return_dict["awsEsProxyRole"] = es_proxy_role_name
-  return_dict["hatchery_role"] = f"gen3_service/{vpc}--{namespace}--hatchery-sa"
+  return_dict["awsEsProxyRole"] = f"{vpc}--{new_commons_name}--es-access"
+  return_dict["hatchery_role"] = f"{vpc}--{new_commons_name}--hatchery-sa"
   return_dict["account"] = account
   return_dict["secretStoreServiceAccount"] = {
     "enabled": True,
