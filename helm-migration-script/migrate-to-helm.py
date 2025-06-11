@@ -264,7 +264,7 @@ def template_aws_es_proxy_section():
     ).stdout.strip()
 
     result = subprocess.run(
-        ["kubectl", "get deployment aws-es-proxy-deployment -o yaml"],
+        ["kubectl", "get", "deployment", "aws-es-proxy-deployment", "-o", "yaml"],
         capture_output=True, text=True
     )
 
