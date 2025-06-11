@@ -258,21 +258,14 @@ def template_guppy_section(manifest_data, manifest_path):
 def template_aws_es_proxy_section():
     esproxy_yaml_data = {}
 
-    vpc = subprocess.run(
-        ["kubectl", "get", "configmaps", "global", "-ojsonpath={.data.environment}"],
-        capture_output=True, text=True
-    ).stdout.strip()
-
     result = subprocess.run(
         ["kubectl", "get", "deployment", "aws-es-proxy-deployment", "-o", "yaml"],
         capture_output=True, text=True
     )
 
     result_dict = yaml.safe_load(result.stdout.strip())
-    print(result.stdout.strip())
 
     esproxy_endpoint = result_dict["spec"]["template"]["spec"]["containers"][0]["env"][0]["value"]
-    print(esproxy_endpoint)
 
     esproxy_yaml_data["esEndpoint"] = esproxy_endpoint
 
