@@ -182,11 +182,12 @@ def generate_aws_config():
                               shell=True, capture_output=True, text=True).stdout.strip("\n")
   account = subprocess.run("aws sts get-caller-identity | jq -r .Account", 
                             shell=True, capture_output=True, text=True).stdout.strip("\n")
+  
+  commons_name = get_commons_name()
+  new_commons_name = f"{commons_name}-helm"
 
-  es_proxy_role_name = f"{vpc}--{namespace}--es-access"
-
-  return_dict["awsEsProxyRole"] = es_proxy_role_name
-  return_dict["hatchery_role"] = f"gen3_service/{vpc}--{namespace}--hatchery-sa"
+  return_dict["awsEsProxyRole"] = f"{vpc}--{new_commons_name}--es-access"
+  return_dict["hatchery_role"] = f"{vpc}--{new_commons_name}--hatchery-sa"
   return_dict["account"] = account
   return_dict["secretStoreServiceAccount"] = {
     "enabled": True,
@@ -258,24 +259,14 @@ def template_guppy_section(manifest_data, manifest_path):
 def template_aws_es_proxy_section():
     esproxy_yaml_data = {}
 
-    vpc = subprocess.run(
-        ["kubectl", "get", "configmaps", "global", "-ojsonpath={.data.environment}"],
-        capture_output=True, text=True
-    ).stdout.strip()
-
-    domain_name = f"{vpc}-gen3-metadata-2"
-
     result = subprocess.run(
-        [
-            "aws", "es", "describe-elasticsearch-domain",
-            "--domain-name", domain_name,
-            "--query", "DomainStatus.Endpoints",
-            "--output", "text"
-        ],
+        ["kubectl", "get", "deployment", "aws-es-proxy-deployment", "-o", "yaml"],
         capture_output=True, text=True
     )
 
-    esproxy_endpoint = result.stdout.strip()
+    result_dict = yaml.safe_load(result.stdout.strip())
+
+    esproxy_endpoint = result_dict["spec"]["template"]["spec"]["containers"][0]["env"][0]["value"]
 
     esproxy_yaml_data["esEndpoint"] = esproxy_endpoint
 
@@ -288,7 +279,7 @@ def template_metadata_section(manifest_data, manifest_path):
   if "USE_AGG_MDS" in metadata_data.keys():
     metadata_yaml_data["useAggMds"] = metadata_data["USE_AGG_MDS"]
   if "AGG_MDS_NAMESPACE" in metadata_data.keys():
-    metadata_yaml_data["addMdsNamespace"] = metadata_data["AGG_MDS_NAMESPACE"]
+    metadata_yaml_data["aggMdsNamespace"] = metadata_data["AGG_MDS_NAMESPACE"]
   if "AGG_MDS_DEFAULT_DATA_DICT_FIELD" in metadata_data.keys():
     metadata_yaml_data["aggMdsDefaultDataDictField"] = metadata_data["AGG_MDS_DEFAULT_DATA_DICT_FIELD"]
 
@@ -506,10 +497,32 @@ def translate_manifest(manifest_path):
   final_output = merge_service_section(final_output, hatchery_yaml_data, "hatchery")
   final_output = merge_service_section(final_output, dashboard_yaml_data, "dashboard")
 
+  account = subprocess.run("aws sts get-caller-identity | jq -r .Account", 
+                          shell=True, capture_output=True, text=True).stdout.strip("\n")
+  
+  vpc = subprocess.run("kubectl get configmaps global -ojsonpath='{ .data.environment }'",
+                        shell=True, capture_output=True, text=True).stdout.strip("\n")
+  
+  commons_name = get_commons_name()
+  new_commons_name = f"{commons_name}-helm"
+
   # Again, these are sloppy, but I'm feeling lazy. May burn us
   if "manifestservice" in final_output.keys():
     final_output["manifestservice"]["externalSecrets"] = {
       "manifestserviceG3auto": f"{commons_name}-manifestservice-g3auto"
+    }
+
+    final_output["manifestservice"]["serviceAccount"] = {
+      "annotations": {
+        "eks.amazonaws.com/role-arn": f"arn:aws:iam::{account}:role/{vpc}--{new_commons_name}--manifest-service-sa"
+      }
+    }
+
+  if "dashboard" in final_output.keys():
+    final_output["dashboard"]["serviceAccount"] = {
+      "annotations": {
+        "eks.amazonaws.com/role-arn": f"arn:aws:iam::{account}:role/{vpc}--{new_commons_name}--dashboard-access"
+      }
     }
   
   if "sower" in final_output.keys():
@@ -518,20 +531,39 @@ def translate_manifest(manifest_path):
       "sowerjobsG3auto": f"{commons_name}-sower-jobs-g3auto"  
     }
 
-  audit_dict = {
-    "auditG3auto": f"{commons_name}-audit-g3auto"
-  }
-
   if "audit" in final_output.keys():
-    final_output["audit"]["externalSecrets"] = audit_dict
+    final_output["audit"]["externalSecrets"] = {
+      "auditG3auto": f"{commons_name}-audit-g3auto"
+    }
+
+    final_output["audit"]["serviceAccount"] = {
+      "annotations": {
+        "eks.amazonaws.com/role-arn": f"arn:aws:iam::{account}:role/{vpc}--{new_commons_name}--audit-sqs-receiver"
+      }
+    }
   else:
     final_output["audit"] = {
-      "externalSecrets": audit_dict
+      "externalSecrets": {
+        "auditG3auto": f"{commons_name}-audit-g3auto"
+      },
+
+      "serviceAccount": {
+        "annotations": {
+          "eks.amazonaws.com/role-arn": f"arn:aws:iam::{account}:role/{vpc}--{new_commons_name}--audit-sqs-receiver"
+        }
+      }
+    }
+
+  if "ambassador" in final_output.keys():
+    final_output["ambassador"] = {
+      "jupyterNamespace": commons_name
     }
 
   if "wts" in final_output.keys():
     final_output["wts"]["externalSecrets"] = {
-      "wtsG3auto": f"{commons_name}-wts-g3auto"
+      "wtsG3auto": f"{commons_name}-wts-g3auto",
+      "wtsOidcClient": f"{commons_name}-wts-client-secret",
+      "createWtsOidcClientSecret": False
     }
 
   if "ssjdispatcher" in final_output.keys():
