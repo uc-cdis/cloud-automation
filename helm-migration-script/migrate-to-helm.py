@@ -279,7 +279,7 @@ def template_metadata_section(manifest_data, manifest_path):
   if "USE_AGG_MDS" in metadata_data.keys():
     metadata_yaml_data["useAggMds"] = metadata_data["USE_AGG_MDS"]
   if "AGG_MDS_NAMESPACE" in metadata_data.keys():
-    metadata_yaml_data["addMdsNamespace"] = metadata_data["AGG_MDS_NAMESPACE"]
+    metadata_yaml_data["aggMdsNamespace"] = metadata_data["AGG_MDS_NAMESPACE"]
   if "AGG_MDS_DEFAULT_DATA_DICT_FIELD" in metadata_data.keys():
     metadata_yaml_data["aggMdsDefaultDataDictField"] = metadata_data["AGG_MDS_DEFAULT_DATA_DICT_FIELD"]
 
@@ -554,9 +554,16 @@ def translate_manifest(manifest_path):
       }
     }
 
+  if "ambassador" in final_output.keys():
+    final_output["ambassador"] = {
+      "jupyterNamespace": commons_name
+    }
+
   if "wts" in final_output.keys():
     final_output["wts"]["externalSecrets"] = {
-      "wtsG3auto": f"{commons_name}-wts-g3auto"
+      "wtsG3auto": f"{commons_name}-wts-g3auto",
+      "wtsOidcClient": f"{commons_name}-wts-client-secret",
+      "createWtsOidcClientSecret": False
     }
 
   if "ssjdispatcher" in final_output.keys():
