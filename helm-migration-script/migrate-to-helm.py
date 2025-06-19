@@ -788,7 +788,7 @@ def process_g3auto_secrets(gen3_secrets_path: str):
 
   # Filter only directories
   directories = [item for item in all_items if os.path.isdir(os.path.join(G3AUTO_PATH, item))]
-  generic_g3auto_services = ["sower-jobs", "arborist", "metadata", "pelicanservice", "requestor", "wts", "cohort-middleware"]
+  generic_g3auto_services = ["access-backend", "gen3userdatalibrary", "sower-jobs", "arborist", "metadata", "pelicanservice", "requestor", "wts", "cohort-middleware"]
 
   for dir in directories:
     if dir in generic_g3auto_services:
