@@ -101,7 +101,6 @@ spec:
             subPath: "audit-service-config.yaml"
         resources:
           requests:
-            cpu: 100m
             memory: 100Mi
           limits:
             memory: 512Mi
@@ -121,7 +120,6 @@ spec:
               subPath: "audit-service-config.yaml"
           resources:
             limits:
-              cpu: 0.8
               memory: 512Mi
           command: ["/bin/sh"]
           args:
