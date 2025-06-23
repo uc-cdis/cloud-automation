@@ -317,6 +317,10 @@ if ! g3kubectl get configmaps/fence-sshconfig > /dev/null 2>&1; then
   g3kubectl create configmap fence-sshconfig --from-file=./apis_configs/.ssh/config
 fi
 
+if ! g3kubectl get configmaps/fence-knownhosts > /dev/null 2>&1; then
+  g3kubectl create configmap fence-knownhosts --from-file=./apis_configs/.ssh/known_hosts
+fi
+
 ##  update mailgun secret
 if ! g3kubectl get secrets/mailgun-creds > /dev/null 2>&1; then
   credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
