@@ -773,8 +773,22 @@ def translate_audit_service_secrets(g3auto_path: str):
   if os.path.exists(db_file_path):
     with open(db_file_path) as file:
       unedited_text = file.read()
-      upload_secret(f"{commons_name}-audit-creds", translate_creds_structure(unedited_text))  
+      upload_secret(f"{commons_name}-audit-creds", translate_creds_structure(unedited_text))
+
+def translate_access_backend_service_secrets(g3auto_path: str):
+  print("Processing access-backend secrets")
+  G3AUTO_SERVICE_PATH = os.path.join(g3auto_path, "access-backend")
+  commons_name = get_commons_name()
+
+  files = [file for file in os.listdir(G3AUTO_SERVICE_PATH) if os.path.isfile(os.path.join(G3AUTO_SERVICE_PATH, file))]  
+  g3auto_dict = {}
+
+  for file in files:
+    full_path = os.path.join(G3AUTO_SERVICE_PATH, file)
+    with open(full_path) as open_file:
+        g3auto_dict[file] = open_file.read()
   
+  upload_secret(f"{commons_name}-access-backend-g3auto", json.dumps(g3auto_dict))
 
 def process_g3auto_secrets(gen3_secrets_path: str):
   G3AUTO_PATH = os.path.join(gen3_secrets_path, "g3auto")
@@ -788,7 +802,7 @@ def process_g3auto_secrets(gen3_secrets_path: str):
 
   # Filter only directories
   directories = [item for item in all_items if os.path.isdir(os.path.join(G3AUTO_PATH, item))]
-  generic_g3auto_services = ["sower-jobs", "arborist", "metadata", "pelicanservice", "requestor", "wts", "cohort-middleware"]
+  generic_g3auto_services = ["gen3userdatalibrary", "sower-jobs", "arborist", "metadata", "pelicanservice", "requestor", "wts", "cohort-middleware"]
 
   for dir in directories:
     if dir in generic_g3auto_services:
@@ -797,6 +811,8 @@ def process_g3auto_secrets(gen3_secrets_path: str):
       translate_manifest_service_secrets(G3AUTO_PATH)
     elif dir == "audit":
       translate_audit_service_secrets(G3AUTO_PATH)
+    elif dir == "access-backend":      
+      translate_access_backend_service_secrets(G3AUTO_PATH)
     else:
       print(f"Don't know what to do with {dir}, so just skipping it.")
 
