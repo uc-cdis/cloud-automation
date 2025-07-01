@@ -917,7 +917,39 @@ def translate_creds_structure(creds_text: str):
 
   return return_text
 
+def print_warning():
+    """Print warning and disclaimer before running the migration script."""
+    warning_message = """
+⚠️  WARNING - CLOUD-AUTOMATION TO HELM MIGRATION SCRIPT ⚠️
+
+This script performs a BEST EFFORT migration of your current cloud-automation 
+deployment to Helm. Please be aware of the following:
+
+• This migration may not cover all edge cases or custom configurations
+• After migration, you MUST thoroughly test ALL Gen3 functionality
+• This script comes WITHOUT ANY GUARANTEES or warranties
+• Always backup your current deployment before proceeding
+• Review the generated Helm values carefully before deployment
+
+By continuing, you acknowledge that you understand these limitations and 
+accept full responsibility for testing and validating the migrated deployment.
+
+Do you want to proceed? (y/N): """
+    
+    print(warning_message)
+    
+    response = input().strip().lower()
+    if response not in ['y', 'yes']:
+        print("Migration cancelled by user.")
+        exit(0)
+    
+    print("\nProceeding with migration...\n")
+
 def main():
+  # Display warning and get user confirmation
+  print_warning()
+
+  
   parser = argparse.ArgumentParser(description='Process manifest data')
   parser.add_argument('--print', action='store_true', 
                       help='Set print flag to true')
