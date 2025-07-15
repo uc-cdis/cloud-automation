@@ -104,6 +104,7 @@ spec:
           httpGet:
             path: /_status
             port: 80
+          periodSeconds: 20
         resources:
           requests:
             memory: 200Mi
