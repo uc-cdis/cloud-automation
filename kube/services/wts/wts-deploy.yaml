@@ -97,7 +97,7 @@ spec:
             path: /_status
             port: 80
           initialDelaySeconds: 30
-          periodSeconds: 20
+          periodSeconds: 60
           timeoutSeconds: 30
           failureThreshold: 10
         readinessProbe:
