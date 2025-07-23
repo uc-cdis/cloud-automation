@@ -182,11 +182,12 @@ def generate_aws_config():
                               shell=True, capture_output=True, text=True).stdout.strip("\n")
   account = subprocess.run("aws sts get-caller-identity | jq -r .Account", 
                             shell=True, capture_output=True, text=True).stdout.strip("\n")
+  
+  commons_name = get_commons_name()
+  new_commons_name = f"{commons_name}-helm"
 
-  es_proxy_role_name = f"{vpc}--{namespace}--es-access"
-
-  return_dict["awsEsProxyRole"] = es_proxy_role_name
-  return_dict["hatchery_role"] = f"gen3_service/{vpc}--{namespace}--hatchery-sa"
+  return_dict["awsEsProxyRole"] = f"{vpc}--{new_commons_name}--es-access"
+  return_dict["hatchery_role"] = f"{vpc}--{new_commons_name}--hatchery-sa"
   return_dict["account"] = account
   return_dict["secretStoreServiceAccount"] = {
     "enabled": True,
@@ -258,24 +259,17 @@ def template_guppy_section(manifest_data, manifest_path):
 def template_aws_es_proxy_section():
     esproxy_yaml_data = {}
 
-    vpc = subprocess.run(
-        ["kubectl", "get", "configmaps", "global", "-ojsonpath={.data.environment}"],
-        capture_output=True, text=True
-    ).stdout.strip()
-
-    domain_name = f"{vpc}-gen3-metadata-2"
-
     result = subprocess.run(
-        [
-            "aws", "es", "describe-elasticsearch-domain",
-            "--domain-name", domain_name,
-            "--query", "DomainStatus.Endpoints",
-            "--output", "text"
-        ],
+        ["kubectl", "get", "deployment", "aws-es-proxy-deployment", "-o", "yaml"],
         capture_output=True, text=True
     )
 
-    esproxy_endpoint = result.stdout.strip()
+    result_dict = yaml.safe_load(result.stdout.strip())
+
+    if result_dict is not None:
+      esproxy_endpoint = result_dict["spec"]["template"]["spec"]["containers"][0]["env"][0]["value"]
+    else:
+      esproxy_endpoint = ""
 
     esproxy_yaml_data["esEndpoint"] = esproxy_endpoint
 
@@ -288,7 +282,7 @@ def template_metadata_section(manifest_data, manifest_path):
   if "USE_AGG_MDS" in metadata_data.keys():
     metadata_yaml_data["useAggMds"] = metadata_data["USE_AGG_MDS"]
   if "AGG_MDS_NAMESPACE" in metadata_data.keys():
-    metadata_yaml_data["addMdsNamespace"] = metadata_data["AGG_MDS_NAMESPACE"]
+    metadata_yaml_data["aggMdsNamespace"] = metadata_data["AGG_MDS_NAMESPACE"]
   if "AGG_MDS_DEFAULT_DATA_DICT_FIELD" in metadata_data.keys():
     metadata_yaml_data["aggMdsDefaultDataDictField"] = metadata_data["AGG_MDS_DEFAULT_DATA_DICT_FIELD"]
 
@@ -506,10 +500,32 @@ def translate_manifest(manifest_path):
   final_output = merge_service_section(final_output, hatchery_yaml_data, "hatchery")
   final_output = merge_service_section(final_output, dashboard_yaml_data, "dashboard")
 
+  account = subprocess.run("aws sts get-caller-identity | jq -r .Account", 
+                          shell=True, capture_output=True, text=True).stdout.strip("\n")
+  
+  vpc = subprocess.run("kubectl get configmaps global -ojsonpath='{ .data.environment }'",
+                        shell=True, capture_output=True, text=True).stdout.strip("\n")
+  
+  commons_name = get_commons_name()
+  new_commons_name = f"{commons_name}-helm"
+
   # Again, these are sloppy, but I'm feeling lazy. May burn us
   if "manifestservice" in final_output.keys():
     final_output["manifestservice"]["externalSecrets"] = {
       "manifestserviceG3auto": f"{commons_name}-manifestservice-g3auto"
+    }
+
+    final_output["manifestservice"]["serviceAccount"] = {
+      "annotations": {
+        "eks.amazonaws.com/role-arn": f"arn:aws:iam::{account}:role/{vpc}--{new_commons_name}--manifest-service-sa"
+      }
+    }
+
+  if "dashboard" in final_output.keys():
+    final_output["dashboard"]["serviceAccount"] = {
+      "annotations": {
+        "eks.amazonaws.com/role-arn": f"arn:aws:iam::{account}:role/{vpc}--{new_commons_name}--dashboard-access"
+      }
     }
   
   if "sower" in final_output.keys():
@@ -518,20 +534,39 @@ def translate_manifest(manifest_path):
       "sowerjobsG3auto": f"{commons_name}-sower-jobs-g3auto"  
     }
 
-  audit_dict = {
-    "auditG3auto": f"{commons_name}-audit-g3auto"
-  }
-
   if "audit" in final_output.keys():
-    final_output["audit"]["externalSecrets"] = audit_dict
+    final_output["audit"]["externalSecrets"] = {
+      "auditG3auto": f"{commons_name}-audit-g3auto"
+    }
+
+    final_output["audit"]["serviceAccount"] = {
+      "annotations": {
+        "eks.amazonaws.com/role-arn": f"arn:aws:iam::{account}:role/{vpc}--{new_commons_name}--audit-sqs-receiver"
+      }
+    }
   else:
     final_output["audit"] = {
-      "externalSecrets": audit_dict
+      "externalSecrets": {
+        "auditG3auto": f"{commons_name}-audit-g3auto"
+      },
+
+      "serviceAccount": {
+        "annotations": {
+          "eks.amazonaws.com/role-arn": f"arn:aws:iam::{account}:role/{vpc}--{new_commons_name}--audit-sqs-receiver"
+        }
+      }
+    }
+
+  if "ambassador" in final_output.keys():
+    final_output["ambassador"] = {
+      "jupyterNamespace": commons_name
     }
 
   if "wts" in final_output.keys():
     final_output["wts"]["externalSecrets"] = {
-      "wtsG3auto": f"{commons_name}-wts-g3auto"
+      "wtsG3auto": f"{commons_name}-wts-g3auto",
+      "wtsOidcClient": f"{commons_name}-wts-client-secret",
+      "createWtsOidcClientSecret": False
     }
 
   if "ssjdispatcher" in final_output.keys():
@@ -741,8 +776,22 @@ def translate_audit_service_secrets(g3auto_path: str):
   if os.path.exists(db_file_path):
     with open(db_file_path) as file:
       unedited_text = file.read()
-      upload_secret(f"{commons_name}-audit-creds", translate_creds_structure(unedited_text))  
+      upload_secret(f"{commons_name}-audit-creds", translate_creds_structure(unedited_text))
+
+def translate_access_backend_service_secrets(g3auto_path: str):
+  print("Processing access-backend secrets")
+  G3AUTO_SERVICE_PATH = os.path.join(g3auto_path, "access-backend")
+  commons_name = get_commons_name()
+
+  files = [file for file in os.listdir(G3AUTO_SERVICE_PATH) if os.path.isfile(os.path.join(G3AUTO_SERVICE_PATH, file))]  
+  g3auto_dict = {}
+
+  for file in files:
+    full_path = os.path.join(G3AUTO_SERVICE_PATH, file)
+    with open(full_path) as open_file:
+        g3auto_dict[file] = open_file.read()
   
+  upload_secret(f"{commons_name}-access-backend-g3auto", json.dumps(g3auto_dict))
 
 def process_g3auto_secrets(gen3_secrets_path: str):
   G3AUTO_PATH = os.path.join(gen3_secrets_path, "g3auto")
@@ -756,7 +805,7 @@ def process_g3auto_secrets(gen3_secrets_path: str):
 
   # Filter only directories
   directories = [item for item in all_items if os.path.isdir(os.path.join(G3AUTO_PATH, item))]
-  generic_g3auto_services = ["sower-jobs", "arborist", "metadata", "pelicanservice", "requestor", "wts", "cohort-middleware"]
+  generic_g3auto_services = ["gen3userdatalibrary", "sower-jobs", "arborist", "metadata", "pelicanservice", "requestor", "wts", "cohort-middleware"]
 
   for dir in directories:
     if dir in generic_g3auto_services:
@@ -765,6 +814,8 @@ def process_g3auto_secrets(gen3_secrets_path: str):
       translate_manifest_service_secrets(G3AUTO_PATH)
     elif dir == "audit":
       translate_audit_service_secrets(G3AUTO_PATH)
+    elif dir == "access-backend":      
+      translate_access_backend_service_secrets(G3AUTO_PATH)
     else:
       print(f"Don't know what to do with {dir}, so just skipping it.")
 
@@ -869,7 +920,39 @@ def translate_creds_structure(creds_text: str):
 
   return return_text
 
+def print_warning():
+    """Print warning and disclaimer before running the migration script."""
+    warning_message = """
+⚠️  WARNING - CLOUD-AUTOMATION TO HELM MIGRATION SCRIPT ⚠️
+
+This script performs a BEST EFFORT migration of your current cloud-automation 
+deployment to Helm. Please be aware of the following:
+
+• This migration may not cover all edge cases or custom configurations
+• After migration, you MUST thoroughly test ALL Gen3 functionality
+• This script comes WITHOUT ANY GUARANTEES or warranties
+• Always backup your current deployment before proceeding
+• Review the generated Helm values carefully before deployment
+
+By continuing, you acknowledge that you understand these limitations and 
+accept full responsibility for testing and validating the migrated deployment.
+
+Do you want to proceed? (y/N): """
+    
+    print(warning_message)
+    
+    response = input().strip().lower()
+    if response not in ['y', 'yes']:
+        print("Migration cancelled by user.")
+        exit(0)
+    
+    print("\nProceeding with migration...\n")
+
 def main():
+  # Display warning and get user confirmation
+  print_warning()
+
+  
   parser = argparse.ArgumentParser(description='Process manifest data')
   parser.add_argument('--print', action='store_true', 
                       help='Set print flag to true')
