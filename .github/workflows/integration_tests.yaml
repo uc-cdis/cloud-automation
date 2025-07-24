@@ -9,6 +9,7 @@ jobs:
     with:
       QUAY_REPO: "awshelper"
       CLOUD_AUTO_BRANCH: ${{ github.event.pull_request.head.ref }}
+      GEN3_INSTANCE_TYPE: ADMINVM_REMOTE
     secrets:
       CI_AWS_ACCESS_KEY_ID: ${{ secrets.CI_AWS_ACCESS_KEY_ID }}
       CI_AWS_SECRET_ACCESS_KEY: ${{ secrets.CI_AWS_SECRET_ACCESS_KEY }}
