@@ -408,4 +408,4 @@ function main(){
   done
 }
 
-#main
+main
