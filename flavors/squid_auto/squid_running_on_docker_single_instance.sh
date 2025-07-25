@@ -33,7 +33,7 @@ cp ${SUB_FOLDER}/files/authorized_keys/squid_authorized_keys_admin ${HOME_FOLDER
 
 
 ###############################################################
-# get any variables we want coming from terraform variables 
+# get any variables we want coming from terraform variables
 ###############################################################
 if [ $# -eq 0 ];
 then
@@ -81,7 +81,7 @@ function install_docker(){
     apt install -y docker-ce
   else
     sudo yum update -y
-    sudo yum install -y docker   
+    sudo yum install -y docker
     # Start and enable Docker service
     sudo systemctl start docker
     sudo systemctl enable docker
@@ -107,7 +107,7 @@ function set_squid_config(){
   cp ${SUB_FOLDER}/flavors/squid_auto/startup_configs/mime.conf ${SQUID_CONFIG_DIR}/mime.conf
 
   #####################
-  # for HTTPS 
+  # for HTTPS
   #####################
   openssl genrsa -out ${SQUID_CONFIG_DIR}/ssl/squid.key 2048
   openssl req -new -key ${SQUID_CONFIG_DIR}/ssl/squid.key -out ${SQUID_CONFIG_DIR}/ssl/squid.csr -subj '/C=XX/ST=XX/L=squid/O=squid/CN=squid'
@@ -122,14 +122,14 @@ function set_squid_config(){
 function configure_iptables(){
 
   ###############################################################
-  # firewall or basically iptables 
+  # firewall or basically iptables
   ###############################################################
   cp ${SUB_FOLDER}/flavors/squid_auto/startup_configs/iptables-docker.conf /etc/iptables.conf
   cp ${SUB_FOLDER}/flavors/squid_auto/startup_configs/iptables-rules /etc/network/if-up.d/iptables-rules
-  
+
   chown root: /etc/network/if-up.d/iptables-rules
   chmod 0755 /etc/network/if-up.d/iptables-rules
-  
+
   ## Enable iptables for NAT. We need this so that the proxy can be used transparently
   iptables-restore < /etc/iptables.conf
 }
@@ -141,7 +141,7 @@ function set_boot_configuration(){
   ###############################################################
   #cp /etc/rc.local /etc/rc.local.bak
   #sed -i 's/^exit/#exit/' /etc/rc.local
-  
+
   cat > /etc/squid_boot.sh <<EOF
 #!/bin/bash
 if [ -f /var/run/squid/squid.pid ];
@@ -160,7 +160,7 @@ fi
 
 iptables -t nat -A PREROUTING ! -i docker0 -p tcp -m tcp --dport 80 -j REDIRECT --to-ports 3129
 iptables -t nat -A PREROUTING ! -i docker0 -p tcp -m tcp --dport 443 -j REDIRECT --to-ports 3130
-  
+
 $(command -v docker) run --name squid --network=host -d \
     --volume ${SQUID_LOGS_DIR}:${SQUID_LOGS_DIR} \
     --volume ${SQUID_PID_DIR}:${SQUID_PID_DIR} \
@@ -168,7 +168,7 @@ $(command -v docker) run --name squid --network=host -d \
     --volume ${SQUID_CONFIG_DIR}:${SQUID_CONFIG_DIR}:ro \
     quay.io/cdis/squid:${SQUID_IMAGE_TAG}
 exit 0
-  
+
 EOF
 
   # create the service to work onlu on boot with ExecStart
@@ -185,12 +185,12 @@ EOF
 
   chmod +x /etc/systemd/system/squid_boot.service
   systemctl enable squid_boot
-  
-  # Copy the updatewhitelist.sh script to the home directory 
+
+  # Copy the updatewhitelist.sh script to the home directory
   cp  ${SUB_FOLDER}/flavors/squid_auto/updatewhitelist-docker.sh ${HOME_FOLDER}/updatewhitelist.sh
   chmod +x ${HOME_FOLDER}/updatewhitelist.sh
   cp  ${SUB_FOLDER}/flavors/squid_auto/healthcheck.sh ${HOME_FOLDER}/healthcheck.sh
-  chmod +x ${HOME_FOLDER}/healthcheck.sh  
+  chmod +x ${HOME_FOLDER}/healthcheck.sh
 
   crontab -l > crontab_file; echo "*/15 * * * * ${HOME_FOLDER}/updatewhitelist.sh >/dev/null 2>&1" >> crontab_file
   echo "*/1 * * * * ${HOME_FOLDER}/healthcheck.sh >/dev/null 2>&1" >> crontab_file
@@ -219,12 +219,12 @@ function install_awslogs {
   elif [[ $DISTRO == "al2023" ]]; then
     sudo dnf install amazon-cloudwatch-agent -y
   fi
-  
+
   # Configure the AWS logs
-  
+
   instance_ip=$(ip route get 1.1.1.1 | grep -oP 'src \K\S+')
   IFS=. read ip1 ip2 ip3 ip4 <<< "$instance_ip"
-  
+
   cat >> /opt/aws/amazon-cloudwatch-agent/bin/config.json <<EOF
 {
         "agent": {
@@ -302,42 +302,72 @@ function configure_routing_and_dns() {
       --query 'RouteTables[0].RouteTableId' --output text)
 
     if [[ "$ROUTE_TABLE_ID" != "None" && "$ROUTE_TABLE_ID" != "null" ]]; then
-      echo "Adding route to $ROUTE_TABLE_ID via $NETWORK_INTERFACE_ID"
-      aws ec2 create-route \
-        --route-table-id "$ROUTE_TABLE_ID" \
-        --destination-cidr-block "0.0.0.0/0" \
-        --network-interface-id "$NETWORK_INTERFACE_ID" \
-        --region "$REGION" || echo "Route may already exist or failed"
+      echo "Checking route in $RT_NAME ($ROUTE_TABLE_ID)..."
+      EXISTING_ROUTE=$(aws ec2 describe-route-tables \
+        --route-table-ids "$ROUTE_TABLE_ID" \
+        --region "$REGION" \
+        --query "RouteTables[0].Routes[?DestinationCidrBlock=='0.0.0.0/0'].NetworkInterfaceId" \
+        --output text)
+
+      if [[ "$EXISTING_ROUTE" == "$NETWORK_INTERFACE_ID" ]]; then
+        echo "Route for 0.0.0.0/0 already exists in $RT_NAME and points to this ENI"
+      else
+        echo "Creating/updating route for 0.0.0.0/0 → $NETWORK_INTERFACE_ID in $RT_NAME"
+        aws ec2 replace-route \
+          --route-table-id "$ROUTE_TABLE_ID" \
+          --destination-cidr-block "0.0.0.0/0" \
+          --network-interface-id "$NETWORK_INTERFACE_ID" \
+          --region "$REGION" || {
+            echo "Route not found for replace, trying to create"
+            aws ec2 create-route \
+              --route-table-id "$ROUTE_TABLE_ID" \
+              --destination-cidr-block "0.0.0.0/0" \
+              --network-interface-id "$NETWORK_INTERFACE_ID" \
+              --region "$REGION" || echo "Route may already exist or failed"
+          }
+      fi
     else
       echo "Could not find route table named $RT_NAME in VPC $VPC_ID"
     fi
   done
 
-  ZONE_ID=$(aws route53 list-hosted-zones-by-name \
-    --dns-name "internal.io" \
-    --query "HostedZones[?Config.PrivateZone == \`true\` && Name == 'internal.io.'].Id" \
-    --output text | cut -d'/' -f3)
+  ZONE_ID=$(aws route53 list-hosted-zones-by-vpc \
+    --vpc-id "$VPC_ID" \
+    --vpc-region "$REGION" \
+    --query "HostedZoneSummaries[?Name == 'internal.io.'].HostedZoneId" \
+    --output text)
+
 
   if [[ -z "$ZONE_ID" ]]; then
     echo "No private hosted zone for internal.io found in Route53"
     return 1
   fi
 
-  echo "Upserting DNS record cloud-proxy.internal.io → $PRIVATE_IP in zone $ZONE_ID"
-  aws route53 change-resource-record-sets \
+  echo "Checking existing Route53 record for cloud-proxy.internal.io..."
+  EXISTING_IP=$(aws route53 list-resource-record-sets \
     --hosted-zone-id "$ZONE_ID" \
-    --change-batch "{
-      \"Comment\": \"Add cloud-proxy.internal.io A record\",
-      \"Changes\": [{
-        \"Action\": \"UPSERT\",
-        \"ResourceRecordSet\": {
-          \"Name\": \"cloud-proxy.internal.io\",
-          \"Type\": \"A\",
-          \"TTL\": 60,
-          \"ResourceRecords\": [{\"Value\": \"$PRIVATE_IP\"}]
-        }
-      }]
-    }" --region "$REGION"
+    --query "ResourceRecordSets[?Name == 'cloud-proxy.internal.io.'] | [?Type == 'A'].ResourceRecords[0].Value" \
+    --output text)
+
+  if [[ "$EXISTING_IP" == "$PRIVATE_IP" ]]; then
+    echo "DNS record already points to $PRIVATE_IP"
+  else
+    echo "Upserting DNS record cloud-proxy.internal.io → $PRIVATE_IP in zone $ZONE_ID"
+    aws route53 change-resource-record-sets \
+      --hosted-zone-id "$ZONE_ID" \
+      --change-batch "{
+        \"Comment\": \"Ensure cloud-proxy.internal.io A record exists\",
+        \"Changes\": [{
+          \"Action\": \"UPSERT\",
+          \"ResourceRecordSet\": {
+            \"Name\": \"cloud-proxy.internal.io\",
+            \"Type\": \"A\",
+            \"TTL\": 60,
+            \"ResourceRecords\": [{\"Value\": \"$PRIVATE_IP\"}]
+          }
+        }]
+      }" --region "$REGION"
+  fi
 }
 
 
@@ -378,4 +408,4 @@ function main(){
   done
 }
 
-main
+#main
