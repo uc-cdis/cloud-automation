@@ -1,3 +1,5 @@
+# TODO update doc below once this is finalized:
+# https://github.com/uc-cdis/gen3-workflow/blob/master/docs/gen3-deployment.md
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
@@ -17,6 +19,7 @@ setup_funnel_infra() {
     kubectl create namespace $jobsNamespace || true
 
     # TODO: create fence OIDC client and set ID+secret
+    # TODO: update the config to latest working version
     cat - > "$secretsFolder/funnel.conf" <<EOM
 image:
   repository: quay.io/ohsu-comp-bio/funnel  # TODO can we remove 'repository'&'tag'?
@@ -88,6 +91,7 @@ setup_gen3_workflow_infra() {
       "Effect": "Allow",
       "Action": [
         "s3:CreateBucket",
+        "s3:GetBucketLocation",
         "s3:DeleteBucket",
         "s3:ListBucket",
         "s3:GetObject",
@@ -95,6 +99,7 @@ setup_gen3_workflow_infra() {
         "s3:DeleteObject",
         "s3:PutEncryptionConfiguration",
         "s3:PutBucketPolicy",
+        "s3:DeleteBucketPolicy",
         "s3:PutLifecycleConfiguration"
       ],
       "Resource": [
@@ -110,7 +115,8 @@ setup_gen3_workflow_infra() {
           "kms:GenerateDataKey",
           "kms:CreateAlias",
           "kms:DescribeKey",
-          "kms:TagResource"
+          "kms:TagResource",
+          "kms:Decrypt"
       ],
       "Resource": "*"
     }
