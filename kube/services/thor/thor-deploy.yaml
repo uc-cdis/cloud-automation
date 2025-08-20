@@ -111,4 +111,4 @@ spec:
           args:
             - "-c"
             - |
-              /env/bin/python /src/src/thor/create_all_tables.py
+              poetry run python /src/src/thor/create_all_tables.py
