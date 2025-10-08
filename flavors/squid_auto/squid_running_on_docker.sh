@@ -129,6 +129,23 @@ function configure_iptables(){
   
   chown root: /etc/network/if-up.d/iptables-rules
   chmod 0755 /etc/network/if-up.d/iptables-rules
+
+  # Check if OS is Amazon Linux 2023
+  if grep -q "Amazon Linux 2023" /etc/os-release; then
+      echo "OS is Amazon Linux 2023."
+
+      # Check if firewalld is installed
+      if systemctl list-units --type=service | grep -q firewalld; then
+          echo "Disabling and stopping firewalld..."
+          sudo systemctl disable firewalld --now
+          echo "firewalld has been disabled and stopped."
+      else
+          echo "firewalld service not found."
+      fi
+  else
+      echo "This system is not running Amazon Linux 2023."
+  fi
+
   
   ## Enable iptables for NAT. We need this so that the proxy can be used transparently
   iptables-restore < /etc/iptables.conf
