@@ -87,6 +87,7 @@ grafana.com
 grafana.github.io
 helm.elastic.co
 helm.localstack.cloud
+helm.cilium.io
 http.us.debian.org
 ifconfig.io
 ingress.coralogix.us

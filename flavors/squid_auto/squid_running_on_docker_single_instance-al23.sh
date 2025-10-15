@@ -15,8 +15,47 @@ fi
 HOME_FOLDER="/home/${WORK_USER}"
 SUB_FOLDER="${HOME_FOLDER}/cloud-automation"
 MAGIC_URL="http://169.254.169.254/latest/meta-data/"
-AVAILABILITY_ZONE=$(curl http://169.254.169.254/latest/meta-data/placement/availability-zone -s)
-REGION=$(echo ${AVAILABILITY_ZONE::-1})
+get_imds_token() {
+  curl -sS -X PUT "http://169.254.169.254/latest/api/token" \
+       -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"
+}
+
+imds() {
+  # $1 = path under /latest/
+  local token="${IMDS_TOKEN:-}"
+  if [[ -z "$token" ]]; then
+    token=$(get_imds_token || true)
+    IMDS_TOKEN="$token"
+  fi
+  if [[ -n "$token" ]]; then
+    curl -sS -H "X-aws-ec2-metadata-token: $token" "http://169.254.169.254/latest/$1"
+  else
+    # Fallback if IMDSv1 is allowed (won't work if IMDSv2 is enforced)
+    curl -sS "http://169.254.169.254/latest/$1"
+  fi
+}
+
+# Prefer the instance-identity document for region & AZ (robust, single JSON fetch)
+IID_JSON="$(imds dynamic/instance-identity/document)"
+REGION="$(echo "$IID_JSON" | jq -r '.region // empty')"
+AVAILABILITY_ZONE="$(echo "$IID_JSON" | jq -r '.availabilityZone // empty')"
+
+# Fallbacks if somehow missing
+if [[ -z "$REGION" ]]; then
+  # Try metadata placement endpoint (with token)
+  AVAILABILITY_ZONE="$(imds meta-data/placement/availability-zone || true)"
+  [[ -n "$AVAILABILITY_ZONE" ]] && REGION="${AVAILABILITY_ZONE%[a-z]}"
+fi
+
+# As a last resort, let env or AWS CLI config provide region
+if [[ -z "$REGION" ]]; then
+  REGION="${AWS_REGION:-${AWS_DEFAULT_REGION:-}}"
+fi
+
+if [[ -z "$REGION" ]]; then
+  echo "FATAL: could not determine AWS region from IMDSv2 / environment."
+  exit 1
+fi
 DOCKER_DOWNLOAD_URL="https://download.docker.com/linux/ubuntu"
 AWSLOGS_DOWNLOAD_URL="https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb"
 SQUID_CONFIG_DIR="/etc/squid"
@@ -81,7 +120,7 @@ function install_docker(){
     apt install -y docker-ce
   else
     sudo yum update -y
-    sudo yum install -y docker jq
+    sudo yum install -y docker
     # Start and enable Docker service
     sudo systemctl start docker
     sudo systemctl enable docker
@@ -285,89 +324,132 @@ function set_user() {
   chown -R ${username}. /home/${username}
 }
 
-function configure_routing_and_dns() {
-  echo "Configuring routing and DNS..."
+configure_routing_and_dns() {
+  set -euo pipefail
 
-  INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
-  INSTANCE_JSON=$(aws ec2 describe-instances --instance-ids "$INSTANCE_ID" --region "$REGION" --output json)
-
-  NETWORK_INTERFACE_ID=$(echo "$INSTANCE_JSON" | jq -r '.Reservations[0].Instances[0].NetworkInterfaces[0].NetworkInterfaceId')
-  VPC_ID=$(echo "$INSTANCE_JSON" | jq -r '.Reservations[0].Instances[0].VpcId')
-  PRIVATE_IP=$(echo "$INSTANCE_JSON" | jq -r '.Reservations[0].Instances[0].PrivateIpAddress')
-
-  for RT_NAME in private_kube eks_private; do
-    ROUTE_TABLE_ID=$(aws ec2 describe-route-tables \
-      --filters "Name=vpc-id,Values=$VPC_ID" "Name=tag:Name,Values=$RT_NAME" \
-      --region "$REGION" \
-      --query 'RouteTables[0].RouteTableId' --output text)
-
-    if [[ "$ROUTE_TABLE_ID" != "None" && "$ROUTE_TABLE_ID" != "null" ]]; then
-      echo "Checking route in $RT_NAME ($ROUTE_TABLE_ID)..."
-      EXISTING_ROUTE=$(aws ec2 describe-route-tables \
-        --route-table-ids "$ROUTE_TABLE_ID" \
-        --region "$REGION" \
-        --query "RouteTables[0].Routes[?DestinationCidrBlock=='0.0.0.0/0'].NetworkInterfaceId" \
-        --output text)
-
-      if [[ "$EXISTING_ROUTE" == "$NETWORK_INTERFACE_ID" ]]; then
-        echo "Route for 0.0.0.0/0 already exists in $RT_NAME and points to this ENI"
-      else
-        echo "Creating/updating route for 0.0.0.0/0 → $NETWORK_INTERFACE_ID in $RT_NAME"
-        aws ec2 replace-route \
-          --route-table-id "$ROUTE_TABLE_ID" \
-          --destination-cidr-block "0.0.0.0/0" \
-          --network-interface-id "$NETWORK_INTERFACE_ID" \
-          --region "$REGION" || {
-            echo "Route not found for replace, trying to create"
-            aws ec2 create-route \
-              --route-table-id "$ROUTE_TABLE_ID" \
-              --destination-cidr-block "0.0.0.0/0" \
-              --network-interface-id "$NETWORK_INTERFACE_ID" \
-              --region "$REGION" || echo "Route may already exist or failed"
-          }
-      fi
-    else
-      echo "Could not find route table named $RT_NAME in VPC $VPC_ID"
+  # --- IMDSv2 helpers ---
+  get_imds_token() {
+    curl -sS -X PUT "http://169.254.169.254/latest/api/token" \
+         -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"
+  }
+  imds() {
+    local path="$1"
+    if [[ -z "${IMDS_TOKEN:-}" ]]; then
+      IMDS_TOKEN="$(get_imds_token || true)"
     fi
-  done
+    if [[ -n "${IMDS_TOKEN:-}" ]]; then
+      curl -sS -H "X-aws-ec2-metadata-token: $IMDS_TOKEN" \
+           "http://169.254.169.254/latest/${path}"
+    else
+      # Fallback if IMDSv1 is allowed (may be disabled by policy)
+      curl -sS "http://169.254.169.254/latest/${path}"
+    fi
+  }
 
-  ZONE_ID=$(aws route53 list-hosted-zones-by-vpc \
-    --vpc-id "$VPC_ID" \
-    --vpc-region "$REGION" \
-    --query "HostedZoneSummaries[?Name == 'internal.io.'].HostedZoneId" \
-    --output text)
+  # --- Gather identity & networking from IMDS (robust & fast) ---
+  IID_JSON="$(imds dynamic/instance-identity/document)"
+  REGION="$(echo "$IID_JSON" | jq -r '.region')"
+  AVAILABILITY_ZONE="$(echo "$IID_JSON" | jq -r '.availabilityZone')"
+  INSTANCE_ID="$(echo "$IID_JSON" | jq -r '.instanceId')"
 
+  # Primary interface info
+  MAC="$(imds meta-data/network/interfaces/macs/ | awk 'NR==1{print substr($0,1,length($0)-1)}')"
+  if [[ -z "$MAC" ]]; then
+    echo "FATAL: could not read primary interface MAC from IMDS." >&2
+    return 1
+  fi
+  VPC_ID="$(imds meta-data/network/interfaces/macs/$MAC/vpc-id || true)"
+  NETWORK_INTERFACE_ID="$(imds meta-data/network/interfaces/macs/$MAC/interface-id || true)"
+  PRIVATE_IP="$(imds meta-data/network/interfaces/macs/$MAC/local-ipv4s | awk 'NR==1' || true)"
 
-  if [[ -z "$ZONE_ID" ]]; then
-    echo "No private hosted zone for internal.io found in Route53"
+  if [[ -z "$REGION" || -z "$VPC_ID" || -z "$NETWORK_INTERFACE_ID" || -z "$PRIVATE_IP" ]]; then
+    echo "FATAL: missing required IMDS values:
+      REGION='$REGION'
+      VPC_ID='$VPC_ID'
+      ENI='$NETWORK_INTERFACE_ID'
+      PRIVATE_IP='$PRIVATE_IP'" >&2
     return 1
   fi
 
-  echo "Checking existing Route53 record for cloud-proxy.internal.io..."
-  EXISTING_IP=$(aws route53 list-resource-record-sets \
-    --hosted-zone-id "$ZONE_ID" \
-    --query "ResourceRecordSets[?Name == 'cloud-proxy.internal.io.'] | [?Type == 'A'].ResourceRecords[0].Value" \
-    --output text)
+  echo "Using REGION=$REGION VPC_ID=$VPC_ID ENI=$NETWORK_INTERFACE_ID INSTANCE_ID=$INSTANCE_ID PRIVATE_IP=$PRIVATE_IP"
 
-  if [[ "$EXISTING_IP" == "$PRIVATE_IP" ]]; then
-    echo "DNS record already points to $PRIVATE_IP"
-  else
-    echo "Upserting DNS record cloud-proxy.internal.io → $PRIVATE_IP in zone $ZONE_ID"
-    aws route53 change-resource-record-sets \
+  # --- Upsert default route in the target route tables ---
+  for RT_NAME in private_kube eks_private; do
+    RT_ID="$(aws ec2 describe-route-tables \
+      --region "$REGION" \
+      --filters "Name=vpc-id,Values=$VPC_ID" "Name=tag:Name,Values=$RT_NAME" \
+      --query 'RouteTables[0].RouteTableId' --output text 2>/dev/null || true)"
+
+    if [[ -z "$RT_ID" || "$RT_ID" == "None" || "$RT_ID" == "null" ]]; then
+      echo "Could not find route table named '$RT_NAME' in VPC $VPC_ID"
+      continue
+    fi
+
+    echo "Checking route in $RT_NAME ($RT_ID)…"
+    EXISTING_ENI="$(aws ec2 describe-route-tables \
+      --region "$REGION" --route-table-ids "$RT_ID" \
+      --query "RouteTables[0].Routes[?DestinationCidrBlock=='0.0.0.0/0'].NetworkInterfaceId" \
+      --output text)"
+
+    if [[ "$EXISTING_ENI" == "$NETWORK_INTERFACE_ID" ]]; then
+      echo "0.0.0.0/0 already points to this ENI on $RT_NAME"
+    else
+      # Try replace first; if no route exists, create it
+      if ! aws ec2 replace-route \
+            --region "$REGION" \
+            --route-table-id "$RT_ID" \
+            --destination-cidr-block "0.0.0.0/0" \
+            --network-interface-id "$NETWORK_INTERFACE_ID" 2>/dev/null; then
+        echo "Route not found, creating on $RT_NAME"
+        aws ec2 create-route \
+          --region "$REGION" \
+          --route-table-id "$RT_ID" \
+          --destination-cidr-block "0.0.0.0/0" \
+          --network-interface-id "$NETWORK_INTERFACE_ID"
+      fi
+      echo "Upserted 0.0.0.0/0 → $NETWORK_INTERFACE_ID on $RT_NAME"
+    fi
+  done
+
+  # --- Route53 zone discovery (prefer by-VPC, fallback by name) ---
+  ZONE_NAME="internal.io."
+  ZONE_ID="$(aws route53 list-hosted-zones-by-vpc \
+    --vpc-id "$VPC_ID" --vpc-region "$REGION" \
+    --query "HostedZoneSummaries[?Name == '$ZONE_NAME'].HostedZoneId" \
+    --output text 2>/dev/null || true)"
+
+  if [[ -z "$ZONE_ID" || "$ZONE_ID" == "None" || "$ZONE_ID" == "null" ]]; then
+    # Fallback: find the zone by name in this account
+    ZONE_ID="$(aws route53 list-hosted-zones \
+      --query "HostedZones[?Name == '$ZONE_NAME' && Config.PrivateZone == \`true\`].Id" \
+      --output text 2>/dev/null | sed 's#/hostedzone/##' || true)"
+    if [[ -z "$ZONE_ID" ]]; then
+      echo "No private hosted zone named ${ZONE_NAME%?} found in account (and none associated with VPC $VPC_ID)."
+      return 0
+    fi
+    # Optional: ensure association so lookups work from this VPC
+    echo "Associating VPC $VPC_ID with hosted zone $ZONE_ID (if not already)…"
+    aws route53 associate-vpc-with-hosted-zone \
       --hosted-zone-id "$ZONE_ID" \
-      --change-batch "{
-        \"Comment\": \"Ensure cloud-proxy.internal.io A record exists\",
-        \"Changes\": [{
-          \"Action\": \"UPSERT\",
-          \"ResourceRecordSet\": {
-            \"Name\": \"cloud-proxy.internal.io\",
-            \"Type\": \"A\",
-            \"TTL\": 60,
-            \"ResourceRecords\": [{\"Value\": \"$PRIVATE_IP\"}]
-          }
-        }]
-      }" --region "$REGION"
+      --vpc "VPCRegion=$REGION,VPCId=$VPC_ID" \
+      --comment "Ensure association for $ZONE_NAME" >/dev/null 2>&1 || true
   fi
+
+  echo "Upserting A record cloud-proxy.internal.io → $PRIVATE_IP in zone $ZONE_ID"
+  aws route53 change-resource-record-sets \
+    --hosted-zone-id "$ZONE_ID" \
+    --change-batch "{
+      \"Comment\": \"Ensure cloud-proxy.internal.io A record exists\",
+      \"Changes\": [{
+        \"Action\": \"UPSERT\",
+        \"ResourceRecordSet\": {
+          \"Name\": \"cloud-proxy.internal.io\",
+          \"Type\": \"A\",
+          \"TTL\": 60,
+          \"ResourceRecords\": [{\"Value\": \"$PRIVATE_IP\"}]
+        }
+      }]
+    }"
 }
 
 
