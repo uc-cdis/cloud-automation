@@ -5,7 +5,7 @@
 #
 # 0   9   *   *   1-5    (if [ -f $HOME/cloud-automation/files/scripts/tfplan-cronjob.sh ]; then bash $HOME/cloud-automation/files/scripts/tfplan-cronjob.sh; else echo "no qa-cronjob.sh"; fi) > $HOME/tfplan-cronjob.log 2>&1
 
-set -i
+# set -i
 
 if ! [[ -d "$HOME/cloud-automation" && -d "$HOME/cdis-manifest" ]]; then
   echo "ERROR: this does not look like a commons environment"
@@ -30,5 +30,5 @@ fi
 
 
 source "${GEN3_HOME}/gen3/gen3setup.sh"
-gen3 gitops tfplan vpc $1
-gen3 gitops tfplan eks $1
+gen3 gitops tfplan vpc $@
+gen3 gitops tfplan eks $@

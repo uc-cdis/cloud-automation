@@ -1,0 +1,116 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: fence-cleanup-expired-ga4gh-info
+spec:
+  schedule: "*/5 * * * *"
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app: gen3job
+        spec:
+          affinity:
+            nodeAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+              - weight: 100
+                preference:
+                  matchExpressions:
+                  - key: karpenter.sh/capacity-type
+                    operator: In
+                    values:
+                    - on-demand
+              - weight: 99
+                preference:
+                  matchExpressions:
+                  - key: eks.amazonaws.com/capacityType
+                    operator: In
+                    values:
+                    - ONDEMAND
+          serviceAccountName: useryaml-job
+          volumes:
+            - name: yaml-merge
+              configMap:
+                name: "fence-yaml-merge"
+            - name: config-volume
+              secret:
+                secretName: "fence-config"
+            - name: shared-data
+              emptyDir: {}
+          initContainers:
+          - name: fence
+            GEN3_FENCE_IMAGE
+            imagePullPolicy: Always
+            env:
+              - name: PYTHONPATH
+                value: /var/www/fence
+              - name: FENCE_PUBLIC_CONFIG
+                valueFrom:
+                  configMapKeyRef:
+                    name: manifest-fence
+                    key: fence-config-public.yaml
+                    optional: true
+            volumeMounts:
+              - name: "config-volume"
+                readOnly: true
+                mountPath: "/var/www/fence/fence-config-secret.yaml"
+                subPath: fence-config.yaml
+              - name: "yaml-merge"
+                readOnly: true
+                mountPath: "/var/www/fence/yaml_merge.py"
+                subPath: yaml_merge.py
+              - name: shared-data
+                mountPath: /mnt/shared
+            command: ["/bin/bash"]
+            args:
+              - "-c"
+              - |
+                echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
+                python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
+                echo 'options use-vc' >> /etc/resolv.conf
+                fence-create cleanup-expired-ga4gh-information
+                if [[ $? != 0 ]]; then
+                  echo "WARNING: non zero exit code: $?"
+                else
+                  touch /mnt/shared/success
+                fi
+          containers:
+          - name: awshelper
+            env:
+              - name: slackWebHook
+                valueFrom:
+                    configMapKeyRef:
+                      name: global
+                      key: slack_webhook
+              - name: gen3Env
+                valueFrom:
+                    configMapKeyRef:
+                      name: manifest-global
+                      key: hostname
+            GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
+            volumeMounts:
+              - name: shared-data
+                mountPath: /mnt/shared
+            command: ["/bin/bash"]
+            args:
+              - "-c"
+              - |
+                if [[ ! "$slackWebHook" =~ ^http ]]; then
+                  echo "Slack webhook not set"
+                  exit 0
+                fi
+                if ! [ -f /mnt/shared/success ]; then
+                  curl -X POST --data-urlencode "payload={\"text\": \"JOBFAIL: fence-cleanup-expired-ga4gh-info failed for ${gen3Env} \"}" "${slackWebHook}"
+                else
+                  HOUR=$(TZ='America/Chicago' date "+%H")
+                  if [ ${HOUR} -eq 09 ]; then
+                    curl -X POST --data-urlencode "payload={\"text\": \"AWSHelper: fence-cleanup-expired-ga4gh-info succeeded for ${gen3Env} \"}" "${slackWebHook}"
+                  fi
+                fi
+          restartPolicy: Never

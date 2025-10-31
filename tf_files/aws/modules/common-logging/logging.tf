@@ -3,9 +3,8 @@
 
 resource "aws_s3_bucket" "common_logging_bucket" {
   bucket = "${var.common_name}-logging"
-  acl    = "private"
 
-  tags {
+  tags = {
     Environment  = "${var.common_name}"
     Organization = "Basic Service"
   }
@@ -38,9 +37,9 @@ resource "aws_s3_bucket" "common_logging_bucket" {
       storage_class = "GLACIER"
     }
 
-    #Logs are being sent over to CSOC, there is no need to keep 5 years worth of logs on both account
+    #Logs are being sent over to CSOC, there is no need to keep 6 years worth of logs on both account
     expiration {
-      days = 1827
+      days = 2190
     }
   }
 }
@@ -61,7 +60,7 @@ resource "aws_kinesis_stream" "common_stream" {
   name        = "${var.common_name}_stream"
   shard_count = 1
 
-  tags {
+  tags = {
     Environment  = "${var.common_name}"
     Organization = "Basic Service"
   }
@@ -232,11 +231,11 @@ resource "aws_iam_role_policy" "firehose_policy" {
 
 resource "aws_cloudwatch_log_group" "csoc_common_log_group" {
   name = "${var.common_name}"
-  tags {
+  tags = {
     Environment = "${var.common_name}"
     Organization = "Basic Services"
   }
-  retention_in_days = 1827
+  retention_in_days = 2192
 }
 
 resource "aws_cloudwatch_log_stream" "firehose_to_ES" {
@@ -319,7 +318,7 @@ resource "aws_iam_role" "lambda_role" {
 EOF
 }
 
-data "aws_iam_policy_document" "lamda_policy_document" {
+data "aws_iam_policy_document" "lambda_policy_document" {
   statement {
     actions = [
       "logs:*",
@@ -357,7 +356,7 @@ data "aws_iam_policy_document" "lamda_policy_document" {
 
 resource "aws_iam_role_policy" "lambda_policy" {
   name   = "${var.common_name}_lambda_policy"
-  policy = "${data.aws_iam_policy_document.lamda_policy_document.json}"
+  policy = "${data.aws_iam_policy_document.lambda_policy_document.json}"
   role   = "${aws_iam_role.lambda_role.id}"
 }
 
@@ -385,21 +384,22 @@ resource "aws_lambda_function" "logs_decodeding" {
   handler       = "lambda_function.handler"
 
   source_code_hash = "${data.archive_file.lambda_function.output_base64sha256}"
-  description      = "Decode incoming stream"
+  description      = "Decode incoming log stream"
   runtime          = "python3.6"
-  timeout          = 60
+  timeout          = "${var.timeout}" #300
+  memory_size      = "${var.memory_size}"
 
   tracing_config {
     mode = "PassThrough"
   }
 
   environment {
-    variables = { stream_name = "${var.common_name}_firehose", threshold = "${var.threshold}", slack_webhook = "${var.slack_webhook}" } 
+    variables = { stream_name = "${var.common_name}_firehose", threshold = "${var.threshold}", slack_webhook = "${var.slack_webhook}", s3 = "${var.s3}", es = "${var.es}" }
   }
 
-  lifecycle {
-    ignore_changes = ["memory_size"]
-  }
+  #lifecycle {
+  #  ignore_changes = ["memory_size"]
+  #}
 }
 
 ############################ End Lambda function  ############################

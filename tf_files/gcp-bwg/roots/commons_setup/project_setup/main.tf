@@ -99,7 +99,7 @@ module "firewall-outbound-commons" {
 # --------------------------------------------
 #  Create FW Rule inbound traffic
 # -------------------------------------------
-
+/*
 module "firewall-inbound-commons" {
   source         = "../../../modules/firewall-ingress"
   enable_logging = "${var.inbound_to_commons_enable_logging}"
@@ -127,7 +127,7 @@ module "firewall-inbound-gke" {
   source_ranges  = ["${var.inbound_from_gke_source_ranges}"]
   target_tags    = ["${var.inbound_from_gke_target_tags}"]
 }
-
+*/
 // ALLOW INBOUND PROXY PORT
 module "firewall_inbound_proxy_port" {
   source         = "../../../modules/firewall-ingress"
@@ -146,7 +146,7 @@ module "firewall_inbound_proxy_port" {
 # -----------------------------------------------
 #  Create FW Rule outbound traffic
 # -----------------------------------------------
-
+/*
 module "firewall-outbound-gke" {
   source             = "../../../modules/firewall-egress"
   enable_logging     = "${var.outbound_from_gke_enable_logging}"
@@ -175,7 +175,7 @@ module "firewall-commons-to-gke" {
   destination_ranges = ["${var.outbound_from_commons_destination_ranges}"]
   target_tags        = "${var.outbound_from_commons_target_tags}"
 }
-
+*/
 // ALLOW SQUID MANAGED INSTANCE GROUP OUTBOUND TRAFFIC
 module "firewall_commons_egress_allow_squid_mig" {
   source             = "../../../modules/firewall-egress"

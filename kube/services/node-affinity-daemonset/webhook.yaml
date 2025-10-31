@@ -1,0 +1,43 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: node-affinity-daemonset
+  cert-manager.io/inject-ca-from: kube-system/node-affinity-daemonset-cert
+webhooks:
+  - name: node-affinity-daemonset.k8s.io
+    clientConfig:
+      service:
+        name: node-affinity-daemonset
+        namespace: kube-system
+        path: "/mutate"
+    rules:
+      - operations: ["CREATE"]
+        apiGroups: ["apps"]
+        apiVersions: ["v1"]
+        resources: ["daemonsets"]
+    admissionReviewVersions: ["v1"]
+    sideEffects: None
+
+---
+
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: node-affinity-daemonset-cert
+  namespace: kube-system
+spec:
+  secretName: webhook-certs #pragma: allowlist secret
+  dnsNames:
+  - node-affinity-daemonset.kube-system.svc
+  issuerRef:
+    name: selfsigned
+    
+---
+
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: selfsigned
+  namespace: kube-system
+spec:
+  selfSigned: {}

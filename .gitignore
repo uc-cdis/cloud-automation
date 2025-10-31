@@ -1,12 +1,11 @@
+.idea
 Chef/nodes/
 tf_files/*output/*
 tf_files/terraform.tfstate
 tf_files/terraform.tfstate.backup
 .terraform/
 client/*
-images/*
 node_modules/
-packer
 Secrets/
 terraform
 *.lock*
@@ -16,6 +15,7 @@ terraform
 *~
 *.swp
 .DS_Store
+.dccache
 kube/services/fluentd/varlogs/
 kube/services/fluentd/dockerlogs/
 

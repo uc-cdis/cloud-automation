@@ -1,42 +1,14 @@
-resource "aws_security_group" "kube-worker" {
-  name                        = "kube-worker"
-  description                 = "security group that open ports to vpc, this needs to be attached to kube worker"
-  vpc_id                      = "${module.cdis_vpc.vpc_id}"
-
-  ingress {
-    from_port                 = 30000
-    to_port                   = 30100
-    protocol                  = "TCP"
-    #cidr_blocks = ["172.${var.vpc_octet2}.${var.vpc_octet3}.0/20", "${var.csoc_cidr}"]
-    #cidr_blocks = ["${var.vpc_cidr_block}","${var.csoc_cidr}"]
-    #cidr_blocks               = ["${var.vpc_cidr_block}","${var.csoc_managed == "yes" ? var.peering_cidr : ""}"]
-    cidr_blocks               = ["${var.vpc_cidr_block}","${var.peering_cidr}"]
-  }
-
-  ingress {
-    from_port                 = 443
-    to_port                   = 443
-    protocol                  = "TCP"
-    #cidr_blocks               = ["${var.csoc_cidr}"]
-    #cidr_blocks               = ["${var.csoc_managed == "yes" ? var.peering_cidr : data.aws_vpc.csoc_vpc.cidr_block}"]
-    cidr_blocks               = ["${var.peering_cidr}"]
-  }
-
-  tags {
-    Environment               = "${var.vpc_name}"
-    Organization              = "${var.organization_name}"
-  }
-}
 
 #
 # Only create db_fence if var.db_password_fence is set.
 # Sort of a hack during userapi to fence switch over.
 #
 resource "aws_db_instance" "db_fence" {
+  count                       = "${var.deploy_fence_db ? 1 : 0}"
   allocated_storage           = "${var.fence_db_size}"
   identifier                  = "${var.vpc_name}-fencedb"
   storage_type                = "gp2"
-  engine                      = "postgres"
+  engine                      = "${var.fence_engine}"
   engine_version              = "${var.fence_engine_version}" 
   parameter_group_name        = "${aws_db_parameter_group.rds-cdis-pg.name}"
   instance_class              = "${var.fence_db_instance}"
@@ -53,8 +25,10 @@ resource "aws_db_instance" "db_fence" {
   backup_window               = "${var.fence_backup_window}"  
   multi_az                    = "${var.fence_ha}" 
   auto_minor_version_upgrade  = "${var.fence_auto_minor_version_upgrade}"
+  storage_encrypted           = "${var.rds_instance_storage_encrypted}"
+  max_allocated_storage       = "${var.fence_max_allocated_storage}"
 
-  tags {
+  tags = {
     Environment               = "${var.vpc_name}"
     Organization              = "${var.organization_name}"
   } 
@@ -62,15 +36,16 @@ resource "aws_db_instance" "db_fence" {
   lifecycle {
     prevent_destroy = true
     #ignore_changes  = ["*"]
-    ignore_changes = ["engine_version"]
+    ignore_changes = ["engine_version","storage_encrypted","identifier"]
   }
 }
 
 resource "aws_db_instance" "db_gdcapi" {
+  count                       = "${var.deploy_sheepdog_db ? 1 : 0}"
   allocated_storage           = "${var.sheepdog_db_size}"
   identifier                  = "${var.vpc_name}-gdcapidb"
   storage_type                = "gp2"
-  engine                      = "postgres"
+  engine                      = "${var.sheepdog_engine}"
   engine_version              = "${var.sheepdog_engine_version}" 
   parameter_group_name        = "${aws_db_parameter_group.rds-cdis-pg.name}"
   instance_class              = "${var.sheepdog_db_instance}"
@@ -87,8 +62,10 @@ resource "aws_db_instance" "db_gdcapi" {
   backup_window               = "${var.sheepdog_backup_window}" 
   multi_az                    = "${var.sheepdog_ha}" 
   auto_minor_version_upgrade  = "${var.sheepdog_auto_minor_version_upgrade}"
+  storage_encrypted           = "${var.rds_instance_storage_encrypted}"
+  max_allocated_storage       = "${var.sheepdog_max_allocated_storage}"
 
-  tags {
+  tags = {
     Environment               = "${var.vpc_name}"
     Organization              = "${var.organization_name}"
   }
@@ -96,15 +73,16 @@ resource "aws_db_instance" "db_gdcapi" {
   lifecycle {
     prevent_destroy = true
     #ignore_changes  = ["*"]
-    ignore_changes = ["engine_version"]
+    ignore_changes = ["engine_version","storage_encrypted","identifier"]
   }
 }
 
 resource "aws_db_instance" "db_indexd" {
+  count                       = "${var.deploy_indexd_db ? 1 : 0}"
   allocated_storage           = "${var.indexd_db_size}"
   identifier                  = "${var.vpc_name}-indexddb"
   storage_type                = "gp2"
-  engine                      = "postgres"
+  engine                      = "${var.indexd_engine}"
   engine_version              = "${var.indexd_engine_version}" 
   parameter_group_name        = "${aws_db_parameter_group.rds-cdis-pg.name}"
   instance_class              = "${var.indexd_db_instance}"
@@ -121,8 +99,10 @@ resource "aws_db_instance" "db_indexd" {
   backup_window               = "${var.indexd_backup_window}" 
   multi_az                    = "${var.indexd_ha}" 
   auto_minor_version_upgrade  = "${var.indexd_auto_minor_version_upgrade}"
+  storage_encrypted           = "${var.rds_instance_storage_encrypted}"
+  max_allocated_storage       = "${var.indexd_max_allocated_storage}"
 
-  tags {
+  tags = {
     Environment               = "${var.vpc_name}"
     Organization              = "${var.organization_name}"
   }
@@ -130,17 +110,20 @@ resource "aws_db_instance" "db_indexd" {
   lifecycle {
     prevent_destroy = true
     #ignore_changes  = ["*"]
-    ignore_changes = ["engine_version"]
+    ignore_changes = ["engine_version","storage_encrypted","identifier"]
   }
 }
 
 # See https://www.postgresql.org/docs/9.6/static/runtime-config-logging.html
 # and https://www.postgresql.org/docs/9.6/static/runtime-config-query.html#RUNTIME-CONFIG-QUERY-ENABLE
 # for detail parameter descriptions
+locals {
+  pg_family_version = "${replace( var.indexd_engine_version ,"/\\.[0-9]/", "" )}"
+}
 
 resource "aws_db_parameter_group" "rds-cdis-pg" {
   name   = "${var.vpc_name}-rds-cdis-pg"
-  family = "postgres9.6"
+  family = "postgres${local.pg_family_version}"
 
   # make index searches cheaper per row
   parameter {
@@ -174,6 +157,12 @@ resource "aws_db_parameter_group" "rds-cdis-pg" {
     value = "0.7"
   }
 
+  # Set the scram password encryption so that connecting with FIPs enabled works
+  parameter {
+    name  = "password_encryption"
+    value = "scram-sha-256"
+  }
+
   lifecycle {
     ignore_changes  = ["*"]
   }
@@ -183,7 +172,7 @@ resource "aws_kms_key" "kube_key" {
   description                 = "encryption/decryption key for kubernete"
   enable_key_rotation         = true
 
-  tags {
+  tags = {
     Environment               = "${var.vpc_name}"
     Organization              = "${var.organization_name}"
   }
@@ -212,7 +201,7 @@ resource "aws_s3_bucket" "kube_bucket" {
     }
   }
 
-  tags {
+  tags = {
     Name                      = "kube-${replace(var.vpc_name,"_", "-")}-gen3"
     Environment               = "${var.vpc_name}"
     Organization              = "${var.organization_name}"
@@ -246,7 +235,7 @@ data "aws_iam_policy_document" "configbucket_reader" {
     ]
 
     effect    = "Allow"
-    resources = ["arn:aws:s3:::${var.users_bucket_name}", "arn:aws:s3:::${var.users_bucket_name}/${var.config_folder}/*"]
+    resources = ["arn:aws:s3:::${var.users_bucket_name}", "arn:aws:s3:::${var.users_bucket_name}/${var.config_folder}/*", "arn:aws:s3:::qualys-agentpackage", "arn:aws:s3:::qualys-agentpackage/*"]
   }
 }
 
@@ -254,4 +243,7 @@ resource "aws_iam_policy" "configbucket_reader" {
   name                        = "bucket_reader_cdis-gen3-users_${var.vpc_name}"
   description                 = "Read cdis-gen3-users/${var.config_folder}"
   policy                      = "${data.aws_iam_policy_document.configbucket_reader.json}"
+  lifecycle {
+    ignore_changes = ["policy"]
+  }
 }

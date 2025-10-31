@@ -4,6 +4,16 @@ variable "ami_account_id" {
   default = "707767160287"
 }
 
+# the region containing the public source AMI
+variable "ami_region" {
+  default = "us-east-1"
+}
+
+# the name (pattern) of the public source AMI
+variable "ami_name" {
+  default = "ubuntu16-squid-1.0.2-*"
+}
+
 variable "csoc_cidr" {
   default = "10.128.0.0/20"
 }
@@ -30,27 +40,26 @@ variable "env_vpc_id" {
   #default = "vpc-e2b51d99"
 }
 
-variable "env_instance_profile" {
-  #default = "common_name_cloudwatch_access_profile"
-}
 
 variable "env_log_group" {
   #default = "common_name"
 }
 
-data "aws_iam_policy_document" "squid_logging_cloudwatch" {
-  statement {
-    actions = [
-      "logs:CreateLogGroup",
-      "logs:CreateLogStream",
-      "logs:GetLogEvents",
-      "logs:PutLogEvents",
-      "logs:DescribeLogGroups",
-      "logs:DescribeLogStreams",
-      "logs:PutRetentionPolicy",
-    ]
+variable "deploy_single_proxy" {
+  description = "Should migration to HA-squid is ahead, then deploying in parallel might prevent any downtime"
+  default     = false
+}
 
-    effect    = "Allow"
-    resources = ["*"]
-  }
+variable "zone_id" {
+  description = "Route53 zone in which to create a new record for cloud-proxy.internal.io"
+}
+
+variable "instance_type" {
+  description = "Instance type of the squid instance"
+  default     = "t2.micro"
+}
+
+variable "organization_name" {
+  description = "For tagging purposes"
+  default     = "Basic Service"
 }

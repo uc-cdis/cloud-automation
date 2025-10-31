@@ -1,0 +1,466 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fenceshib-config
+  labels:
+    app: fenceshib
+    release: production
+    authprovider: "yes"
+data:
+  shibboleth2.xml: |
+    <SPConfig xmlns="urn:mace:shibboleth:2.0:native:sp:config"
+        xmlns:conf="urn:mace:shibboleth:2.0:native:sp:config"
+        xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
+        xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
+        xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata"
+        clockSkew="180">
+
+
+        <!--
+        By default, in-memory StorageService, ReplayCache, ArtifactMap, and SessionCache
+        are used. See example-shibboleth2.xml for samples of explicitly configuring them.
+        -->
+
+        <!--
+        To customize behavior for specific resources on Apache, and to link vhosts or
+        resources to ApplicationOverride settings below, use web server options/commands.
+        See https://spaces.internet2.edu/display/SHIB2/NativeSPConfigurationElements for help.
+
+        For examples with the RequestMap XML syntax instead, see the example-shibboleth2.xml
+        file, and the https://spaces.internet2.edu/display/SHIB2/NativeSPRequestMapHowTo topic.
+        -->
+
+        <!-- The ApplicationDefaults element is where most of Shibboleth's SAML bits are defined. -->
+        <ApplicationDefaults entityID="https://login.bionimbus.org/shibboleth"
+                            REMOTE_USER="eppn persistent-id targeted-id">
+
+            <!--
+            Controls session lifetimes, address checks, cookie handling, and the protocol handlers.
+            You MUST supply an effectively unique handlerURL value for each of your applications.
+            The value defaults to /Shibboleth.sso, and should be a relative path, with the SP computing
+            a relative value based on the virtual host. Using handlerSSL="true", the default, will force
+            the protocol to be https. You should also add a cookieProps setting of "; path=/; secure"
+            in that case. Note that while we default checkAddress to "false", this has a negative
+            impact on the security of the SP. Stealing cookies/sessions is much easier with this disabled.
+            -->
+            <Sessions lifetime="28800" timeout="3600" checkAddress="false"
+                handlerURL="/Shibboleth.sso" handlerSSL="false" relayState="ss:mem"
+                exportLocation="http://localhost/Shibboleth.sso/GetAssertion" exportACL="127.0.0.1"
+                idpHistory="false" idpHistoryDays="7">
+
+                <!--
+                Configures SSO for a default IdP. To allow for >1 IdP, remove
+                entityID property and adjust discoveryURL to point to discovery service.
+                (Set discoveryProtocol to "WAYF" for legacy Shibboleth WAYF support.)
+                You can also override entityID on /Login query string, or in RequestMap/htaccess.
+                -->
+
+                <!-- Default directs to a specific IdP (favoring SAML 2 over Shib 1). -->
+                <SSO discoveryProtocal='WAYF' entityID='urn:mace:incommon:nih.gov' >
+                    SAML2 SAML1
+                </SSO>
+                <SessionInitiator type="Chaining" Location="/Login" isDefault="true" id="Login" >
+
+
+                    <SessionInitiator type="SAML2" ECP="true" template="bindingTemplate.html"/>
+                    <SessionInitiator type="Shib1"/>
+                    <!--
+                    To allow for >1 IdP, remove entityID property from Chaining element and add
+                    *either* of the SAMLDS or WAYF handlers below:
+                    -->
+
+                    <SessionInitiator type="SAMLDS" URL="https://wayf.incommonfederation.org/DS/WAYF"/>
+
+                    <!--
+                    <SessionInitiator type="WAYF" URL="https://wayf.incommonfederation.org/DS/WAYF"/>
+                    -->
+                </SessionInitiator>
+
+                <!--
+                md:AssertionConsumerService locations handle specific SSO protocol bindings,
+                such as SAML 2.0 POST or SAML 1.1 Artifact. The isDefault and index attributes
+                are used when sessions are initiated to determine how to tell the IdP where and
+                how to return the response.
+                -->
+                <md:AssertionConsumerService Location="/SAML2/POST" index="1"
+                    Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"/>
+                <md:AssertionConsumerService Location="/SAML2/POST-SimpleSign" index="2"
+                    Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST-SimpleSign"/>
+                <md:AssertionConsumerService Location="/SAML2/Artifact" index="3"
+                    Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Artifact"/>
+                <md:AssertionConsumerService Location="/SAML2/ECP" index="4"
+                    Binding="urn:oasis:names:tc:SAML:2.0:bindings:PAOS"/>
+                <md:AssertionConsumerService Location="/SAML/POST" index="5"
+                    Binding="urn:oasis:names:tc:SAML:1.0:profiles:browser-post"/>
+                <md:AssertionConsumerService Location="/SAML/Artifact" index="6"
+                    Binding="urn:oasis:names:tc:SAML:1.0:profiles:artifact-01"/>
+
+
+              <!-- LogoutInitiators enable SP-initiated local or global/single logout of sessions. -->
+                <LogoutInitiator type="Chaining" Location="/Logout">
+                    <LogoutInitiator type="SAML2" template="bindingTemplate.html"/>
+                    <LogoutInitiator type="Local"/>
+                </LogoutInitiator>
+
+                <!-- md:SingleLogoutService locations handle single logout (SLO) protocol messages. -->
+                <md:SingleLogoutService Location="/SLO/SOAP"
+                    Binding="urn:oasis:names:tc:SAML:2.0:bindings:SOAP"/>
+                <md:SingleLogoutService Location="/SLO/Redirect" conf:template="bindingTemplate.html"
+                    Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"/>
+                <md:SingleLogoutService Location="/SLO/POST" conf:template="bindingTemplate.html"
+                    Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"/>
+                <md:SingleLogoutService Location="/SLO/Artifact" conf:template="bindingTemplate.html"
+                    Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Artifact"/>
+
+                <!-- md:ManageNameIDService locations handle NameID management (NIM) protocol messages. -->
+                <md:ManageNameIDService Location="/NIM/SOAP"
+                    Binding="urn:oasis:names:tc:SAML:2.0:bindings:SOAP"/>
+                <md:ManageNameIDService Location="/NIM/Redirect" conf:template="bindingTemplate.html"
+                    Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"/>
+                <md:ManageNameIDService Location="/NIM/POST" conf:template="bindingTemplate.html"
+                    Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"/>
+                <md:ManageNameIDService Location="/NIM/Artifact" conf:template="bindingTemplate.html"
+                    Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Artifact"/>
+
+                <!--
+                md:ArtifactResolutionService locations resolve artifacts issued when using the
+                SAML 2.0 HTTP-Artifact binding on outgoing messages, generally uses SOAP.
+                -->
+                <md:ArtifactResolutionService Location="/Artifact/SOAP" index="1"
+                    Binding="urn:oasis:names:tc:SAML:2.0:bindings:SOAP"/>
+
+                <!-- Extension service that generates "approximate" metadata based on SP configuration. -->
+                <!-- <Handler type="MetadataGenerator" Location="/Metadata" signing="false"/> -->
+                <Handler type="MetadataGenerator" Location="/Metadata" signing="false">
+                    <DiscoveryResponse xmlns="urn:oasis:names:tc:SAML:profiles:SSO:idp-discovery-protocol" Binding="urn:oasis:names:tc:SAML:profiles:SSO:idp-discovery-protocol" Location="https://www.opensciencedatacloud.org/Shibboleth.sso/DS" index="1"/>
+                    <mdui:UIInfo xmlns:mdui="urn:oasis:names:tc:SAML:metadata:ui">
+                        <mdui:DisplayName xml:lang="en">Open Science Data Cloud Console</mdui:DisplayName>
+                    </mdui:UIInfo>
+                    <md:AttributeConsumingService index="1"  xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">
+                        <md:ServiceName xml:lang="it">Open Science Data Cloud Console</md:ServiceName>
+                        <md:RequestedAttribute FriendlyName="eduPersonPrincipalName" Name="urn:mace:dir:attribute-def:eduPersonPrincipalName" NameFormat="urn:mace:shibboleth:1.0:attributeNamespace:uri"/>
+                        <md:RequestedAttribute FriendlyName="eduPersonPrincipalName" Name="urn:oid:1.3.6.1.4.1.5923.1.1.1.6" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri"/>
+                    </md:AttributeConsumingService>
+                    <md:Organization>
+                        <md:OrganizationName xml:lang="en">Open Cloud Consortium (OCC)</md:OrganizationName>
+                        <md:OrganizationDisplayName xml:lang="en">Open Cloud Consortium (OCC)</md:OrganizationDisplayName>
+                        <md:OrganizationURL xml:lang="en">http://occ-data.org/</md:OrganizationURL>
+                    </md:Organization>
+                    <md:ContactPerson contactType="technical">
+                        <md:GivenName>Raymond Powell</md:GivenName>
+                        <md:EmailAddress>support@bionimbus.org</md:EmailAddress>
+                    </md:ContactPerson>
+                    <md:ContactPerson contactType="technical">
+                        <md:GivenName>Phillis Tang</md:GivenName>
+                        <md:EmailAddress>support@bionimbus.org</md:EmailAddress>
+                    </md:ContactPerson>
+                    <md:ContactPerson contactType="administrative">
+                        <md:GivenName>Walt Wells</md:GivenName>
+                        <md:EmailAddress>support@opensciencedatacloud.org</md:EmailAddress>
+                    </md:ContactPerson>
+                </Handler>
+
+                <!-- Status reporting service. -->
+                <Handler type="Status" Location="/Status" acl="127.0.0.1"/>
+
+                <!-- Session diagnostic service. -->
+                <Handler type="Session" Location="/Session" showAttributeValues="false"/>
+
+                <!-- JSON feed of discovery information. -->
+                <Handler type="DiscoveryFeed" Location="/DiscoFeed"/>
+            </Sessions>
+
+            <!--
+            Allows overriding of error template information/filenames. You can
+            also add attributes with values that can be plugged into the templates.
+            -->
+          <Errors supportContact="support@opensciencedatacloud.org"
+                logoLocation="/misc/logo_sm.png"
+                styleSheet="/shibboleth-sp/main.css"/>
+
+            <MetadataProvider type="Chaining" >
+                <!-- This is here because the whitelist will strip out everyone from above DiscoveryFilter otherwise -->
+                <MetadataProvider type="XML" uri="http://mdq.incommon.org/entities/idps/all"  reloadInterval="7200" legacyOrgNames="true">
+                    <SignatureMetadataFilter certificate="/etc/shibboleth/inc-md-cert.pem"/>
+                    <MetadataFilter type="Blacklist">
+                        <Exclude>urn:mace:incommon:nih.gov</Exclude>
+                    </MetadataFilter>
+                </MetadataProvider>
+                <MetadataProvider type="XML" path="/etc/shibboleth/metadata.xml"  reloadInterval="7200" legacyOrgNames="true"></MetadataProvider>
+            </MetadataProvider>
+
+            <!-- Map to extract attributes from SAML assertions. -->
+            <AttributeExtractor type="XML" validate="true" path="attribute-map.xml"/>
+
+                <!-- Use a SAML query if no attributes are supplied during SSO. -->
+                <AttributeResolver type="Query" subjectMatch="true"/>
+
+                <!-- Default filtering policy for recognized attributes, lets other data pass. -->
+                <AttributeFilter type="XML" validate="true" path="attribute-policy.xml"/>
+
+                <CredentialResolver type="Chaining">
+                    <!-- Simple file-based resolver for using a single keypair. -->
+                    <!-- <CredentialResolver type="File" key="sp-key.pem" certificate="sp-cert.pem"/> -->
+                    <CredentialResolver type="File" key="/etc/ssl/private/incommon-login.bionimbus.org.key" certificate="/etc/ssl/certs/incommon-login.bionimbus.org.crt" keyName="Active"  />
+                </CredentialResolver>
+                <!--
+                The default settings can be overridden by creating ApplicationOverride elements (see
+                the https://spaces.internet2.edu/display/SHIB2/NativeSPApplicationOverride topic).
+                Resource requests are mapped by web server commands, or the RequestMapper, to an
+                applicationId setting.
+
+                Example of a second application (for a second vhost) that has a different entityID.
+                Resources on the vhost would map to an applicationId of "admin":
+                -->
+                <!--
+                <ApplicationOverride id="admin" entityID="https://admin.example.org/shibboleth"/>
+            -->
+        </ApplicationDefaults>
+
+        <!-- Policies that determine how to process and authenticate runtime messages. -->
+        <SecurityPolicyProvider type="XML" validate="true" path="security-policy.xml"/>
+
+        <!-- Low-level configuration about protocols and bindings available for use. -->
+        <ProtocolProvider type="XML" validate="true" reloadChanges="false" path="protocols.xml"/>
+    </SPConfig>
+  attribute-map.xml: |
+    <Attributes xmlns="urn:mace:shibboleth:2.0:attribute-map" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <!--
+        The mappings are a mix of SAML 1.1 and SAML 2.0 attribute names agreed to within the Shibboleth
+        community. The non-OID URNs are SAML 1.1 names and most of the OIDs are SAML 2.0 names, with a
+        few exceptions for newer attributes where the name is the same for both versions. You will
+        usually want to uncomment or map the names for both SAML versions as a unit.
+        -->
+
+        <!-- First some useful eduPerson attributes that many sites might use. -->
+
+        <Attribute name="urn:mace:dir:attribute-def:eduPersonPrincipalName" id="eppn">
+            <AttributeDecoder xsi:type="ScopedAttributeDecoder"/>
+        </Attribute>
+        <Attribute name="urn:oid:1.3.6.1.4.1.5923.1.1.1.6" id="eppn">
+            <AttributeDecoder xsi:type="ScopedAttributeDecoder"/>
+        </Attribute>
+
+        <Attribute name="urn:mace:dir:attribute-def:eduPersonScopedAffiliation" id="affiliation">
+            <AttributeDecoder xsi:type="ScopedAttributeDecoder" caseSensitive="false"/>
+        </Attribute>
+        <Attribute name="urn:oid:1.3.6.1.4.1.5923.1.1.1.9" id="affiliation">
+            <AttributeDecoder xsi:type="ScopedAttributeDecoder" caseSensitive="false"/>
+        </Attribute>
+
+        <Attribute name="urn:mace:dir:attribute-def:eduPersonAffiliation" id="unscoped-affiliation">
+            <AttributeDecoder xsi:type="StringAttributeDecoder" caseSensitive="false"/>
+        </Attribute>
+        <Attribute name="urn:oid:1.3.6.1.4.1.5923.1.1.1.1" id="unscoped-affiliation">
+            <AttributeDecoder xsi:type="StringAttributeDecoder" caseSensitive="false"/>
+        </Attribute>
+
+        <Attribute name="urn:mace:dir:attribute-def:eduPersonEntitlement" id="entitlement"/>
+        <Attribute name="urn:oid:1.3.6.1.4.1.5923.1.1.1.7" id="entitlement"/>
+
+        <!-- A persistent id attribute that supports personalized anonymous access. -->
+
+        <!-- First, the deprecated/incorrect version, decoded as a scoped string: -->
+        <Attribute name="urn:mace:dir:attribute-def:eduPersonTargetedID" id="targeted-id">
+            <AttributeDecoder xsi:type="ScopedAttributeDecoder"/>
+            <!-- <AttributeDecoder xsi:type="NameIDFromScopedAttributeDecoder" formatter="$NameQualifier!$SPNameQualifier!$Name" defaultQualifiers="true"/> -->
+        </Attribute>
+
+        <!-- Second, an alternate decoder that will decode the incorrect form into the newer form. -->
+        <!--
+        <Attribute name="urn:mace:dir:attribute-def:eduPersonTargetedID" id="persistent-id">
+            <AttributeDecoder xsi:type="NameIDFromScopedAttributeDecoder" formatter="$NameQualifier!$SPNameQualifier!$Name" defaultQualifiers="true"/>
+        </Attribute>
+        -->
+
+        <!-- Third, the new version (note the OID-style name): -->
+        <Attribute name="urn:oid:1.3.6.1.4.1.5923.1.1.1.10" id="persistent-id">
+            <AttributeDecoder xsi:type="NameIDAttributeDecoder" formatter="$NameQualifier!$SPNameQualifier!$Name" defaultQualifiers="true"/>
+        </Attribute>
+
+        <!-- Fourth, the SAML 2.0 NameID Format: -->
+        <Attribute name="urn:oasis:names:tc:SAML:2.0:nameid-format:persistent" id="persistent-id">
+            <AttributeDecoder xsi:type="NameIDAttributeDecoder" formatter="$NameQualifier!$SPNameQualifier!$Name" defaultQualifiers="true"/>
+        </Attribute>
+
+        <!-- THIS is the attribute we are using in login.bionimbus.org so remember to update the SHIBBOLETH_HEADER to cn in fence-config  -->
+        <Attribute name="urn:oid:2.5.4.3" nameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri" id="cn"/>
+
+
+        <!-- Some more eduPerson attributes, uncomment these to use them... -->
+        <!--
+        <Attribute name="urn:mace:dir:attribute-def:eduPersonPrimaryAffiliation" id="primary-affiliation">
+            <AttributeDecoder xsi:type="StringAttributeDecoder" caseSensitive="false"/>
+        </Attribute>
+        <Attribute name="urn:mace:dir:attribute-def:eduPersonNickname" id="nickname"/>
+        <Attribute name="urn:mace:dir:attribute-def:eduPersonPrimaryOrgUnitDN" id="primary-orgunit-dn"/>
+        <Attribute name="urn:mace:dir:attribute-def:eduPersonOrgUnitDN" id="orgunit-dn"/>
+        <Attribute name="urn:mace:dir:attribute-def:eduPersonOrgDN" id="org-dn"/>
+
+        <Attribute name="urn:oid:1.3.6.1.4.1.5923.1.1.1.5" id="primary-affiliation">
+            <AttributeDecoder xsi:type="StringAttributeDecoder" caseSensitive="false"/>
+        </Attribute>
+        <Attribute name="urn:oid:1.3.6.1.4.1.5923.1.1.1.2" id="nickname"/>
+        <Attribute name="urn:oid:1.3.6.1.4.1.5923.1.1.1.8" id="primary-orgunit-dn"/>
+        <Attribute name="urn:oid:1.3.6.1.4.1.5923.1.1.1.4" id="orgunit-dn"/>
+        <Attribute name="urn:oid:1.3.6.1.4.1.5923.1.1.1.3" id="org-dn"/>
+
+        <Attribute name="urn:oid:1.3.6.1.4.1.5923.1.1.1.11" id="assurance"/>
+
+        <Attribute name="urn:oid:1.3.6.1.4.1.5923.1.5.1.1" id="member"/>
+
+        <Attribute name="urn:oid:1.3.6.1.4.1.5923.1.6.1.1" id="eduCourseOffering"/>
+        <Attribute name="urn:oid:1.3.6.1.4.1.5923.1.6.1.2" id="eduCourseMember"/>
+        -->
+
+        <!-- Examples of LDAP-based attributes, uncomment to use these... -->
+        <!--
+        <Attribute name="urn:mace:dir:attribute-def:cn" id="cn"/>
+        <Attribute name="urn:mace:dir:attribute-def:sn" id="sn"/>
+        <Attribute name="urn:mace:dir:attribute-def:givenName" id="givenName"/>
+        <Attribute name="urn:mace:dir:attribute-def:displayName" id="displayName"/>
+        <Attribute name="urn:mace:dir:attribute-def:mail" id="mail"/>
+        <Attribute name="urn:mace:dir:attribute-def:telephoneNumber" id="telephoneNumber"/>
+        <Attribute name="urn:mace:dir:attribute-def:title" id="title"/>
+        <Attribute name="urn:mace:dir:attribute-def:initials" id="initials"/>
+        <Attribute name="urn:mace:dir:attribute-def:description" id="description"/>
+        <Attribute name="urn:mace:dir:attribute-def:carLicense" id="carLicense"/>
+        <Attribute name="urn:mace:dir:attribute-def:departmentNumber" id="departmentNumber"/>
+        <Attribute name="urn:mace:dir:attribute-def:employeeNumber" id="employeeNumber"/>
+        <Attribute name="urn:mace:dir:attribute-def:employeeType" id="employeeType"/>
+        <Attribute name="urn:mace:dir:attribute-def:preferredLanguage" id="preferredLanguage"/>
+        <Attribute name="urn:mace:dir:attribute-def:manager" id="manager"/>
+        <Attribute name="urn:mace:dir:attribute-def:seeAlso" id="seeAlso"/>
+        <Attribute name="urn:mace:dir:attribute-def:facsimileTelephoneNumber" id="facsimileTelephoneNumber"/>
+        <Attribute name="urn:mace:dir:attribute-def:street" id="street"/>
+        <Attribute name="urn:mace:dir:attribute-def:postOfficeBox" id="postOfficeBox"/>
+        <Attribute name="urn:mace:dir:attribute-def:postalCode" id="postalCode"/>
+        <Attribute name="urn:mace:dir:attribute-def:st" id="st"/>
+        <Attribute name="urn:mace:dir:attribute-def:l" id="l"/>
+        <Attribute name="urn:mace:dir:attribute-def:o" id="o"/>
+        <Attribute name="urn:mace:dir:attribute-def:ou" id="ou"/>
+        <Attribute name="urn:mace:dir:attribute-def:businessCategory" id="businessCategory"/>
+        <Attribute name="urn:mace:dir:attribute-def:physicalDeliveryOfficeName" id="physicalDeliveryOfficeName"/>
+
+        <Attribute name="urn:oid:2.5.4.3" id="cn"/>
+        <Attribute name="urn:oid:2.5.4.4" id="sn"/>
+        <Attribute name="urn:oid:2.5.4.42" id="givenName"/>
+        <Attribute name="urn:oid:2.16.840.1.113730.3.1.241" id="displayName"/>
+        <Attribute name="urn:oid:0.9.2342.19200300.100.1.3" id="mail"/>
+        <Attribute name="urn:oid:2.5.4.20" id="telephoneNumber"/>
+        <Attribute name="urn:oid:2.5.4.12" id="title"/>
+        <Attribute name="urn:oid:2.5.4.43" id="initials"/>
+        <Attribute name="urn:oid:2.5.4.13" id="description"/>
+        <Attribute name="urn:oid:2.16.840.1.113730.3.1.1" id="carLicense"/>
+        <Attribute name="urn:oid:2.16.840.1.113730.3.1.2" id="departmentNumber"/>
+        <Attribute name="urn:oid:2.16.840.1.113730.3.1.3" id="employeeNumber"/>
+        <Attribute name="urn:oid:2.16.840.1.113730.3.1.4" id="employeeType"/>
+        <Attribute name="urn:oid:2.16.840.1.113730.3.1.39" id="preferredLanguage"/>
+        <Attribute name="urn:oid:0.9.2342.19200300.100.1.10" id="manager"/>
+        <Attribute name="urn:oid:2.5.4.34" id="seeAlso"/>
+        <Attribute name="urn:oid:2.5.4.23" id="facsimileTelephoneNumber"/>
+        <Attribute name="urn:oid:2.5.4.9" id="street"/>
+        <Attribute name="urn:oid:2.5.4.18" id="postOfficeBox"/>
+        <Attribute name="urn:oid:2.5.4.17" id="postalCode"/>
+        <Attribute name="urn:oid:2.5.4.8" id="st"/>
+        <Attribute name="urn:oid:2.5.4.7" id="l"/>
+        <Attribute name="urn:oid:2.5.4.10" id="o"/>
+        <Attribute name="urn:oid:2.5.4.11" id="ou"/>
+        <Attribute name="urn:oid:2.5.4.15" id="businessCategory"/>
+        <Attribute name="urn:oid:2.5.4.19" id="physicalDeliveryOfficeName"/>
+        -->
+    </Attributes>
+  inc-md-cert.pem: |
+    -----BEGIN CERTIFICATE-----
+    MIIEvjCCAyagAwIBAgIJANpi9/mkU/zoMA0GCSqGSIb3DQEBCwUAMHQxCzAJBgNV
+    BAYTAlVTMQswCQYDVQQIDAJNSTESMBAGA1UEBwwJQW5uIEFyYm9yMRYwFAYDVQQK
+    DA1JbnRlcm5ldDIuZWR1MREwDwYDVQQLDAhJbkNvbW1vbjEZMBcGA1UEAwwQbWRx
+    LmluY29tbW9uLm9yZzAeFw0xODExMTMxNDI5NDNaFw0zODExMTAxNDI5NDNaMHQx
+    CzAJBgNVBAYTAlVTMQswCQYDVQQIDAJNSTESMBAGA1UEBwwJQW5uIEFyYm9yMRYw
+    FAYDVQQKDA1JbnRlcm5ldDIuZWR1MREwDwYDVQQLDAhJbkNvbW1vbjEZMBcGA1UE
+    AwwQbWRxLmluY29tbW9uLm9yZzCCAaIwDQYJKoZIhvcNAQEBBQADggGPADCCAYoC
+    ggGBAJ0+fUTzYVSP6ZOutOEhNdp3WPCPOYqnB4sQFz7IeGbFL1o0lZjx5Izm4Yho
+    4wNDd0h486iSkHxNf5dDhCqgz7ZRSmbusOl98SYn70PrUQj/Nzs3w47dPg9Tpb/x
+    y44PvNLS/rE56hPgCz/fbHoTTiJt5eosysa1ZebQ3LEyW3jGm+LGtLbdIfkynKVQ
+    vpp1FVeCamzdeB3ZRICAvqTYQKE1JQDGlWrEsSW0VVEGNjfbzMzr/g4l8JRdMabQ
+    Jig8tj3UIXnu7A2CKSMJSy3WZ3HX+85oHEbL+EV4PtpQz765c69tUIdNTJax9jQ2
+    1c3wL0K27HE8jSRlrXImD50R3dXQBKH+iiynBWxRPdyMBa1YfK+zZEWPbLHshSTc
+    9hkylQv3awmPR/+Plz5AtTpe5yss/Ifyp01wz1jt42R+6jDE+WbUjp5XDBCAjGEE
+    0FPaYtxjZLkmNl367bdTN12OIn/ixPNH+Z/S/4skdBB9Gc4lb2fEBywJQY0OYNOd
+    WOxmPwIDAQABo1MwUTAdBgNVHQ4EFgQUMHZuwMaYSJM5mlu3Wc4Ts5xq4/swHwYD
+    VR0jBBgwFoAUMHZuwMaYSJM5mlu3Wc4Ts5xq4/swDwYDVR0TAQH/BAUwAwEB/zAN
+    BgkqhkiG9w0BAQsFAAOCAYEAMr4wfLrSoPTzfpXtvL+2vrKBJNnRfuJpOYTbPKUc
+    DOP2QfzRlczi7suYJvd5rLiRonq8rjyPUyM8gvTfbTps+JhJ6S9mS6dTBxOV1qPZ
+    3Ab+XKmq8LUtguGRabKgJgmJH0+inR/wVoal7EVHcWXfij9AT8DZOXW88shc6grh
+    jUaFZBu/2+q8c8ee0e4ip8B+CVEnCwDKI0d+nTcSmPvAE34CNa33F+QGpXawv5yv
+    VvIpSaLAeFQhc/jKcnNHfy+Zi7JmSnKZiMvQCbWANQmDjHg7pGmBW9nyQcm6P2/B
+    0AVcEj1YTpAR8Mbh1pUdIhoB+chaNnFEIZsXeRsdbbAFpxodInlJ7WekfuvSQ6sU
+    EXpoyBGOeuuTmR1va8k3QeL8Wc4yNu/g5LwjmtvPrh2jBF8xujc4J6VzP8K2BjA4
+    xk4LnXgjHOT93dBAJhVYJkykDHwyvHUvsBHoP6lfjrt5P8zunK2mdP/AZKik+Rdt
+    1GGlErV2AyWShTOaDLW6NxdP
+    -----END CERTIFICATE-----
+  metadata.xml: |
+   <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+   <EntityDescriptor entityID="https://auth.nih.gov/IDP" xmlns="urn:oasis:names:tc:SAML:2.0:metadata" xmlns:alg="urn:oasis:names:tc:SAML:metadata:algsupport" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:icmd="http://id.incommon.org/metadata" xmlns:idpdisc="urn:oasis:names:tc:SAML:profiles:SSO:idp-discovery-protocol" xmlns:init="urn:oasis:names:tc:SAML:profiles:SSO:request-init" xmlns:mdattr="urn:oasis:names:tc:SAML:metadata:attribute" xmlns:mdrpi="urn:oasis:names:tc:SAML:metadata:rpi" xmlns:mdui="urn:oasis:names:tc:SAML:metadata:ui" xmlns:remd="http://refeds.org/metadata" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" xmlns:shibmd="urn:mace:shibboleth:metadata:1.0" xmlns:xenc="http://www.w3.org/2001/04/xmlenc#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+       <IDPSSODescriptor WantAuthnRequestsSigned="true" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+          <Extensions>
+             <shibmd:Scope regexp="false">auth.nih.gov</shibmd:Scope>
+             <mdui:UIInfo>
+                 <mdui:DisplayName xml:lang="en">National Institutes of Health (NIH)</mdui:DisplayName>
+                 <mdui:Description xml:lang="en">The NIH Identity Provider (IdP) allows NIH staff to access resources for scientific research and collaboration at organizations across the United States and around the world.  (About NIH: The National Institutes of Health (NIH), an agency in the U.S. Department of Health and Human Services (HHS), is the medical research agency of the United States — making important discoveries that improve health and save lives.)</mdui:Description>
+                 <mdui:PrivacyStatementURL xml:lang="en">https://www.nih.gov/web-policies-notices</mdui:PrivacyStatementURL>
+                 <mdui:Logo height="150" width="150" xml:lang="en">https://auth.nih.gov/images/nih-logo-thumbnail.png</mdui:Logo>
+             </mdui:UIInfo>
+           </Extensions>
+           <KeyDescriptor use="signing">
+               <ds:KeyInfo xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+                   <ds:X509Data>
+                       <ds:X509Certificate>
+   MIIGrDCCBZSgAwIBAgITKwAL5UokKuFiZ7VPlQAAAAvlSjANBgkqhkiG9w0B
+   AQsFADBOMRUwEwYKCZImiZPyLGQBGRYFTE9DQUwxHDAaBgoJkiaJk/IsZAEZ
+   FgxESEhTU0VDVVJJVFkxFzAVBgNVBAMTDk5JSC1EUEtJLUNBLTFBMB4XDTIy
+   MTIwNjE2NTUzNloXDTI0MTIwNTE2NTUzNlowgaMxCzAJBgNVBAYTAlVTMREw
+   DwYDVQQIEwhNYXJ5bGFuZDERMA8GA1UEBxMIQmV0aGVzZGExDDAKBgNVBAoT
+   A05JSDEMMAoGA1UECxMDQ0lUMSUwIwYDVQQDExx3YW1zaWduaW5nZmVkZXJh
+   dGlvbi5uaWguZ292MSswKQYJKoZIhvcNAQkBFhxuaWhsb2dpbnN1cHBvcnRA
+   bWFpbC5uaWguZ292MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA
+   o3aHcoq0SAof+GXCl6aZOw9w8CrWTSxz3hxEvG2RaJ4Bm0+UQEcQHArCiQ+Y
+   Wjmx8eORRwOblQKmcozpQAOxNRu7fbJn8msdryKdju+nBJg/gn0Ygn44EJEq
+   pZmBn+FBRgH/lADRdpLM8uO654i1x5Pr8TQtNMevGNot8oiacOZkB1A5N6+l
+   4guxToA2ZuNhHRhwrpd1wIyq6sgY3J8XpWlx54HjDc8bZvia0bEhJns/qZpM
+   mAh5wvIP1I2JngqJ55mpl/btbIXX+uTn3tIomWre3KKjDKh9ZjUQom8VqTzp
+   oGYHSjTExuopsHnnVpC1HTW0QJoxFa5yR1f2fiUTZwIDAQABo4IDKzCCAycw
+   HQYDVR0OBBYEFMqGnTB0W0rFy8tD2y6JnApAzRCyMB8GA1UdIwQYMBaAFHls
+   OIwZ0skZB3GmEPmJ8K3QgwWTMIIBEgYDVR0fBIIBCTCCAQUwggEBoIH+oIH7
+   hoHBbGRhcDovLy9DTj1OSUgtRFBLSS1DQS0xQSxDTj1OSUhEUEtJQ0FTVkMs
+   Q049Q0RQLENOPVB1YmxpYyUyMEtleSUyMFNlcnZpY2VzLENOPVNlcnZpY2Vz
+   LENOPUNvbmZpZ3VyYXRpb24sREM9REhIU1NFQ1VSSVRZLERDPUxPQ0FMP2Nl
+   cnRpZmljYXRlUmV2b2NhdGlvbkxpc3Q/YmFzZT9vYmplY3RDbGFzcz1jUkxE
+   aXN0cmlidXRpb25Qb2ludIY1aHR0cDovL05JSERQS0lDUkwuTklILkdPVi9D
+   ZXJ0RGF0YS9OSUgtRFBLSS1DQS0xQS5jcmwwggE5BggrBgEFBQcBAQSCASsw
+   ggEnMIG0BggrBgEFBQcwAoaBp2xkYXA6Ly8vQ049TklILURQS0ktQ0EtMUEs
+   Q049QUlBLENOPVB1YmxpYyUyMEtleSUyMFNlcnZpY2VzLENOPVNlcnZpY2Vz
+   LENOPUNvbmZpZ3VyYXRpb24sREM9REhIU1NFQ1VSSVRZLERDPUxPQ0FMP2NB
+   Q2VydGlmaWNhdGU/YmFzZT9vYmplY3RDbGFzcz1jZXJ0aWZpY2F0aW9uQXV0
+   aG9yaXR5MEEGCCsGAQUFBzAChjVodHRwOi8vTklIRFBLSUNSTC5OSUguR09W
+   L0NlcnREYXRhL05JSC1EUEtJLUNBLTFBLmNydDArBggrBgEFBQcwAYYfaHR0
+   cDovL05JSERQS0lPQ1NQLk5JSC5HT1Yvb2NzcDALBgNVHQ8EBAMCBaAwPQYJ
+   KwYBBAGCNxUHBDAwLgYmKwYBBAGCNxUIh7HCKIaR/BeG+Y8Ihu68c4G7nSUd
+   gZOnCYKOiSECAWQCAUwwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMC
+   MCcGCSsGAQQBgjcVCgQaMBgwCgYIKwYBBQUHAwEwCgYIKwYBBQUHAwIwDQYJ
+   KoZIhvcNAQELBQADggEBAGxvrAxX3RUmFXeUa1UewCWfzWCnI3wTMKkqvmI2
+   CySFEOniXNXC/hhu0i000QD9mS527u+lGqgN6eaUaEaSDXMszYR753whJ1Wf
+   xJ50zji2mvUWDyzdRbcvxbVfYe6h6+TzQl0gd8z1DjAxkUWydv9aAFYHNiIY
+   BbhPqvrlOT+oV8CYI8ghEg7qyxo1mso99aVGCbnBA+6IC+jt8lvwQYFISW8J
+   lxJbz5P9fyAbQFuMvcvSkx1WWCCK+d3WsLzU2JETjmYNoID5skFaIfrq+rV1
+   nBqQfCSKApojRaUMwn83IRcosSu0Y3dhpmxz2oDkOURbwOkuPJRgYnZRLBDn
+   e50=
+                       </ds:X509Certificate>
+                   </ds:X509Data>
+               </ds:KeyInfo>
+           </KeyDescriptor>
+           <NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:persistent</NameIDFormat>
+           <SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://auth.nih.gov/affwebservices/public/saml2sso"/>
+   		<SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://auth.nih.gov/affwebservices/public/saml2sso"/>
+    </IDPSSODescriptor>
+   </EntityDescriptor>

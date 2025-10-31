@@ -1,0 +1,16 @@
+apiVersion: argoproj.io/v1alpha1
+kind: EventSource
+metadata:
+  name: argo-workflow-deleted-source
+  namespace: argo-events
+spec:
+  template:
+    serviceAccountName: default
+  resource:
+    workflow-deleted:
+      namespace: argo
+      group: argoproj.io
+      version: v1alpha1
+      resource: workflows
+      eventTypes:
+        - DELETE

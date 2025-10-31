@@ -1,0 +1,37 @@
+name: Validate Squid Whitelist Config
+
+on:
+  push:
+    paths:
+      - 'files/squid_whitelist/**'
+
+jobs:
+  squid-validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Validate squid.conf with whitelist files
+        run: |
+          docker run --rm \
+            --entrypoint /bin/bash \
+            -v "$(pwd)/files/squid_whitelist/web_whitelist:/etc/squid/web_whitelist:ro" \
+            -v "$(pwd)/files/squid_whitelist/web_wildcard_whitelist:/etc/squid/web_wildcard_whitelist:ro" \
+            -v "$(pwd)/files/squid_whitelist/ftp_whitelist:/etc/squid/ftp_whitelist:ro" \
+            --platform linux/amd64 \
+            quay.io/cdis/squid:master \
+            -c '
+              echo "
+                acl web_whitelist dstdomain \"/etc/squid/web_whitelist\"
+                acl web_whitelist dstdomain \"/etc/squid/web_wildcard_whitelist\"
+                acl https_whitelist ssl::server_name \"/etc/squid/web_whitelist\"
+                acl ftp_whitelist dstdomain \"/etc/squid/ftp_whitelist\"
+
+                http_access allow web_whitelist
+                http_access allow https_whitelist
+                http_access allow ftp_whitelist
+                http_access deny all
+              " > /etc/squid/squid.conf && squid -k parse
+            '

@@ -1,0 +1,130 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: metadata-aggregate-sync
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND
+      volumes:
+        - name: config-volume-g3auto
+          secret:
+            secretName: metadata-g3auto
+        - name: config-volume
+          secret:
+            secretName: metadata-config
+            optional: true
+        - name: config-manifest
+          configMap:
+            name: manifest-metadata
+            optional: true
+        - name: shared-data
+          emptyDir: {}
+      initContainers:
+        - name: metadata
+          GEN3_METADATA_IMAGE
+          volumeMounts:
+            - name: config-volume-g3auto
+              readOnly: true
+              mountPath: /src/.env
+              subPath: metadata.env
+            - name: config-volume
+              readOnly: true
+              mountPath: /aggregate_config.json
+              subPath: aggregate_config.json
+            - name: config-manifest
+              readOnly: true
+              mountPath: /metadata.json
+              subPath: json
+            - name: shared-data
+              mountPath: /mnt/shared
+          env:
+            - name: GEN3_DEBUG
+              GEN3_DEBUG_FLAG|-value: "False"-|
+            - name: GEN3_ES_ENDPOINT
+              value: http://esproxy-service:9200
+            - name: USE_AGG_MDS
+              valueFrom:
+                configMapKeyRef:
+                  name: manifest-metadata
+                  key: USE_AGG_MDS
+                  optional: true
+            - name: AGG_MDS_NAMESPACE
+              valueFrom:
+                configMapKeyRef:
+                  name: manifest-metadata
+                  key: AGG_MDS_NAMESPACE
+                  optional: true
+            - name: AGG_MDS_DEFAULT_DATA_DICT_FIELD
+              valueFrom:
+                configMapKeyRef:
+                  name: manifest-metadata
+                  key: AGG_MDS_DEFAULT_DATA_DICT_FIELD
+                  optional: true
+          imagePullPolicy: Always
+          command: ["/bin/sh"]
+          args:
+            - "-c"
+            - |
+              /env/bin/python /src/src/mds/populate.py --config /aggregate_config.json || poetry run python /mds/src/mds/populate.py --config /aggregate_config.json
+              if [ $? -ne 0 ]; then
+                echo "WARNING: non zero exit code: $?"
+              else
+                touch /mnt/shared/success
+              fi
+      containers:
+        - name: awshelper
+          env:
+            - name: slackWebHook
+              valueFrom:
+                  configMapKeyRef:
+                    name: global
+                    key: slack_webhook
+            - name: gen3Env
+              valueFrom:
+                  configMapKeyRef:
+                    name: manifest-global
+                    key: hostname
+          GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
+          volumeMounts:
+            - name: shared-data
+              mountPath: /mnt/shared
+          command: ["/bin/bash"]
+          args:
+            - "-c"
+            - |
+              if [[ ! "$slackWebHook" =~ ^http ]]; then
+                echo "Slack webhook not set"
+                exit 0
+              fi
+              if ! [ -f /mnt/shared/success ]; then
+                success="FAILED"
+                color="ff0000"
+              else
+                success="SUCCESS"
+                color="2EB67D"
+              fi
+              echo "Sending ${success} message to slack..."
+              payload="{\"attachments\": [{\"fallback\": \"JOB ${success}: metadata-aggregate-sync cronjob on ${gen3Env}\",\"color\": \"#${color}\",\"title\": \"JOB ${success}: metadata-aggregate-sync cronjob on ${gen3Env}\",\"text\": \"Pod name: ${HOSTNAME}\",\"ts\": \"$(date +%s)\"}]}"
+              echo "Payload=${payload}"
+              curl -X POST --data-urlencode "payload=${payload}" "${slackWebHook}"
+      restartPolicy: Never

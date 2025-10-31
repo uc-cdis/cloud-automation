@@ -43,6 +43,9 @@ if [[ $1 =~ ^-*help$ ]]; then
   exit 0
 fi
 
+#check_terraform_module ${GEN3_TFSCRIPT_FOLDER}
+#gen3_log_info  "terraform versionxx ${tversion}"
+
 # Little string to prepend to info messages
 DRY_RUN_STR=""
 if $GEN3_DRY_RUN; then DRY_RUN_STR="--dryrun"; fi
@@ -52,19 +55,44 @@ if $GEN3_DRY_RUN; then DRY_RUN_STR="--dryrun"; fi
 # an AWS project
 #
 gen3_terraform() {
+  local tversion=$(check_terraform_module ${GEN3_TFSCRIPT_FOLDER})
   if [[ "$GEN3_FLAVOR" == "AWS" ]]; then
     cat - 1>&2 <<EOM
-gen3_aws_run terraform $@
+gen3_aws_run terraform${tversion} $@
 EOM
-    gen3_aws_run terraform "$@"
+    gen3_aws_run terraform${tversion} "$@"
   elif [[ "$GEN3_FLAVOR" == "ONPREM" ]]; then
     cat - 1>&2 <<EOM
-ONPREM NOOP terraform $@
+ONPREM NOOP terraform${tversion} $@
 EOM
   else
       cat - 1>&2 <<EOM
 terraform $@
 EOM
-    terraform "$@"
+    terraform${tversion} "$@"
   fi
 }
+
+
+#
+# To help us out with a smooth transition into terraform 12
+# we have added a new helper to invoke the right version of thereof
+#
+#gen3_terraform12() {
+#  gen3_log_info "terraform 12"
+#  if [[ "$GEN3_FLAVOR" == "AWS" ]]; then
+#    cat - 1>&2 <<EOM
+#gen3_aws_run terraform12 $@
+#EOM
+#    gen3_aws_run terraform12 "$@"
+#  elif [[ "$GEN3_FLAVOR" == "ONPREM" ]]; then
+#    cat - 1>&2 <<EOM
+#ONPREM NOOP terraform12 $@
+#EOM
+#  else
+#      cat - 1>&2 <<EOM
+#terraform12 $@
+#EOM
+#    terraform12 "$@"
+#  fi
+#}

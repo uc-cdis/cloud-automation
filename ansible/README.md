@@ -25,7 +25,7 @@ Ansible by default will check for an inventory file in  `/etc/ansible/hosts`. Yo
 
 EX:
 ```
-export ANSIBLE_INVENTORY=~/planX/cloud-automation/ansible/hosts.yaml
+export ANSIBLE_INVENTORY=~/cloud-automation/ansible/hosts.yaml
 ```
 
 If everything is working correctly, the following command should output something similar to:
@@ -33,68 +33,14 @@ If everything is working correctly, the following command should output somethin
 ```
 ansible --list-hosts all
   hosts (63):
-    account_admin
-    anvil_admin
-    vadc_admin
-    braincommons_admin
-    dcfqa_admin
-    dcfprod_admin
-    cvbcommons_admin
-    genomel_admin
-    ibdgc_admin
-    occ_admin
-    occ-edc_admin
-    niaiddh_admin
-    gtex_admin
-    kf_admin
-    gmkfqa_admin
-    ncigdc_admin
-    ncicrdc_admin
-    pdcgen3_admin
-    dcfbuckets_admin
-    canine_admin
-    cdistest_admin
-    account_commons
-    anvil_commons
-    vadc_commons
-    braincommons_commons
-    dcfprod_commons
-    cvbcommons_commons
-    genomel_commons
-    ibdgc_commons
-    occ_commons
-    occ-edc_commons
-    niaiddh_commons
-    stage_commons
-    dataguis_commons
-    kf_commons
-    canine_commons
-    loginbionimbus_commons
-    niaiddata_commons
-    stagingdatastage_commons
-    dcfstaging_commons
-    anvil_staging
-    charlie_commons
-    tb_commons
-    bhc-datastaging_commons
-    cdistest_dev
-    anvil_qa
-    dcfqa_qa
-    kfqa_qa
-    gmkfqa_qa
-    kfqa2_qa
-    cdistest_qa
-    braincommons_qa
-    ncicrdc_demo
-    master
-    vpn_prod
-    vpn_dev
-    es_a
-    es_b
-    cdistest_fauzi
+    vm1_admin
+    vm2_admin
+    dev_commons
+    qa_commons
+    staging_commons
+    prod_commons
     csocsquidnlbcentral1
     csocsquidnlbcentral2
-    csocsquidnlbcentral3
     dummi1
 ```
 

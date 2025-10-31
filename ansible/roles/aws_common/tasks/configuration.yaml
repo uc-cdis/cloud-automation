@@ -1,0 +1,24 @@
+---
+
+- name: " apt proxy"
+  template:
+    src: 01proxy.j2
+    dest: /etc/apt/apt.conf.d/01proxy
+  become: yes
+  when: ansible_facts['os_family']|lower == 'debian'
+  notify: update apt cache
+
+- name: "set environment"
+  template:
+    src: environment.j2
+    dest: /etc/environment
+  become: yes
+
+- name: "set keys"
+  authorized_key:
+    user: "{{ ansible_user_id }}"
+    state: present
+    manage_dir: true
+    exclusive: true
+    key: '{{ lookup(''file'', ''../../../../files/authorized_keys/ops_team'') }}'
+

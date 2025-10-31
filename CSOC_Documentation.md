@@ -63,7 +63,7 @@ A VPC peering connection is used for the communication between the admin VM in t
 
   `gen3 approve_vpcpeering_request <child_vpc_name>`
 
-  The underneath script basically looks for a new VPC peering request, if there is a request in a pending state, it is accepted, tagged and  an appropriate route to the csoc_main_vpc private subnet route table is added.
+  The underneath script basically looks for a new VPC peering request, if there is a request in a pending state, it is accepted, tagged and  an appropriate route to the csoc_main_vpc private subnet route table is added. This script accepts an optional flag `--get-route-table` which programmatically gets the route table id(s) of the VPC which is accepting the peering request.
 
 *  Manual Process: Once the VPC Peering connection request is made, the CSOC admin need to do the following (use this process only if `automatic process` explained above give errors):
 	*	Verify the VPC  peering request and accept it. Make sure the VPC peering connection is active. At this time you can give a name to the peering connection for future reference.

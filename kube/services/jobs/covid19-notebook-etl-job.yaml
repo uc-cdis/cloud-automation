@@ -1,0 +1,69 @@
+# gen3 job run covid19-notebook-etl S3_BUCKET <S3_BUCKET>
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: covid19-notebook-etl
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND
+      serviceAccountName: s3-access-opencdn-databucket-gen3
+      volumes:
+        - name: cred-volume
+          secret:
+            secretName: "covid19-etl-g3auto"
+      restartPolicy: Never
+      nodeSelector:
+        role: "jupyter"
+      tolerations:
+        - key: "role"
+          operator: "Equal"
+          value: "jupyter"
+          effect: "NoSchedule"
+      containers:
+      - name: covid19-notebook-etl
+        imagePullPolicy: Always
+        GEN3_COVID19-NOTEBOOK-ETL_IMAGE
+        ports:
+        - containerPort: 80
+        env:
+        - name: slackWebHook
+          valueFrom:
+            configMapKeyRef:
+              name: global
+              key: slack_webhook
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: "/secrets/credentials/default.json"
+        - name: gen3Env
+          valueFrom:
+            configMapKeyRef:
+              name: manifest-global
+              key: hostname
+        - name: S3_BUCKET
+          GEN3_S3_BUCKET
+        volumeMounts:
+          - name: cred-volume
+            mountPath: "/secrets/credentials"
+        resources:
+          limits:
+            cpu: 0.5
+            memory: 512Mi

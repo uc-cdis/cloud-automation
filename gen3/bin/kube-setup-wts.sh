@@ -12,14 +12,14 @@ gen3_load "gen3/lib/kube-setup-init"
 # Helper for gen3 reset
 #
 new_client() {
-  local hostname=$(g3kubectl get configmaps/global -o=jsonpath='{.data.hostname}')
+  local hostname=$(gen3 api hostname)
   gen3_log_info "kube-setup-wts" "creating fence oidc client for $hostname"
-  local secrets=$(g3kubectl exec $(gen3 pod fence) -- fence-create client-create --client wts --urls "https://${hostname}/wts/oauth2/authorize" --username wts --auto-approve | tail -1)
+  local secrets=$(g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-create --client wts --urls "https://${hostname}/wts/oauth2/authorize" --username wts --auto-approve | tail -1)
   # secrets looks like ('CLIENT_ID', 'CLIENT_SECRET')
   if [[ ! $secrets =~ (\'(.*)\', \'(.*)\') ]]; then
       # try delete client
-      g3kubectl exec $(gen3 pod fence) -- fence-create client-delete --client wts > /dev/null 2>&1
-      secrets=$(g3kubectl exec $(gen3 pod fence) -- fence-create client-create --client wts --urls "https://${hostname}/wts/oauth2/authorize" --username wts --auto-approve | tail -1)
+      g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-delete --client wts > /dev/null 2>&1
+      secrets=$(g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-create --client wts --urls "https://${hostname}/wts/oauth2/authorize" --username wts --auto-approve | tail -1)
       if [[ ! $secrets =~ (\'(.*)\', \'(.*)\') ]]; then
           gen3_log_err "kube-setup-wts" "Failed generating oidc client for workspace token service: $secrets"
           return 1
@@ -34,32 +34,43 @@ new_client() {
 
   cat - <<EOM
 {
-    "oidc_client_id": "$client_id",
-    "oidc_client_secret": "$client_secret",
+    "wts_base_url": "https://${hostname}/wts/",
     "encryption_key": "$encryption_key",
     "secret_key": "$secret_key",
+
     "fence_base_url": "https://${hostname}/user/",
-    "wts_base_url": "https://${hostname}/wts/"
+    "oidc_client_id": "$client_id",
+    "oidc_client_secret": "$client_secret",
+
+    "aggregate_endpoint_allowlist": ["/authz/mapping"],
+
+    "external_oidc": []
 }
 EOM
 }
 
 setup_creds() {
-  echo "check wts secret"
+  gen3_log_info "check wts secret"
   if ! g3kubectl describe secret wts-g3auto | grep appcreds.json > /dev/null 2>&1; then
       local credsPath="$(gen3_secrets_folder)/g3auto/wts/appcreds.json"
       if [ -f "$credsPath" ]; then
           gen3 secrets sync
           return 0
       fi
-      new_client > "$credsPath"
+      mkdir -p "$(dirname "$credsPath")"
+      if ! new_client > "$credsPath"; then
+        gen3_log_err "Failed to setup WTS client"
+        rm "$credsPath" || true
+        return 1
+      fi
       gen3 secrets sync
   fi
 
   if ! g3kubectl describe secret wts-g3auto | grep dbcreds.json > /dev/null 2>&1; then
-      echo "create database"
+      gen3_log_info "create database"
       if ! gen3 db setup wts; then
-          echo "Failed setting up database for workspace token service"
+          gen3_log_err "Failed setting up database for workspace token service"
+          return 1
       fi
       gen3 secrets sync
   fi
@@ -78,18 +89,20 @@ if [[ -z "$JENKINS_HOME" ]]; then
 
   namespace="$(gen3 db namespace)"
   g3k_kv_filter ${GEN3_HOME}/kube/services/wts/rolebinding-wts.yaml WTS_BINDING "name: wts-binding-$namespace" CURRENT_NAMESPACE "namespace: $namespace" | g3kubectl apply -f -
-  setup_creds || true
+  setup_creds
 elif ! g3kubectl describe secret wts-g3auto | grep appcreds.json > /dev/null 2>&1; then
   # JENKINS test setup needs to re-create the wts client after wiping the fence db
-  (
-    if dbCreds="$(gen3 secrets decode wts-g3auto dbcreds.json)" && clientInfo="$(gen3 kube-setup-wts new-client)"; then
-        g3kubectl delete secret wts-g3auto
-        g3kubectl create secret generic wts-g3auto "--from-literal=dbcreds.json=$dbCreds" "--from-literal=appcreds.json=$clientInfo"
-    fi
-  )
+  gen3_log_info "kube-setup-wts trying to reset client"
+  if dbCreds="$(gen3 secrets decode wts-g3auto dbcreds.json)" && clientInfo="$(new_client)"; then
+      g3kubectl delete secret wts-g3auto
+      g3kubectl create secret generic wts-g3auto "--from-literal=dbcreds.json=$dbCreds" "--from-literal=appcreds.json=$clientInfo"
+  else
+    gen3_log_err "kube-setup-wts failed to setup new client"
+    exit 1
+  fi
 fi
 
 g3kubectl apply -f "${GEN3_HOME}/kube/services/wts/wts-service.yaml"  
 gen3 roll wts
 
-echo "The wts services has been deployed onto the k8s cluster."
+gen3_log_info "The wts service has been deployed onto the k8s cluster."

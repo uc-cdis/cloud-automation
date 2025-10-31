@@ -7,7 +7,10 @@ source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 gen3_load "gen3/lib/logs/utils"
 gen3_load "gen3/lib/logs/raw"
+
+gen3_load "gen3/lib/logs/cloudwatch"
 gen3_load "gen3/lib/logs/daily"
+gen3_load "gen3/lib/logs/s3"
 gen3_load "gen3/lib/logs/ubh"
 gen3_load "gen3/lib/logs/snapshot"
 
@@ -50,8 +53,23 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
         "rtimes")
           gen3_logs_rtime_histogram "$@"
           ;;
+        "oidclogins")
+          gen3_logs_oidc_logins "$@"
+          ;;
+        "loginproviders")
+          gen3_logs_loginprovider_histogram "$@"
+          ;;
+        "protocol")
+          gen3_logs_protocol_histogram "$@"
+          ;;
+        "ga4gs_rtimes")
+          gen3_logs_ga4ghrcodes_histogram "$@"
+          ;;
         "users")
           gen3_logs_user_count "$@"
+          ;;
+        "byuser")
+          gen3_logs_user_histogram "$@"
           ;;
         "daily")
           gen3_logs_history_daily "$@"
@@ -97,6 +115,15 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       ;;
     "snapshot")
       gen3_logs_snapshot_all "$@"
+      ;;
+    "cloudwatch")
+      gen3_logs_cw "$@"
+      ;;
+    "s3")
+      gen3_logs_s3 "$@"
+      ;;
+    "s3filter")
+      gen3_logs_s3filter "$@"
       ;;
     "user")
       gen3_logs_user_list "$@"

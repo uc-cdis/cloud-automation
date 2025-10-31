@@ -1,0 +1,24 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: metadata-service
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v1
+      ambassador_id: "gen3"
+      kind:  Mapping
+      name:  metadata_mapping
+      prefix: /index/
+      service: http://metadata-service:80
+spec:
+  selector:
+    app: metadata
+    release: production
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80 
+      name: http
+  type: ClusterIP
+

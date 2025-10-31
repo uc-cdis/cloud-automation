@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: portal-deployment
@@ -11,19 +11,20 @@ spec:
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 0
+      maxSurge: 2
+      maxUnavailable: 25%
   template:
     metadata:
       labels:
         app: portal
         public: "yes"
         GEN3_DATE_LABEL
+        GEN3_HOSTNAME_LABEL
     spec:
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
+          - weight: 25
             podAffinityTerm:
               labelSelector:
                 matchExpressions:
@@ -32,11 +33,24 @@ spec:
                   values:
                   - portal
               topologyKey: "kubernetes.io/hostname"
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND
       automountServiceAccountToken: false
       volumes:
-      - name: cert-volume
-        secret:
-          secretName: "cert-portal-service"
       - name: ca-volume
         secret:
           secretName: "service-ca"
@@ -49,26 +63,32 @@ spec:
       - name: privacy-policy
         configMap:
           name: "privacy-policy"
+      - name: cert-volume
+        secret:
+          secretName: "cert-portal-service"
       containers:
       - name: portal
         GEN3_PORTAL_IMAGE
         readinessProbe:
           httpGet:
-            path: /
+            path: /portal/
             port: 80
           initialDelaySeconds: 30
           periodSeconds: 60
           timeoutSeconds: 30
         livenessProbe:
           httpGet:
-            path: /
+            path: /portal/
             port: 80
           initialDelaySeconds: 60
-          periodSeconds: 60
+          periodSeconds: 30
           timeoutSeconds: 30
           # portal sometimes takes a long time to come up ... -
           # has to fetch the dictionary, relay compile, etc
-          failureThreshold: 6
+          failureThreshold: 30
+        resources:
+          requests:
+            memory: 3Gi
         ports:
         - containerPort: 80
         - containerPort: 443
@@ -78,11 +98,21 @@ spec:
         env:
           - name: HOSTNAME
             value: revproxy-service
+          # disable npm 7's brand new update notifier to prevent Portal from stuck at starting up
+          # see https://github.com/npm/cli/issues/3163
+          - name: NPM_CONFIG_UPDATE_NOTIFIER
+            value: "false"
           - name: APP
             valueFrom:
               configMapKeyRef:
                 name: manifest-global
                 key: portal_app
+          - name: GEN3_BUNDLE
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-portal
+                key: GEN3_BUNDLE
+                optional: true
           - name: LOGOUT_INACTIVE_USERS
             valueFrom:
               configMapKeyRef:
@@ -145,6 +175,32 @@ spec:
                 name: manifest-global
                 key: privacy_policy_url
                 optional: true
+          - name: MAPBOX_API_TOKEN
+            # Optional token for mapbox api
+            valueFrom:
+              configMapKeyRef:
+                name: global
+                key: mapbox_token
+                optional: true
+          - name: DATADOG_APPLICATION_ID
+            # Optional application ID for Datadog
+            valueFrom:
+              secretKeyRef:
+                name: portal-datadog-config
+                key: datadog_application_id
+                optional: true
+          - name: DATADOG_CLIENT_TOKEN
+            # Optional client token for Datadog
+            valueFrom:
+              secretKeyRef:
+                name: portal-datadog-config
+                key: datadog_client_token
+                optional: true
+          - name: DATA_UPLOAD_BUCKET
+            # S3 bucket name for data upload, for setting up CSP
+            GEN3_DATA_UPLOAD_BUCKET|-value: ""-|
+          - name: BASENAME
+            value: /portal
         volumeMounts:
           - name: "cert-volume"
             readOnly: true
@@ -179,8 +235,4 @@ spec:
             readOnly: true
             mountPath: "/data-portal/custom/privacy_policy.md"
             subPath: "privacy_policy.md"
-        readinessProbe:
-          httpGet:
-            path: /
-            port: 80
         imagePullPolicy: Always

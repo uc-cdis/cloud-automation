@@ -1,9 +1,9 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: revproxy-deployment
   annotations:
-    gen3.io/network-ingress: "portal"
+    gen3.io/network-ingress: "portal,sowerjob"
 spec:
   selector:
     # Only select pods based on the 'app' label
@@ -19,12 +19,16 @@ spec:
     metadata:
       labels:
         app: revproxy
+        # allow access from workspaces
+        userhelper: "yes"
+        internet: "yes"
         GEN3_DATE_LABEL
+        GEN3_HOSTNAME_LABEL
     spec:
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
+          - weight: 25
             podAffinityTerm:
               labelSelector:
                 matchExpressions:
@@ -33,6 +37,22 @@ spec:
                   values:
                   - revproxy
               topologyKey: "kubernetes.io/hostname"
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - spot
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - SPOT
       automountServiceAccountToken: false
       volumes:
         - name: revproxy-conf
@@ -41,6 +61,12 @@ spec:
         - name: revproxy-subconf
           configMap:
             name: revproxy-nginx-subconf
+        - name: modsec-conf
+          configMap:
+            name: manifest-modsec
+        - name: revproxy-manifest-conf
+          configMap:
+            name: manifest-revproxy
         - name: helper-js
           configMap:
             name: revproxy-helper-js
@@ -56,21 +82,21 @@ spec:
       containers:
       - name: revproxy
         GEN3_REVPROXY_IMAGE|-image: nginx:1.13.9-perl-|
-        command:
-          - /usr/sbin/nginx
-          - -g
-          - 'daemon off;'
+        imagePullPolicy: Always
         livenessProbe:
-          tcpSocket:
+          httpGet:
+            path: /_status
             port: 80
           initialDelaySeconds: 5
           periodSeconds: 30
         readinessProbe:
-          tcpSocket:
+          httpGet:
+            path: /_status
             port: 80
         ports:
         - containerPort: 80
         - containerPort: 443
+        - containerPort: 6567
         env:
           - name: POD_NAMESPACE
             valueFrom:
@@ -81,6 +107,24 @@ spec:
               configMapKeyRef:
                 name: manifest-canary
                 key: json
+          - name: MAINTENANCE_MODE
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: maintenance_mode
+                optional: true
+          - name: DOCUMENT_URL
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: document_url
+                optional: true
+          - name: FRONTEND_ROOT
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: frontend_root
+                optional: true
           - name: ORIGINS_ALLOW_CREDENTIALS
             valueFrom:
               configMapKeyRef:
@@ -99,6 +143,18 @@ spec:
                 name: manifest-global
                 key: des_namespace
                 optional: true
+          - name: INDEXD_AUTHZ
+            valueFrom:
+              secretKeyRef:
+                name: gateway-g3auto
+                key: base64Authz.txt
+                optional: true  
+          - name: MDS_AUTHZ
+            valueFrom:
+              secretKeyRef:
+                name: metadata-g3auto
+                key: base64Authz.txt
+                optional: true  
         volumeMounts:
           - name: "revproxy-conf"
             readOnly: true
@@ -107,6 +163,12 @@ spec:
           - name: "revproxy-subconf"
             readOnly: true
             mountPath: "/etc/nginx/gen3.conf"
+          - name: "modsec-conf"
+            readOnly: true
+            mountPath: "/etc/nginx/modsec"
+          - name: "revproxy-manifest-conf"
+            readOnly: true
+            mountPath: "/etc/nginx/manifest-revproxy"
           - name: "helper-js"
             readOnly: true
             mountPath: "/etc/nginx/helpers.js"
@@ -134,12 +196,25 @@ spec:
             readOnly: true
             mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
             subPath: "ca.pem"
-        #command: ["/bin/bash" ]
-        #args:
-        #  - "-c"
-        #  # Script always succeeds if it runs (echo exits with 0)
-        #  - |
-        #    while [[ ! -f /tmp/killme ]]; do
-        #      echo "revproxy container spinning";
-        #      sleep 10
-        #    done
+        resources:
+          requests:
+            memory: 1024Mi
+          limits:
+            memory: 2048Mi
+        command: ["/bin/sh" ]
+        args:
+          - "-c"
+          # Script always succeeds if it runs (echo exits with 0)
+          # Launch script handles different nginx versions, etc
+          - |
+            for name in ngx_http_perl_module.so ngx_http_js_module.so ngx_http_headers_more_filter_module.so ngx_http_modsecurity_module.so; do
+              if [ -f /etc/nginx/modules/$name ]; then
+                echo "load_module modules/$name;" >> /etc/nginx/gen3_modules.conf
+              fi
+            done
+            if [ -f /etc/nginx/modules/ngx_http_modsecurity_module.so -a -f /etc/nginx/modsec/main.conf ]; then
+              echo "modsecurity on;" >> /etc/nginx/gen3_server_modsec.conf
+              echo "modsecurity_rules_file /etc/nginx/modsec/main.conf;" >> /etc/nginx/gen3_server_modsec.conf
+            fi
+  
+            exec nginx -g 'daemon off;'

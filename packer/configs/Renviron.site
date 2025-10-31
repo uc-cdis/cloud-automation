@@ -1,0 +1,2 @@
+http_proxy=http://cloud-proxy.internal.io:3128
+https_proxy=http://cloud-proxy.internal.io:3128

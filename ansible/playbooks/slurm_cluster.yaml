@@ -1,0 +1,19 @@
+---
+- hosts: controller
+  name: gather controller facts
+  tasks: [ ]
+- hosts: all
+  tasks:
+    - debug:
+        msg: "before we run our role"
+    - import_role:
+        name: aws_common
+    - import_role:
+        name: docker
+    - import_role:
+        name: slurm
+      vars:
+        region: 'us-east-1'
+        slurm_source_url: 'https://github.com/SchedMD/slurm/archive/'
+        slurm_version: 'slurm-20-02-3-1'
+        nodejs_version: '10.x'

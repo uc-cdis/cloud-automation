@@ -1,9 +1,9 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: indexd-deployment
   annotations:
-    gen3.io/network-ingress: "fence,fenceshib,peregrine,sheepdog,ssjdispatcherjob"
+    gen3.io/network-ingress: "fence,presigned-url-fence,fenceshib,peregrine,sheepdog,ssjdispatcherjob,metadata,mariner,mariner-engine"
 spec:
   selector:
     # Only select pods based on the 'app' label
@@ -19,15 +19,19 @@ spec:
   template:
     metadata:
       labels:
+        netnolimit: "yes"
         app: indexd
         release: production
         public: "yes"
+        GEN3_ENV_LABEL
+        GEN3_INDEXD_VERSION
         GEN3_DATE_LABEL
+        GEN3_HOSTNAME_LABEL
     spec:
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
+          - weight: 25
             podAffinityTerm:
               labelSelector:
                 matchExpressions:
@@ -36,6 +40,22 @@ spec:
                   values:
                   - indexd
               topologyKey: "kubernetes.io/hostname"
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - spot
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - SPOT
       automountServiceAccountToken: false
       volumes:
         - name: config-volume
@@ -71,6 +91,11 @@ spec:
                 name: manifest-indexd
                 key: arborist
                 optional: true
+          - name: HOSTNAME
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: hostname
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
@@ -79,9 +104,14 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 60
           timeoutSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /_status
+            port: 80
         ports:
         - containerPort: 80
         - containerPort: 443
+        - containerPort: 6567
         volumeMounts:
           - name: "config-volume"
             readOnly: true
@@ -109,6 +139,7 @@ spec:
             mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
             subPath: "ca.pem"
         resources:
+          requests:
+            memory: 512Mi
           limits:
-            cpu: 1.0
             memory: 1024Mi

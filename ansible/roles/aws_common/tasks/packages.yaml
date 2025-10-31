@@ -1,0 +1,51 @@
+---
+
+- name: install packages
+  apt:
+    name: '{{ item }}'
+    state: present
+  loop:
+    - jq
+    - python3-pip
+    - aptitude
+  become: yes
+  
+- name: install dependencies
+  pip:
+    name: '{{ item }}'
+    executable: pip3
+  loop:
+    - awscli
+    - boto
+    - boto3
+    - yq
+  environment: 
+    http_proxy: "{{ http_proxy }}:{{ http_proxy_port }}"
+    https_proxy: "{{ https_proxy }}:{{ https_proxy_port }}"
+  become: yes
+
+- name: Install aws logs
+  apt:
+    deb: https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb
+  become: yes
+
+- name: create cloudWatchLog dir
+  file:
+    dest: /opt/aws/amazon-cloudwatch-agent/bin
+    state: directory
+  become: yes
+
+- name: cloudWatchLog config file
+  template:
+    src: cloudwatch_agent.json.j2
+    dest: /opt/aws/amazon-cloudwatch-agent/bin/config.json
+  become: yes
+
+#- name: check if cloudwatchlog agent is running first
+#  stat
+    
+- name: configure cloudwatchlog agent
+  shell: /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/bin/config.json -s
+  when: ansible_facts.services["amazon-cloudwatch-agent.service"] is defined and  ansible_facts.services["amazon-cloudwatch-agent.service"].status != "enabled"
+  notify: enable cloudwatchlogs agent
+  become: yes

@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: jenkins-deployment
@@ -21,7 +21,27 @@ spec:
         # for network policy
         netnolimit: "yes"
         GEN3_DATE_LABEL
+      annotations:
+        "cluster-autoscaler.kubernetes.io/safe-to-evict": "false"
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND
+            - matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand                
+              - key: topology.kubernetes.io/zone
+                operator: In
+                values:
+                - us-east-1a
       serviceAccountName: jenkins-service
       securityContext:
         runAsUser: 1000
@@ -35,6 +55,11 @@ spec:
         GEN3_JENKINS_IMAGE
         ports:
         - containerPort: 8080
+          name: http
+          protocol: TCP
+        - containerPort: 50000
+          name: slavelistener
+          protocol: TCP
         env:
           - name: HOSTNAME
             valueFrom:
@@ -90,8 +115,8 @@ spec:
             port: 8080
         resources:
           limits:
-            cpu: 0.9
-            memory: 6144Mi
+            cpu: 2
+            memory: 6Gi
         imagePullPolicy: Always
         volumeMounts:
         - name: datadir
@@ -110,19 +135,6 @@ spec:
           subPath: "ca.pem"
         - name: dockersock
           mountPath: "/var/run/docker.sock"
-      - name: selenium
-        image: selenium/standalone-chrome:3.14
-        ports:
-        - containerPort: 4444
-        readinessProbe:
-          httpGet:
-            path: /wd/hub/sessions
-            port: 4444
-        readinessProbe:
-          httpGet:
-            path: /wd/hub/sessions
-            port: 4444
-        imagePullPolicy: Always
       volumes:
       - name: datadir
         persistentVolumeClaim:

@@ -8,11 +8,11 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 
-gen3 kube-setup-secrets
+[[ -z "$GEN3_ROLL_ALL" ]] && gen3 kube-setup-secrets
 
 if [[ -d "$(gen3_secrets_folder)/creds.json" ]]; then # create database
   # Initialize fence database and user list
-  cd "${WORKSPACE}/${vpc_name}"
+  cd "$(gen3_secrets_folder)"
   if [[ ! -f .rendered_fence_db ]]; then
     gen3 job run fencedb-create
     echo "Waiting 10 seconds for fencedb-create job"
@@ -25,6 +25,11 @@ if [[ -d "$(gen3_secrets_folder)/creds.json" ]]; then # create database
   touch "$(gen3_secrets_folder)/.rendered_fence_db"
 fi
 
+# setup configmap
+ if ! g3kubectl get configmaps/fenceshib-config > /dev/null 2>&1; then
+  g3kubectl apply -f "${GEN3_HOME}/kube/services/fenceshib/fenceshib-configmap.yaml"
+fi
+
 # deploy fenceshib
 gen3 roll fenceshib
 g3kubectl apply -f "${GEN3_HOME}/kube/services/fenceshib/fenceshib-service.yaml"
@@ -32,5 +37,5 @@ gen3 roll fenceshib-canary || true
 g3kubectl apply -f "${GEN3_HOME}/kube/services/fenceshib/fenceshib-canary-service.yaml"
 
 cat <<EOM
-The fenceshib services has been deployed onto the k8s cluster.
+The fenceshib service has been deployed onto the k8s cluster.
 EOM

@@ -1,0 +1,113 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Sensor
+metadata:
+  name: argo-workflow-created-sensor
+  namespace: argo-events
+spec:
+  template:
+    serviceAccountName: default
+    container:
+      env:
+        - name: DEBUG_LOG
+          value: "true"
+  dependencies:
+    - name: workflow-created-event
+      eventSourceName: argo-workflow-created-source
+      eventName: workflow-created
+  triggers:
+    - template:
+        name: log-event
+        log:
+          intervalSeconds: 10
+    - template:
+        name: argo-workflow
+        k8s:
+          operation: create
+          parameters:
+            - src:
+                dependencyName: workflow-created-event
+                dataKey: body.metadata.name
+              dest: spec.template.spec.containers.0.env.0.value
+            - src:
+                dependencyName: workflow-created-event
+                dataKey: body.metadata.name
+              dest: metadata.labels.workflow
+            - src:
+                dependencyName: workflow-created-event
+                dataKey: body.metadata.labels.gen3username
+              dest: spec.template.spec.containers.0.env.1.value
+            - src:
+                dependencyName: workflow-created-event
+                dataKey: body.metadata.labels.gen3teamproject
+              dest: spec.template.spec.containers.0.env.2.value
+          source:
+            resource:
+              apiVersion: batch/v1
+              kind: Job
+              metadata:
+                generateName: create-karpenter-resources-
+                namespace: argo-events
+                labels:
+                  workflow: ""
+              spec:
+                completions: 1
+                ttlSecondsAfterFinished: 900
+                parallelism: 1
+                template:
+                  spec:
+                    restartPolicy: OnFailure
+                    containers:
+                      - name: karpenter-resource-creator
+                        image: quay.io/cdis/awshelper
+                        command: ["/bin/sh"]
+                        args:
+                          - "-c"
+                          - |
+                            #!/bin/bash
+                            if [ "$ENVIRONMENT" = "vhdcprod" ]; then
+                              ENVIRONMENT_TYPE_CODE="production"
+                            elif [ "$ENVIRONMENT" = "va-testing" ]; then
+                              ENVIRONMENT_TYPE_CODE="testing"
+                            else
+                              ENVIRONMENT_TYPE_CODE="$ENVIRONMENT"
+                            fi
+
+                            if [ -z "$NODEPOOL_TEMPLATE" ]; then
+                              NODEPOOL_TEMPLATE="/manifests/nodepool.yaml"
+                            fi
+
+                            if [ -z "$NODECLASS_TEMPLATE" ]; then
+                              NODECLASS_TEMPLATE="/manifests/nodeclass.yaml"
+                            fi
+
+                            if ! kubectl get ec2nodeclass workflow-$WORKFLOW_NAME >/dev/null 2>&1; then
+                              sed -e "s/ENVIRONMENT_TYPE_CODE/$ENVIRONMENT_TYPE_CODE/" -e "s/WORKFLOW_NAME/$WORKFLOW_NAME/" -e "s/GEN3_USERNAME/$GEN3_USERNAME/" -e "s/GEN3_TEAMNAME/$GEN3_TEAMNAME/" -e "s/ENVIRONMENT/$ENVIRONMENT/" "$NODECLASS_TEMPLATE" | kubectl apply -f - 
+                            fi
+
+                            if ! kubectl get nodepool workflow-$WORKFLOW_NAME >/dev/null 2>&1; then
+                              sed -e "s/ENVIRONMENT_TYPE_CODE/$ENVIRONMENT_TYPE_CODE/" -e "s/WORKFLOW_NAME/$WORKFLOW_NAME/" -e "s/GEN3_USERNAME/$GEN3_USERNAME/" -e "s/GEN3_TEAMNAME/$GEN3_TEAMNAME/" -e "s/ENVIRONMENT/$ENVIRONMENT/" "$NODEPOOL_TEMPLATE" | kubectl apply -f - 
+                            fi
+                        env:
+                          - name: WORKFLOW_NAME
+                            value: ""
+                          - name: GEN3_USERNAME
+                            value: ""
+                          - name: GEN3_TEAMNAME
+                            value: ""
+                          - name: ENVIRONMENT
+                            valueFrom:
+                              configMapKeyRef:
+                                name: environment
+                                key: environment
+                          - name: NODEPOOL_TEMPLATE
+                            value: /manifests/nodepool.yaml
+                          - name: NODECLASS_TEMPLATE
+                            value: /manifests/nodeclass.yaml
+                        volumeMounts:
+                          - name: karpenter-templates-volume
+                            mountPath: /manifests
+                    volumes:
+                      - name: karpenter-templates-volume
+                        configMap:
+                          name: karpenter-templates
+                backoffLimit: 20

@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cogwheel-deployment
+spec:
+  selector:
+    matchLabels:
+      app: cogwheel
+  template:
+    metadata:
+      labels:
+        app: cogwheel
+        GEN3_DATE_LABEL
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND         
+      volumes:
+      - name: cogwheel-g3auto
+        secret:
+          secretName: cogwheel-g3auto
+      containers:
+      - name: cogwheel
+        GEN3_COGWHEEL_IMAGE
+        ports:
+        - containerPort: 80
+        - containerPort: 443
+        volumeMounts:
+        - mountPath: "/etc/shibboleth/sp-encrypt-cert.pem"
+          subPath: "sp-encrypt-cert.pem"
+          name: cogwheel-g3auto
+        - mountPath: "/etc/shibboleth/sp-encrypt-key.pem"
+          subPath: "sp-encrypt-key.pem"
+          name: cogwheel-g3auto
+        - mountPath: "/etc/shibboleth/sp-signing-cert.pem"
+          subPath: "sp-signing-cert.pem"
+          name: cogwheel-g3auto
+        - mountPath: "/etc/shibboleth/sp-signing-key.pem"
+          subPath: "sp-signing-key.pem"
+          name: cogwheel-g3auto
+        - mountPath: "/etc/shibboleth/mdqsigner.pem"
+          subPath: "mdqsigner.pem"
+          name: cogwheel-g3auto
+        - mountPath: "/etc/shibboleth/shibboleth2.xml"
+          subPath: "shibboleth2.xml"
+          name: cogwheel-g3auto
+        - mountPath: "/etc/httpd/conf.d/ssl.conf"
+          subPath: "ssl.conf"
+          name: cogwheel-g3auto
+        - mountPath: "/etc/cogwheel/wsgi_settings.py"
+          subPath: "wsgi_settings.py"
+          name: cogwheel-g3auto
+        - mountPath: "/etc/cogwheel/oauth2_metadata.json"
+          subPath: "oauth2_metadata.json"
+          name: cogwheel-g3auto
+        - mountPath: "/etc/cogwheel/rsa/privatekey.pem"
+          subPath: "rsa_privatekey.pem"
+          name: cogwheel-g3auto
+        - mountPath: "/etc/cogwheel/rsa/publickey.pem"
+          subPath: "rsa_publickey.pem"
+          name: cogwheel-g3auto

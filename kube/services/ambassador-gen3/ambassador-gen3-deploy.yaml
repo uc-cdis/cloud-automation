@@ -1,9 +1,13 @@
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ambassador-gen3-deployment
 spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: ambassador-gen3
   template:
     metadata:
       annotations:
@@ -18,28 +22,38 @@ spec:
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
+          - weight: 25
             podAffinityTerm:
               labelSelector:
                 matchLabels:
                   service: ambassador
               topologyKey: kubernetes.io/hostname
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - spot
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - SPOT           
       serviceAccountName: ambassador
       containers:
       - name: ambassador
         GEN3_AMBASSADOR_IMAGE
         resources:
           limits:
-            cpu: 1
             memory: 400Mi
           requests:
-            cpu: 200m
             memory: 100Mi
         env:
-        - name: STATSD_ENABLED
-          value: "true"
-        - name: STATSD_HOST
-          value: "statsd-exporter"
         - name: AMBASSADOR_NAMESPACE
           valueFrom:
             fieldRef:

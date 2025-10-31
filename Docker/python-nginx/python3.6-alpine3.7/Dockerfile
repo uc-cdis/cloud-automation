@@ -1,6 +1,6 @@
 # Dockerfile written by Sebastian Ramirez <tiangolo@gmail.com> at https://github.com/tiangolo/uwsgi-nginx-docker
 
-FROM python:3.6-alpine3.7
+FROM quay.io/cdis/python:3.6-alpine3.7
 
 # Standard set up Nginx Alpine
 # https://github.com/nginxinc/docker-nginx/blob/f3fc4d5753f0ebb9107738183b9c5cea1bf3f618/mainline/alpine/Dockerfile
@@ -68,8 +68,11 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
 		libxslt-dev \
 		gd-dev \
 		geoip-dev \
+		logrotate \
 	&& curl -fSL https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz -o nginx.tar.gz \
 	&& curl -fSL https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz.asc  -o nginx.tar.gz.asc \
+	# install Rust
+	&& curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain=1.51 \
 	&& export GNUPGHOME="$(mktemp -d)" \
 	&& found=''; \
 	for server in \
@@ -142,6 +145,9 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY uwsgi.conf /etc/nginx/sites-available/
 
+# Install ddtrace
+RUN pip install ddtrace
+
 # Standard set up Nginx finished
 
 EXPOSE 80
@@ -165,11 +171,12 @@ COPY supervisord.ini /etc/supervisor.d/supervisord.ini
 # Which uWSGI .ini file should be used, to make it customizable
 ENV UWSGI_INI /app/uwsgi.ini
 
-# By default, run 2 processes
-ENV UWSGI_CHEAPER 2
-
-# By default, when on demand, run up to 16 processes
-ENV UWSGI_PROCESSES 16
+# By default, disable uwsgi cheaper mode and run 2 processes.
+# If UWSGI_CHEAPER=N and UWSGI_PROCESSES=M, N is the min and M is the max
+# number of processes. UWSGI_CHEAPER must be lower than UWSGI_PROCESSES.
+# We set them here instead of in uwsgi.ini so that they can be overwritten.
+ENV UWSGI_CHEAPER=
+ENV UWSGI_PROCESSES=2
 
 # By default, allow unlimited file sizes, modify it to limit the file sizes
 # To have a maximum of 1 MB (Nginx's default) change the line to:
@@ -187,10 +194,13 @@ ENV LISTEN_PORT 80
 
 # Copy the entrypoint that will generate Nginx additional configs
 COPY entrypoint.sh /entrypoint.sh
+COPY logrotate-nginx.conf /etc/logrotate.d/nginx
 RUN chmod +x /entrypoint.sh
 
+ENV PATH="/root/.cargo/bin:${PATH}"
+
 COPY dockerrun.sh /dockerrun.sh
-RUN chmod +x /dockerrun.sh
+RUN mkdir -p /var/www/metrics/ && chmod +x /dockerrun.sh
 
 ENTRYPOINT ["sh", "/entrypoint.sh"]
 

@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: sheepdog-deployment
@@ -7,6 +7,7 @@ spec:
     # Only select pods based on the 'app' label
     matchLabels:
       app: sheepdog
+      release: production
   revisionHistoryLimit: 2
   strategy:
     type: RollingUpdate
@@ -16,17 +17,18 @@ spec:
   template:
     metadata:
       labels:
+        netnolimit: "yes"
         app: sheepdog
         release: production
         public: "yes"
         # to download dictionary
         s3: "yes"
-        date: "1522344110"
+        date: "1579711411"
     spec:
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
+          - weight: 25
             podAffinityTerm:
               labelSelector:
                 matchExpressions:
@@ -35,6 +37,22 @@ spec:
                   values:
                   - sheepdog
               topologyKey: "kubernetes.io/hostname"
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - spot
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - SPOT   
       automountServiceAccountToken: false
       volumes:
         - name: config-volume
@@ -76,8 +94,39 @@ spec:
           - name: DICTIONARY_URL
             valueFrom:
               configMapKeyRef:
-                name: global
+                name: manifest-global
                 key: dictionary_url
+          # Signpost is deprecated; replace this w INDEX_CLIENT_HOST block
+          - name: SIGNPOST_HOST
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: indexd_url
+                optional: true
+          - name: INDEX_CLIENT_HOST
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: indexd_url
+                optional: true
+          - name: FENCE_URL
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: fence_url
+                optional: true
+          - name: ARBORIST_URL
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: arborist_url
+                optional: true
+          - name: AUTH_NAMESPACE
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: auth_namespace
+                optional: true
           - name: REQUESTS_CA_BUNDLE
             #
             # override python 'requests' SSL certificate bundle
@@ -95,7 +144,7 @@ spec:
             - name: "creds-volume"
               readOnly: true
               mountPath: "/var/www/sheepdog/creds.json"
-              subPath: creds.json  
+              subPath: creds.json
             - name: "config-helper"
               readOnly: true
               mountPath: "/var/www/sheepdog/config_helper.py"
@@ -116,7 +165,7 @@ spec:
           imagePullPolicy: Always
           resources:
             requests:
-              cpu: 1
+              cpu: 100m
+              memory: 200Mi
             limits:
-              cpu: 2
-              memory: 1024Mi
+              memory: 800Mi

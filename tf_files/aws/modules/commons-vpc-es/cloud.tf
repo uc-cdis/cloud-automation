@@ -9,15 +9,9 @@ module "elasticsearch_alarms" {
 }
 
 resource "aws_iam_service_linked_role" "es" {
+  count            = "${var.es_linked_role ? 1 : 0}"
   aws_service_name = "es.amazonaws.com"
 }
-
-#resource "random_shuffle" "az" {
-#  input = ["${data.aws_availability_zones.available.names}"]
-#  result_count = 1
-#  count = 1
-#}
-
 
 resource "aws_security_group" "private_es" {
   name        = "private_es"
@@ -38,25 +32,11 @@ resource "aws_security_group" "private_es" {
     cidr_blocks = ["${data.aws_vpc.the_vpc.cidr_block}"]
   }
 
-  tags {
+  tags = {
     Environment  = "${var.vpc_name}"
-    Organization = "Basic Service"
+    Organization = "${var.organization_name}"
   }
 }
-
-
-#resource "aws_subnet" "private_sn_es" {
-#  vpc_id                  = "${element(data.aws_vpcs.vpcs.ids, count.index)}"
-#  cidr_block              = "${cidrhost(data.aws_vpc.the_vpc.cidr_block, 256 * 6 )}/24"
-#  availability_zone       = "${element(random_shuffle.az.result, count.index)}"
-#  map_public_ip_on_launch = false
-
-#  tags {
-#    Name         = "private_es"
-#    Environment  = "${var.vpc_name}"
-#    Organization = "Basic Service"
-#  }
-#}
 
 
 resource "aws_cloudwatch_log_resource_policy" "es_logs" {
@@ -85,7 +65,7 @@ CONFIG
 
 resource "aws_elasticsearch_domain" "gen3_metadata" {
   domain_name           = "${var.vpc_name}-gen3-metadata"
-  elasticsearch_version = "6.3"
+  elasticsearch_version = "${var.es_version}"
   encrypt_at_rest {
     # For small instance type like t2.medium, encryption is not available
     enabled = "${var.encryption}"
@@ -118,10 +98,10 @@ resource "aws_elasticsearch_domain" "gen3_metadata" {
     automated_snapshot_start_hour = 23
   }
 
-  tags {
+  tags = {
     Name         = "gen3_metadata"
     Environment  = "${var.vpc_name}"
-    Organization = "Basic Service"
+    Organization = "${var.organization_name}"
 
   }
    access_policies = <<CONFIG

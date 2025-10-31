@@ -10,12 +10,29 @@ metadata:
   #
   name: indexd-userdb
 spec:
+  backoffLimit: 0
   template:
     metadata:
       labels:
         app: gen3job
     spec:
-      # not yet supported - backOffLimit: 3
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND
       automountServiceAccountToken: false
       volumes:
         - name: config-volume
@@ -57,7 +74,7 @@ spec:
             # Script always succeeds if it runs (echo exits with 0)
             # indexd image does not include jq, so use python 
             - |
-              eval $(python 2> /dev/null <<EOM
+              eval $( (python 2> /dev/null || poetry run python 2> /dev/null) <<EOM
               import json
 
               sheepdog_data = json.load(open('/var/www/indexd/sheepdog_creds.json', 'r'))
@@ -73,7 +90,7 @@ spec:
               EOM
               )
               for user in "${!user_db[@]}"; do
-                python /indexd/bin/index_admin.py create --username "$user" --password "${user_db[$user]}"
+                (python /indexd/bin/index_admin.py create --username "$user" --password "${user_db[$user]}" 2> /dev/null || poetry run python /indexd/bin/index_admin.py create --username "$user" --password "${user_db[$user]}")
               done
               echo "Exit code: $?"
       restartPolicy: Never

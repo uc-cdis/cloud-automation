@@ -1,3 +1,7 @@
-output "data-bucket_name" {
-  value = "${aws_sns_topic.user_updates.arn}"
+output "sns-topic-arn" {
+  value = "${module.queue.sns-topic-arn}"
+}
+
+output "sqs-url" {
+  value = "${module.queue.sqs-url}"
 }

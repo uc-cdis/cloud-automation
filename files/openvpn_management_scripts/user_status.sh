@@ -45,7 +45,7 @@ is_active_crt(){
         openssl verify -crl_check -CAfile $crl $crt &>/dev/null
         if [ $?  -eq 0 ]
         then
-            echo -e "${GREEN}true${CLEAR}"
+            echo "true"
         else
             echo -e "${RED}false${CLEAR}"
         fi
@@ -55,14 +55,6 @@ is_active_crt(){
 
 }
 
-check_for_revoked(){
-    for crt in $( ls ${KEY_PATH}/*.crt )
-    do
-        echo $crt
-         is_active_crt && echo "moo"
-    done
-
-}
 
 find_email() {
     openssl x509 -in $crt -text | grep Subject | grep CN | perl -ne 'm|emailAddress=\s*(\S+)| && print "$1\n"'
@@ -88,13 +80,12 @@ is_active() {
 	        echo $vpn_user,$email,active
 	    fi
     else
-        echo echo $vpn_user,$email,revoked
+        echo $vpn_user,$email,revoked
     fi
 
 }
 
 check_status(){
-
     for vpn_user in $(cut -f1 -d, $USER_PW_FILE)
     do
         crt="${KEY_PATH}/${vpn_user}.crt"
@@ -108,12 +99,12 @@ check_status(){
                 then
                     echo $vpn_user,$email,disabled
                 else
-                    #echo $vpn_user,$email,active
+                    #is_active does this: echo $vpn_user,$email,active
                     is_active
                 fi
             else
                 is_active
-                #echo $vpn_user,$email,active
+                #is_active does this: echo $vpn_user,$email,active
             fi
         else
             #echo $vpn_user,$email,revoked

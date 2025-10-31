@@ -65,6 +65,7 @@ Most of these policies enforce constraints on interservice communication for spe
 * [networkpolicy-auth](../kube/services/netpolicy/gen3/auth_netpolicy.yaml) - grants egress from all pods to pods labeled with `authrpovider=yes`
 * [networkpolicy-vpc](../kube/services/netpolicy/gen3/vpc_netpolicy.yaml) - grants egress from all pods to any address in the vpc
 * [networkpolicy-nolimit](../kube/services/netpolicy/gen3/nolimit_netpolicy.yaml) - grants egress from pods labeled with `netnolimit=yes` to any IP address
+* [networkpolicy-metrics](../kube/services/netpolicy/base/metrics_netpolicy.yaml) - allows ingress to pods labeled with `metrics=yes` from the prometheus namespace
 
 ### Deployment annotations
 

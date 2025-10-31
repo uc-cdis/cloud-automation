@@ -58,7 +58,7 @@ Template processing of this manifest yields the following key-value replacements
 
 The `gen3 roll arranger` command processes the `arranger-deploy.yaml` template:
 ```
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: arranger-deployment
@@ -87,7 +87,7 @@ spec:
 ```
 to generate a `yaml` output to send to kubernetes that looks like this:
 ```
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: arranger-deployment
@@ -132,3 +132,13 @@ with `value: VALUE1`.  A `...-job.yaml` template might look like this:
 ...
 ```
 
+## Cronjob manifest
+
+To setup cronjobs you need to create a cronjobs folder under the manifests folder for you commons. Under that folder you need to create a cronjobs.json file with your cronjobs and the schedules, similar to the following:
+
+```json
+{
+  "etl": "@daily",
+  "usersync": "20 * * * *"
+}
+```

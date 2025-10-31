@@ -1,0 +1,13 @@
+{
+  "authz": {
+    "user_project_to_resource": {
+      "DEV": "/programs/DEV",
+      "QA": "/programs/QA",
+      "canine_data_commons": "/programs/Canine",
+      "jenkins": "/programs/jnkns/projects/jenkins",
+      "jenkins2": "/programs/jnkns/projects/jenkins2",
+      "jnkns": "/programs/jnkns",
+      "test": "/programs/QA/projects/test"
+    }
+  }
+}

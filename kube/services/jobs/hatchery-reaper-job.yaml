@@ -1,0 +1,117 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: hatchery-reaper
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND
+      restartPolicy: Never
+      serviceAccountName: hatchery-service-account
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: awshelper
+          GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
+          imagePullPolicy: Always
+          env:
+            - name: KUBECTL_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: slackWebHook
+              valueFrom:
+                configMapKeyRef:
+                  name: global
+                  key: slack_webhook
+                  optional: true
+            - name: gen3Hostname
+              valueFrom:
+                configMapKeyRef:
+                  name: manifest-global
+                  key: hostname
+            - name: JENKINS_HOME
+              value: "whatever"
+          command: ["/bin/bash" ]
+          args:
+            - "-c"
+            - |
+              export GEN3_HOME="$HOME/cloud-automation"
+              source "$GEN3_HOME/gen3/gen3setup.sh"
+              # 60 minute idle timeout max
+              limit=3600
+              namespace=$(gen3 jupyter j-namespace)
+              remote_users=$(kubectl get svc -n $namespace  -o json | jq -r . | jq -r '.items[].metadata.annotations."getambassador.io/config"' |  yq -r .headers.remote_user)
+
+              # helper function to construct service name 
+              function escape() {
+                  string="$1"
+                  shift
+                  safeBytes="abcdefghijklmnopqrstuvwxyz0123456789"
+                  retString=""
+                  while read -n 1 char ; do
+                      if [[ $safeBytes == *"$char"* ]]; then
+                        retString+=$char
+                      else
+                        hex=$(printf "%02x" "'${char}'")
+                        retString+="-"$hex
+                      fi
+                  done <<< "$string"
+                echo $retString
+              }
+
+              for user in $remote_users; do 
+                  gen3_log_info "Checking possible workspaces to reap for $user" 
+                  status=$(curl -s -H "REMOTE_USER: $user" hatchery-service/status | jq -r .status)
+                  if [ "$status" == "Running" ] || [ "$status" == "Launching" ]; then
+                    gen3_log_info "$user has workspace that is $status"
+                    serviceName=h-$(escape $user)-s
+                    service="ambassador-service"
+                    status_code=$(curl -s -w '%{http_code}' -o status.json -H "REMOTE_USER: $user" $service/api/status)
+                    if [ "$status_code" == "200" ]; then
+                      last_activity=$(curl -s -H "REMOTE_USER: $user" $service/api/status | jq -r .last_activity )
+                      now=$(date +%s)
+                      delta=$(expr $now - $(date -d "$last_activity" +%s))
+                      gen3_log_info "Workspace for $user has been idle for $delta seconds"
+                      if [ "$delta" -gt "$limit" ]; then
+                        gen3_log_info "Workspace for $user has been running for $delta seconds, which is higher than the $limit... Terminating"
+                        curl -XPOST -s -H "REMOTE_USER: $user" hatchery-service/terminate
+                      fi
+                    else
+                      gen3_log_err "Error: Got HTTP status $status_code trying to get last_activity for $user. Not able to reap workspace"
+                    fi
+                    gen3_log_info "Checking if paymodel for $user is above limit"
+                    pm_status=$(curl -s -H "REMOTE_USER: $user" hatchery-service/paymodels | jq -r .request_status)
+                    if [ "$pm_status" == "above limit" ]; then
+                      gen3_log_warn "Paymodel status is above limit for user: $user. Reaping the workspace"
+                      curl -XPOST -s -H "REMOTE_USER: $user" hatchery-service/terminate
+                    fi
+                  fi
+              done
+
+              # legacy reaper code
+              gen3_log_info "Running legacy reaper job (based on Mimir)"
+              if appList="$(gen3 jupyter idle none "$(gen3 db namespace)" kill)" && [[ -n "$appList" && -n "$slackWebHook" && "$slackWebHook" != "None" ]]; then
+                curl -X POST --data-urlencode "payload={\"text\": \"hatchery-reaper in $gen3Hostname: \n\`\`\`\n${appList}\n\`\`\`\"}" "${slackWebHook}"
+              fi
+              gen3_log_info "All Done!"

@@ -4,7 +4,7 @@ resource "aws_cloudwatch_log_group" "squid-nlb_log_group" {
   name              = "${var.env_nlb_name}_log_group"
   retention_in_days = 1827
 
-  tags {
+  tags = {
     Environment  = "${var.env_nlb_name}"
     Organization = "Basic Services"
   }
@@ -132,7 +132,7 @@ resource "aws_lb" "squid_nlb" {
   enable_deletion_protection = true
   enable_cross_zone_load_balancing = true
 
-  tags {
+  tags = {
     Environment = "production"
   }
 }
@@ -287,7 +287,7 @@ resource "aws_security_group" "squidnlb_in" {
     cidr_blocks = ["${var.csoc_cidr}"]
   }
 
-  tags {
+  tags = {
     Environment  = "${var.env_nlb_name}"
     Organization = "Basic Service"
   }
@@ -299,7 +299,7 @@ resource "aws_security_group" "squidnlb_in" {
     cidr_blocks = ["${var.env_vpc_octet1}.${var.env_vpc_octet2}.${var.env_vpc_octet3}.0/20"]
   }
 
-  tags {
+  tags = {
     Environment  = "${var.env_nlb_name}"
     Organization = "Basic Service"
   }
@@ -322,7 +322,7 @@ resource "aws_security_group" "squidnlb_out" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags {
+  tags = {
     Environment  = "${var.env_nlb_name}"
     Organization = "Basic Service"
   }

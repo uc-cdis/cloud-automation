@@ -1,4 +1,3 @@
-
 variable "rds_instance_create" {
   description = "Whether to create this resource or not?"
 #  type        = bool
@@ -191,7 +190,6 @@ variable "rds_instance_availability_zone" {
   default     = ""
 }
 
-
 variable "rds_instance_final_snapshot_identifier" {
   description = "The name of your final DB snapshot when this DB instance is deleted."
 #  type        = "string"
@@ -200,7 +198,7 @@ variable "rds_instance_final_snapshot_identifier" {
 
 variable "rds_instance_monitoring_role_arn" {
   description = "The ARN for the IAM role that permits RDS to send enhanced monitoring metrics to CloudWatch Logs. Must be specified if monitoring_interval is non-zero."
-#  type        = "string"
+#  type        = "string"ß
   default     = ""
 }
 
@@ -273,5 +271,20 @@ variable "rds_instance_create_monitoring_role" {
 variable "rds_instance_character_set_name" {
   description = "(Optional) The character set name to use for DB encoding in Oracle instances. This can't be changed. See Oracle Character Sets Supported in Amazon RDS for more information"
   type        = "string"
+  default     = ""
+}
+
+variable "rds_instance_backup_enabled" {
+  description = "To enable backups onto S3"
+  default    = false
+}
+
+variable "rds_instance_backup_kms_key" {
+  description = "KMS to enable backups onto S3"
+  default     = ""
+}
+
+variable "rds_instance_backup_bucket_name" {
+  description = "The bucket to send bacups to"
   default     = ""
 }

@@ -11,15 +11,25 @@ spec:
       values:
       - revproxy
       - ambassador-gen3
+      - auspice
+      - ohdsi-atlas
+      - ohdsi-webapi
+      - superset
+      - superset-worker
+      - superset-redis-master
   ingress:
     - from:
       - ipBlock:
            cidr: 0.0.0.0/0
       ports:
          - port: 80
+         - port: 4000
          - port: 8080
          - port: 81
+         - port: 82
          - port: 443
+         - port: 8088
+         - port: 9090
   egress:
     - to:
       - namespaceSelector:
@@ -29,6 +39,18 @@ spec:
       - namespaceSelector:
           matchLabels:
             app: grafana
+    - to: 
+      - namespaceSelector:
+          matchLabels:
+            app: argo
+    - to: 
+      - namespaceSelector:
+          matchLabels:
+            app: argocd
+    - to:
+      - namespaceSelector:
+          matchLabels:
+            name: kubecost
   policyTypes:
    - Ingress
    - Egress

@@ -1,0 +1,146 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jenkins-deployment
+spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: jenkins
+  revisionHistoryLimit: 2
+  strategy:
+    #
+    # rolling update does not work, since
+    # persistent volume claim cannot be shared
+    #
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: jenkins
+        # for network policy
+        netnolimit: "yes"
+        GEN3_DATE_LABEL
+      annotations:
+        "cluster-autoscaler.kubernetes.io/safe-to-evict": "false"
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND
+            - matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand                             
+      serviceAccountName: jenkins-service
+      securityContext:
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+      #
+      # See for details on running docker in a pod:
+      #   https://estl.tech/accessing-docker-from-a-kubernetes-pod-68996709c04b
+      #
+      - name: jenkins
+        GEN3_JENKINS2_IMAGE
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        - containerPort: 50000
+          name: slavelistener
+          protocol: TCP
+        env:
+          - name: HOSTNAME
+            valueFrom:
+              configMapKeyRef:
+                name: global
+                key: hostname
+          - name: AWS_DEFAULT_REGION
+            value: us-east-1
+          - name: JAVA_OPTS
+            value: "-Xmx3072m"
+          - name: AWS_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: jenkins-secret
+                key: aws_access_key_id
+          - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: jenkins-secret
+                key: aws_secret_access_key
+          - name: JENKINS_S3_PATH
+            # Just hard code for now
+            # Bucket in cdistest account used for backups
+            value: "s3://cdis-terraform-state/Jenkins3Backup"
+          - name: GOOGLE_EMAIL_AUX1
+            valueFrom:
+              secretKeyRef:
+                name: google-acct1
+                key: email
+          - name: GOOGLE_PASSWORD_AUX1
+            valueFrom:
+              secretKeyRef:
+                name: google-acct1
+                key: password
+          - name: GOOGLE_EMAIL_AUX2
+            valueFrom:
+              secretKeyRef:
+                name: google-acct2
+                key: email
+          - name: GOOGLE_PASSWORD_AUX2
+            valueFrom:
+              secretKeyRef:
+                name: google-acct2
+                key: password
+          - name: GOOGLE_APP_CREDS_JSON
+            valueFrom:
+              secretKeyRef:
+                name: jenkins-g3auto
+                key: google_app_creds.json
+        readinessProbe:
+          httpGet:
+            path: /login
+            port: 8080
+        resources:
+          limits:
+            cpu: 0.9
+            memory: 8192Mi
+        imagePullPolicy: Always
+        volumeMounts:
+        - name: datadir
+          mountPath: /var/jenkins_home
+        - name: "cert-volume"
+          readOnly: true
+          mountPath: "/mnt/ssl/service.crt"
+          subPath: "service.crt"
+        - name: "cert-volume"
+          readOnly: true
+          mountPath: "/mnt/ssl/service.key"
+          subPath: "service.key"
+        - name: "ca-volume"
+          readOnly: true
+          mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
+          subPath: "ca.pem"
+        - name: dockersock
+          mountPath: "/var/run/docker.sock"
+      volumes:
+      - name: datadir
+        persistentVolumeClaim:
+          claimName: k8sjenkins
+      - name: cert-volume
+        secret:
+          secretName: "cert-jenkins-service"
+      - name: ca-volume
+        secret:
+          secretName: "service-ca"
+      - name: dockersock
+        hostPath:
+          path: /var/run/docker.sock

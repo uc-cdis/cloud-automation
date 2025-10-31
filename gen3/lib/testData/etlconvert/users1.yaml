@@ -1,0 +1,365 @@
+cloud_providers: {}
+groups: {}
+
+clients:
+  wts:
+    policies:
+    - all_programs_reader
+    - open_data_reader
+
+authz:
+
+  # policies automatically given to anyone, even if they haven't authenticated
+  anonymous_policies: []
+
+  # all authenticated users can access open data
+  all_users_policies:
+  - open_data_reader
+
+  groups:
+  # can create/update/delete indexd records, programs and projects
+  - name: 'indexd_sheepdog_admins'
+    policies:
+    - services.sheepdog-admin
+    - indexd_admin
+    users:
+    - abc@uchicago.edu
+    - def@uchicago.edu
+    - ghi@uchicago.edu
+
+  policies:
+  - description: upload raw data files to S3 (for new data upload flow)
+    id: data_upload
+    resource_paths: [/data_file]
+    role_ids: [file_uploader]
+  - description: be able to use workspace
+    id: workspace
+    resource_paths: [/workspace]
+    role_ids: [workspace_user]
+  - description: be able to use prometheus
+    id: prometheus
+    resource_paths: [/prometheus]
+    role_ids: [prometheus_user]
+  - description: be able to use sower job
+    id: sower
+    resource_paths: [/sower]
+    role_ids: [sower_user]
+  - id: 'services.sheepdog-admin'
+    description: 'CRUD access to programs and projects'
+    role_ids:
+    - 'sheepdog_admin'
+    resource_paths:
+    - '/services/sheepdog/submission/program'
+    - '/services/sheepdog/submission/project'
+  - id: 'indexd_admin'
+    description: 'full access to indexd API'
+    role_ids:
+    - 'indexd_admin'
+    resource_paths:
+    - '/programs'
+  - id: 'open_data_reader'
+    role_ids:
+    - 'reader'
+    - 'storage_reader'
+    resource_paths:
+    - '/open'
+    - /programs/Canine
+  - id: 'all_programs_reader'
+    role_ids:
+    - 'reader'
+    - 'storage_reader'
+    resource_paths:
+    - '/programs'
+
+  user_project_to_resource:
+    QA: /programs/QA
+    DEV: /programs/DEV
+    test: /programs/QA/projects/test
+    jenkins: /programs/jnkns/projects/jenkins
+    jenkins2: /programs/jnkns/projects/jenkins2
+    jnkns: /programs/jnkns
+  
+  resources:
+  - name: data_file
+  - name: prometheus
+  - name: workspace
+  - name: sower
+  - name: 'services'
+    subresources:
+    - name: 'sheepdog'
+      subresources:
+      - name: 'submission'
+        subresources:
+        - name: 'program'
+        - name: 'project'
+  - name: open
+  - name: programs
+    subresources:
+    - name: Canine
+      subresources:
+      - name: projects
+        subresources:
+        - name: PMed_trial
+        - name: NHGRI
+        - name: Non-Hodgkin_lymphoma
+        - name: B_cell_lymphoma
+        - name: melanoma
+        - name: Glioma
+        - name: Bladder_cancer
+        - name: Cornell_GWAS
+        - name: Osteosarcoma
+        - name: Mizzou_Comparative_Resequencing
+        - name: Korean_DongGyeongi
+
+  roles:
+  - id: file_uploader
+    permissions:
+    - action: {method: file_upload, service: fence}
+      id: file_upload
+  - id: workspace_user
+    permissions:
+    - action: {method: access, service: jupyterhub}
+      id: workspace_access
+  - id: prometheus_user
+    permissions:
+    - action: {method: access, service: prometheus}
+      id: prometheus_access
+  - id: sower_user
+    permissions:
+    - action: {method: access, service: job}
+      id: sower_access
+  - id: 'sheepdog_admin'
+    description: 'sheepdog admin role for program project crud'
+    permissions:
+    - id: 'sheepdog_admin_action'
+      action:
+        service: 'sheepdog'
+        method: '*'
+  - id: 'indexd_admin'
+    description: 'full access to indexd API'
+    permissions:
+    - id: 'indexd_admin'
+      action:
+        service: 'indexd'
+        method: '*'
+  - id: 'reader'
+    permissions:
+      - id: 'reader'
+        action:
+          service: '*'
+          method: 'read'
+  - id: 'updater'
+    permissions:
+      - id: 'updater'
+        action:
+          service: '*'
+          method: 'update'
+  - id: 'deleter'
+    permissions:
+      - id: 'deleter'
+        action:
+          service: '*'
+          method: 'delete'
+  - id: 'storage_writer'
+    permissions:
+      - id: 'storage_creator'
+        action:
+          service: '*'
+          method: 'write-storage'
+  - id: 'storage_reader'
+    permissions:
+      - id: 'storage_reader'
+        action:
+          service: '*'
+          method: 'read-storage'
+
+users:
+  abc@uchicago.edu:
+    policies: [workspace, sower, prometheus]
+    projects:
+    - auth_id: canine_data_commons
+      privilege: [create, read, update, delete, upload]
+      resource: /programs/Canine
+  def@uchicago.edu:
+    policies: [workspace, sower, prometheus]
+    projects:
+    - auth_id: canine_data_commons
+      privilege: [create, read, update, delete, upload]
+      resource: /programs/Canine
+  ghi@uchicago.edu:
+    policies: [workspace, sower, prometheus]
+    projects:
+    - auth_id: canine_data_commons
+      privilege: [create, read, update, delete, upload]
+      resource: /programs/Canine
+  jkl@jkl.com:
+    policies: [workspace, sower]
+    projects:
+    - auth_id: canine_data_commons
+      privilege: [read]
+      resource: /programs/Canine
+  cdis: {}
+  mno@uchicago.edu:
+    policies: [data_upload, workspace, sower]
+    projects:
+    - auth_id: canine_data_commons
+      privilege: [create, read, update, delete, upload, read-storage, write-storage]
+      resource: /programs/Canine
+  pqr@uchicago.edu:
+    policies: [data_upload, workspace, sower]
+    projects:
+    - auth_id: canine_data_commons
+      privilege: [create, read, update, delete, upload, read-storage, write-storage]
+      resource: /programs/Canine
+  stu@uchicago.edu:
+    policies: [data_upload, workspace, sower, prometheus]
+    projects:
+    - auth_id: canine_data_commons
+      privilege: [create, read, update, delete, upload]
+      resource: /programs/Canine
+  vwx@uchicago.edu:
+    policies: [data_upload, workspace, sower, prometheus]
+    projects:
+    - auth_id: canine_data_commons
+      privilege: [create, read, update, delete, upload, read-storage, write-storage]
+      resource: /programs/Canine
+  xyz@uchicago.edu:
+    policies: [workspace, sower, prometheus]
+    projects:
+    - auth_id: canine_data_commons
+      privilege: [create, read, update, delete, upload]
+      resource: /programs/Canine
+  fff1@uchicago.edu:
+    policies: [workspace, sower, prometheus]
+    projects:
+    - auth_id: canine_data_commons
+      privilege: [create, read, update, delete, upload]
+      resource: /programs/Canine
+  ggg1@uchicago.edu:
+    policies: [workspace, sower, prometheus]
+    projects:
+    - auth_id: canine_data_commons
+      privilege: [create, read, update, delete, upload, read-storage]
+      resource: /programs/Canine
+  hhh1@uchicago.edu:
+    policies: [workspace, sower]
+    projects:
+    - auth_id: canine_data_commons
+      privilege: [create, read, update, delete, upload, read-storage]
+      resource: /programs/Canine
+  jjj1@uchicago.edu:
+    policies: [workspace, sower, prometheus]
+    projects:
+    - auth_id: canine_data_commons
+      privilege: [create, read, update, delete, upload]
+      resource: /programs/Canine
+  mmmm1@uchicago.edu:
+    policies: [workspace, sower, prometheus]
+    projects:
+    - auth_id: canine_data_commons
+      privilege: [create, read, update, delete, upload]
+      resource: /programs/Canine
+  ppp1@gmail.com:
+    policies: [workspace, sower]
+    projects:
+    - auth_id: canine_data_commons
+      privilege: [read, read-storage, create, update, delete, upload]
+      resource: /programs/Canine
+  rrrr1@uchicago.edu:
+    policies: [workspace, sower, prometheus]
+    projects:
+    - auth_id: canine_data_commons
+      privilege: [create, read, update, delete, upload]
+      resource: /programs/Canine
+  uuuuu1@uchicago.edu:
+    policies: [workspace, sower]
+    projects:
+    - auth_id: canine_data_commons
+      privilege: [read, read-storage]
+      resource: /programs/Canine
+  xxxxx@uchicago.edu:
+    policies: [workspace, sower, prometheus]
+    projects:
+    - auth_id: canine_data_commons
+      privilege: [create, read, update, delete, upload, read-storage, write-storage]
+      resource: /programs/Canine
+  vvvv@uchicago.edu:
+    policies: [workspace, sower]
+    projects:
+    - auth_id: canine_data_commons
+      privilege: [read, read-storage]
+      resource: /programs/Canine
+  ttttt@uchicago.edu:
+    policies: [workspace, sower, prometheus]
+    projects:
+    - auth_id: canine_data_commons
+      privilege: [create, read, update, delete, upload]
+      resource: /programs/Canine
+  yyyyy@uchicago.edu:
+    policies: [workspace, sower]
+    projects:
+    - auth_id: canine_data_commons
+      privilege: [create, read, update, delete, upload]
+      resource: /programs/Canine
+  123@gmail.com:
+    admin: false
+    policies:
+    - data_upload
+    - workspace
+    - dashboard
+    - prometheus
+    - sower
+    - mds_admin
+    - programs.QA-admin
+    - programs.DEV-admin
+    - programs.jnkns-admin
+    projects:
+    - auth_id: jenkins
+      privilege: [create, read, update, delete, upload, read-storage]
+    - auth_id: jenkins2
+      privilege: [create, read, update, delete, upload, read-storage]
+    - auth_id: jnkns
+      privilege: [create, read, update, delete, upload, read-storage]
+  456@uchicago.edu:
+    admin: true
+    policies:
+    - data_upload
+    - workspace
+    - dashboard
+    - prometheus
+    - sower
+    - mds_admin
+    - services.sheepdog-admin
+    - programs.QA-admin
+    - programs.test-admin
+    - programs.DEV-admin
+    - programs.jnkns-admin
+    - indexd_admin
+    projects:
+    - auth_id: QA
+      privilege: [create, read, update, delete, upload, read-storage]
+    - auth_id: test
+      privilege: [create, read, update, delete, upload, read-storage]
+    - auth_id: DEV
+      privilege: [create, read, update, delete, upload, read-storage]
+    - auth_id: jenkins
+      privilege: [create, read, update, delete, upload, read-storage]
+    - auth_id: jenkins2
+      privilege: [create, read, update, delete, upload, read-storage]
+    - auth_id: jnkns
+      privilege: [create, read, update, delete, upload, read-storage]
+  789@uchicago.edu:
+    admin: false
+    policies:
+    - data_upload
+    projects:
+    - auth_id: QA
+      privilege: [create, read, update, delete, upload, read-storage]
+    - auth_id: test
+      privilege: [create, read, update, delete, upload, read-storage]
+    - auth_id: jenkins
+      privilege: [create, read, update, delete, upload, read-storage]
+    - auth_id: jenkins2
+      privilege: [create, read, update, delete, upload, read-storage]
+    - auth_id: jnkns
+      privilege: [create, read, update, delete, upload, read-storage]

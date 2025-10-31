@@ -21,6 +21,16 @@ test_jupyter_setup() {
   gen3 jupyter j-namespace setup; because $? "jupyter namespace setup should work";
 }
 
+test_jupyter_idle() {
+  gen3 jupyter idle; because $? "jupyter idle should run ok"
+}
+
+test_jupyter_metrics() {
+  gen3 jupyter metrics; because $? "jupyter metrics should run ok"
+}
+
+shunit_runtest "test_jupyter_idle" "jupyter"
+# shunit_runtest "test_jupyter_metrics" "jupyter"
 shunit_runtest "test_jupyter_prepuller" "local,jupyter"
 shunit_runtest "test_jupyter_namespace" "local,jupyter"
 shunit_runtest "test_jupyter_setup" "jupyter"

@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cohort-middleware-deployment
+  annotations:
+    gen3.io/network-ingress: "cohort-middleware"
+spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: cohort-middleware
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: cohort-middleware
+        dbohdsi: "yes"
+        dbomop-data: "yes"
+        public: "yes"
+        GEN3_ENV_LABEL
+        GEN3_COHORT-MIDDLEWARE_VERSION
+        GEN3_DATE_LABEL
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 25
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - cohort-middleware
+              topologyKey: "kubernetes.io/hostname"
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - spot
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - SPOT                      
+      automountServiceAccountToken: false
+      volumes:
+        - name: cohort-middleware-g3auto
+          secret:
+            secretName: cohort-middleware-g3auto
+            optional: true
+      containers:
+        - name: cohort-middleware
+          GEN3_COHORT-MIDDLEWARE_IMAGE|-image: quay.io/cdis/cohort-middleware:latest-|
+          env:
+          - name: GIN_MODE
+            value: "release"
+          - name: PORT
+            value: "8080"
+          livenessProbe:
+            httpGet:
+              path: /_health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 60
+            timeoutSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /_health
+              port: 8080
+          ports:
+          - containerPort: 8080
+          volumeMounts:
+            - name: cohort-middleware-g3auto
+              readOnly: true
+              mountPath: /config/development.yaml
+              subPath: development.yaml
+          imagePullPolicy: Always
+          resources:
+            requests:
+              memory: 128Mi
+            limits:
+              memory: 4Gi

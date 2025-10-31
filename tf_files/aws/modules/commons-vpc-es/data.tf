@@ -7,7 +7,7 @@ data "aws_availability_zones" "available" {
 
 
 data "aws_vpcs" "vpcs" {
-  tags {
+  tags = {
     Name = "${var.vpc_name}"
   }
 }
@@ -30,7 +30,7 @@ data "aws_cloudwatch_log_group" "logs_group" {
 
 data "aws_subnet_ids" "private" {
   vpc_id = "${data.aws_vpc.the_vpc.id}"
-  tags {
+  tags = {
     Name = "private_db_alt"
   }
 }

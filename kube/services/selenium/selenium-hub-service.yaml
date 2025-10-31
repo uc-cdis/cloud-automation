@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: selenium-hub
+  name: selenium-hub
+  namespace: default
+spec:
+  externalTrafficPolicy: Cluster
+  ports:
+  - name: status
+    port: 4444
+    protocol: TCP
+    targetPort: 4444
+  - name: subscribe
+    port: 4443
+    protocol: TCP
+    targetPort: 4443
+  - name: publish
+    port: 4442
+    protocol: TCP
+    targetPort: 4442
+  selector:
+    app: selenium-hub
+  sessionAffinity: None
+  type: NodePort

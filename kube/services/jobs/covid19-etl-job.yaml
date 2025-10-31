@@ -1,0 +1,87 @@
+# gen3 gitops filter $HOME/cloud-automation/kube/services/jobs/covid19-etl-job.yaml ACCESS_TOKEN $ACCESS_TOKEN JOB_NAME $JOB_NAME S3_BUCKET $S3_BUCKET | sed "s|#COVID19_JOB_NAME_PLACEHOLDER#|$COVID19_ETL_NAME|g" | g3kubectl apply -f -
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: covid19-etl-#COVID19_JOB_NAME_PLACEHOLDER#
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND
+      serviceAccountName: s3-access-opencdn-databucket-gen3
+      volumes:
+        - name: cred-volume
+          secret:
+            secretName: "covid19-etl-g3auto"
+      restartPolicy: Never
+      containers:
+      - name: covid19-etl
+        imagePullPolicy: Always
+        GEN3_COVID19-ETL_IMAGE
+        env:
+        - name: ACCESS_TOKEN
+          GEN3_ACCESS_TOKEN|-value: ""-|
+        - name: JOB_NAME
+          GEN3_JOB_NAME|-value: ""-|
+        - name: S3_BUCKET
+          GEN3_S3_BUCKET|-value: ""-|
+        - name: doSlack
+          GEN3_DO_SLACK|-value: "true"-|
+        - name: gen3Env
+          valueFrom:
+            configMapKeyRef:
+              name: manifest-global
+              key: hostname
+        - name: slackWebHook
+          valueFrom:
+            configMapKeyRef:
+              name: global
+              key: slack_webhook
+        volumeMounts:
+          - name: cred-volume
+            mountPath: "/secrets/credentials"
+        resources:
+          limits:
+            cpu: 1
+            memory: 2048Mi
+        command: ["/bin/bash" ]
+        args:
+          - "-c"
+          - |
+            export GOOGLE_APPLICATION_CREDENTIALS=/secrets/credentials/default.json
+            message="SUCCESS: covid19-etl-$JOB_NAME success in $gen3Env"
+            result=0
+            if ! python3 /covid19-etl/main.py; then
+              result=1
+              message="FAIL: covid19-etl-$JOB_NAME failure in $gen3Env"
+            fi
+            echo "$message"
+            # no curl - ugh
+            cat - > /tmp/slack.py <<EOM
+            import requests
+            payload={"text": "$message"}
+            r = requests.post("${slackWebHook}", json=payload)
+            EOM
+            if [[ -n "$slackWebHook" && "$doSlack" == "true" ]]; then
+              python3 /tmp/slack.py
+            fi
+            exit $result

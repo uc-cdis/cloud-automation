@@ -16,7 +16,7 @@ and [cdis-manifest]
 
 # Table of contents
 
-- [1. TL;TR](#tltr)
+- [1. TL;TR](#tldr)
 - [2. Independent Setup](#independent-setup)
 - [3. Workflows](#workflows)
   - [3.1 AWS CSOC](#aws-csoc)

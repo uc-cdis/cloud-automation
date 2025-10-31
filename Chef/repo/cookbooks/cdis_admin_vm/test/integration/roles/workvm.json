@@ -1,0 +1,11 @@
+{
+  "name": "workvm",
+  "description": "Base settings for OneHealth Hosts",
+  "json_class": "Chef::Role",
+  "chef_type": "role",
+  "run_list": [
+    "recipe[cdis_admin_vm::workvm]"
+  ],
+  "default_attributes": {
+  }
+}

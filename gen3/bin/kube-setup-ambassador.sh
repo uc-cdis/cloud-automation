@@ -25,7 +25,6 @@ deploy_api_gateway() {
     return 0
   fi
   gen3 roll ambassador-gen3
-  g3k_kv_filter "${GEN3_HOME}/kube/services/ambassador-gen3/ambassador-gen3-service-elb.yaml" GEN3_ARN "$(g3kubectl get configmap global --output=jsonpath='{.data.revproxy_arn}')" | g3kubectl apply -f -
 
   local luaYamlTemp="$(mktemp "$XDG_RUNTIME_DIR/lua.yaml.XXXXXX")"
   cat - > "$luaYamlTemp" <<EOM
@@ -45,6 +44,8 @@ EOM
 
 
 deploy_stats_sink() {
+  gen3_log_info "stats sink deprecated - ambassador exports :8787/metrics directly"
+  return 0
   if ! g3k_manifest_lookup '.versions["statsd-exporter"]' 2> /dev/null; then
     gen3_log_info "statsd-exporter not enabled in manifest"
     return 0
@@ -68,12 +69,8 @@ case "$command" in
   "hatchery")
     deploy_hatchery_proxy "$@"
     ;;
-  "stats")
-    deploy_stats_sink "$@"
-    ;;
   *)
     deploy_hatchery_proxy "$@"
-    deploy_stats_sink "$@"
     deploy_api_gateway "$@"
     ;;
 esac

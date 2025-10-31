@@ -2,7 +2,8 @@
 
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
-
+gen3_load "gen3/lib/secrets/rotate-gcp"
+gen3_load "gen3/lib/secrets/rotate-postgres"
 
 # lib --------------------------------------
 
@@ -16,10 +17,10 @@ gen3_secrets_init_git() {
     (
       # issue git commands in the secrets folder
       cd "$(gen3_secrets_folder)"
-    
+
       # initialize secrets folder as a git repo
       if [[ ! -d "$(gen3_secrets_folder)/.git" ]]; then
-        echo -e "$(green_color "INFO: Initializing $(gen3_secrets_folder) directory as git repo")"
+        gen3_log_info "Initializing $(gen3_secrets_folder) directory as git repo"
         git init
       fi
       if [[ -z "$(git config user.name)" ]]; then
@@ -35,15 +36,15 @@ gen3_secrets_init_git() {
       # ensure a backup exists
       # see here for info about local backup config
       #   https://matthew-brett.github.io/curious-git/curious_remotes.html
-      if [[ ! -d "${WORKSPACE}/backup" ]]; then
-        echo -e "$(green_color "INFO: Initializing backup for $(gen3_secrets_folder)")"
-        git init --bare "${WORKSPACE}/backup/secrets.git"
-        git remote add secrets_backup "${WORKSPACE}/backup/secrets.git"
+      local backup="$(dirname "$(gen3_secrets_folder)")/backup"
+      if [[ ! -d "$backup" ]]; then
+        gen3_log_info "Initializing backup for $(gen3_secrets_folder)"
+        git init --bare "$backup/secrets.git"
+        git remote add secrets_backup "$backup/secrets.git"
       fi
 
-      if [[ ! -f "$(gen3_secrets_folder)/.gitignore" ]]; then
+      if [[ ! -f "$(gen3_secrets_folder)/.gitignore" ]] || grep '\.env' "$(gen3_secrets_folder)/.gitignore" > /dev/null 2>&1; then
         cat - > "$(gen3_secrets_folder)/.gitignore" <<EOM
-*.env
 *.bak
 *.old
 *~
@@ -116,7 +117,7 @@ gen3_secrets_sync() {
 
     local keys
     # exclude deprecated or specially handled secrets
-    keys="$(jq -r '((.|keys)-["gdcapi", "userapi", "ssjdispatcher"])|join("\n")' < "$credsFile")"
+    keys="$(jq -r '((.|keys)-["gdcapi", "userapi"])|join("\n")' < "$credsFile")"
     local serviceName
     local secretName
     local secretValueFile
@@ -129,14 +130,19 @@ gen3_secrets_sync() {
       g3kubectl delete secret "$secretName" > /dev/null 2>&1
     done
     sleep 1  # I think delete is async - give backend a second to finish
+    local secretFileName
     for serviceName in $keys; do
+      secretFileName="creds.json"
+      if [[ "$serviceName" == "ssjdispatcher" ]]; then # special case
+        secretFileName=credentials.json
+      fi
       secretName="${serviceName}-creds"
       secretValueFile="$(mktemp "$XDG_RUNTIME_DIR/creds.json_XXXXX")"
       jq -r ".[\"$serviceName\"]" > "$secretValueFile" < "$credsFile"
-      g3kubectl create secret generic "$secretName" "--from-file=creds.json=${secretValueFile}"
+      g3kubectl create secret generic "$secretName" "--from-file=${secretFileName}=${secretValueFile}"
       rm "$secretValueFile"
     done
-  
+
     #---------------------------
     # now try to process the g3auto/ folder
     #
@@ -235,6 +241,49 @@ gen3_secrets_decode() {
   return $result
 }
 
+gen3_secrets_rotate() {
+  if [[ $# -lt 1 ]]; then
+    gen3_log_err "use: rotate postgres|whatever - see gen3 secrets help"
+    return 1
+  fi
+  local command="$1"
+  shift
+  case "$command" in
+    "postgres")
+      gen3_secrets_rotate_postgres "$@"
+      ;;
+    "newdb")
+      if [[ $# -lt 2 ]]; then
+        gen3_log_err "2 arguments required: gen3 secrets rotate newdb $serviceName $dbName"
+        return 1
+      fi
+      gen3_secrets_rotate_pguser "$@"
+      ;;
+    *)
+      gen3_log_err "unknown rotate command: $command"
+      return 1
+      ;;
+  esac
+}
+
+gen3_secrets_revoke() {
+  if [[ $# -lt 1 ]]; then
+    gen3_log_err "use: revoke postgres|whatever - see gen3 secrets help"
+    return 1
+  fi
+  local command="$1"
+  shift
+  case "$command" in
+    "postgres")
+      gen3_secrets_revoke_postgres "$@"
+      ;;
+    *)
+      gen3_log_err "unknown rotate command: $command"
+      return 1
+      ;;
+  esac
+}
+
 # main -----------------------------
 
 if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
@@ -244,11 +293,20 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
     "commit")
       gen3_secrets_commit "$@"
       ;;
+    "gcp")
+      gen3_secrets_gcp "$@"
+      ;;
     "sync")
       gen3_secrets_sync "$@"
       ;;
     "decode")
       gen3_secrets_decode "$@"
+      ;;
+    "rotate")
+      gen3_secrets_rotate "$@"
+      ;;
+    "revoke")
+      gen3_secrets_revoke "$@"
       ;;
     *)
       gen3 help secrets

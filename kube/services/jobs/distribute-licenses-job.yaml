@@ -1,0 +1,145 @@
+# 1. Get the running STATA containers
+# 2. Via pod annotations, find out which containers own licenses
+# 3. Filter out the containers waiting for a license
+#    a. if a pod has no jupyter process +
+#    b. /tmp/waiting_for_license.flag exists
+# 4. Pull in all licenses (currently demo license only)
+# 5. Filter out the licenses in use
+# 6. Sort the waiting containers by wait time
+# 7. Assign as many licenses as possible
+#    a. Annotate the pods which receive licenses
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: distribute-licenses
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND
+      restartPolicy: Never
+      serviceAccountName: hatchery-service-account
+      containers:
+      - name: fence
+        image: quay.io/cdis/awshelper:master
+        imagePullPolicy: Always
+        env:
+        - name: JUPYTER_NAMESPACE
+          valueFrom:
+            configMapKeyRef:
+              name: manifest-hatchery
+              key: "user-namespace"
+        - name: GEN3_STATA_LICENSE
+          valueFrom:
+            secretKeyRef:
+              name: stata-workspace-gen3-license-g3auto
+              key: "stata_license.txt"
+        command: ["python"]
+        args: 
+          - "-c"
+          - |
+            import json, os
+
+            namespace = os.environ['JUPYTER_NAMESPACE']
+            print(f"Using namespace {namespace}")
+
+            pods_json = json.loads(
+              os.popen(
+                f"kubectl get pods -n {namespace} -o json"
+              ).read()
+            )
+
+            eligible_pods = []
+            used_licenses = []
+              
+            for pod in pods_json.get('items', []):
+              
+              if pod.get("status", {}).get("phase", "") == "Running":
+              
+                for container in pod.get('spec', {}).get('containers', []):    
+              
+                  if "jupyter-pystata-gen3-licensed" in container['image']:
+              
+                    existing_license_id = pod.get("metadata", {}).get("annotations", {}).get("stata-license")
+              
+                    if existing_license_id:
+                      print(f"License {existing_license_id} assigned to {pod['metadata']['name']}.")
+                      used_licenses += [ int(existing_license_id) ]
+
+                    else:
+                      is_waiting_for_license = os.popen(
+                        f"kubectl exec -n {namespace} {pod['metadata']['name']} -c {container['name']} -- "
+                        "bash -c \"[ ! \\$(pgrep jupyter) ] && [ -f /tmp/waiting_for_license.flag ] && echo True\""
+                      ).read()
+
+                      if is_waiting_for_license:
+                        print(f"{pod['metadata']['name']} is waiting for a license.")
+                        eligible_pods += [ (pod, container) ]
+
+              else:
+                print(f"Pod {pod['metadata']['name']} is in {pod['status']['phase']} phase. Skipping.")
+
+            used_licenses.sort()
+            print(f"Licenses currently in use: {used_licenses}")
+
+            # The Gen3 Stata license strings should be stored in a kubernetes secret using g3auto.
+            # The format of the secret is one license string per line.
+            # The license strings are generated with 'stinit' using the information in a license PDF.
+            license_secrets = os.environ['GEN3_STATA_LICENSE']
+            license_secrets = license_secrets.strip()
+
+            licenses = license_secrets.split("\n")
+            print(f"Number of licenses = {len(licenses)}")
+            available_license_ids = [
+              license_id for license_id, license in enumerate(licenses)
+              if license_id not in used_licenses
+            ]
+
+            print(f"Available licenses: {available_license_ids}")
+              
+            target_file = "/usr/local/stata17/stata.lic"
+            local_file = "stata.lic"
+              
+            for pod, container in eligible_pods:
+                
+              if not len(available_license_ids):
+                print("All licenses are in use. Exiting.")
+                exit(0)
+
+              license_id=available_license_ids.pop()
+              with open(local_file, "w+") as f:
+                f.write(licenses[license_id])
+                
+              print(f"copying {local_file} to {namespace}/{pod['metadata']['name']}:{target_file}")
+              print(
+                os.popen(
+                  f"kubectl cp {local_file} {namespace}/{pod['metadata']['name']}:{target_file} -c {container['name']}"
+                ).read()
+              )
+                
+              annotation = f"stata-license={license_id}"
+              print(f"Annotating pod {pod['metadata']['name']} with {annotation}")
+              print(
+                os.popen(
+                  f"kubectl annotate -n {namespace} pod {pod['metadata']['name']} {annotation}"
+                ).read()
+              )

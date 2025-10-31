@@ -17,23 +17,16 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
+DESIRED_VERSION=0.6.2
+CURRENT_VERSION=$(kubectl get deployment -n kube-system metrics-server -o json | jq -r .spec.template.spec.containers[0].image | awk -F :v '{print $2}')
 
 gen3_metrics_deploy() {
-  if [[ "$(gen3 db namespace)" == "default" ]] && (! g3kubectl get deployment metrics-server --namespace kube-system > /dev/null 2>&1); then
+  if [[ "$(gen3 db namespace)" == "default" && ($DESIRED_VERSION != $CURRENT_VERSION) ]]; then
     (
-      cd "$XDG_RUNTIME_DIR"
-      #DOWNLOAD_URL=$(curl --silent "https://api.github.com/repos/kubernetes-incubator/metrics-server/releases/latest" | jq -r .tarball_url)
-      DOWNLOAD_URL="https://github.com/kubernetes-incubator/metrics-server/archive/v0.3.3.tar.gz"
-      DOWNLOAD_VERSION=$(grep -o '[^/v]*$' <<< $DOWNLOAD_URL)
-      curl -Ls "$DOWNLOAD_URL" -o metrics-server-$DOWNLOAD_VERSION.tar.gz
-      mkdir metrics-server-$DOWNLOAD_VERSION
-      tar -xzf metrics-server-$DOWNLOAD_VERSION.tar.gz --directory metrics-server-$DOWNLOAD_VERSION --strip-components 1
-      export KUBECTL_NAMESPACE=kube-system
-      g3kubectl apply -f metrics-server-$DOWNLOAD_VERSION/deploy/1.8+/
-      /bin/rm -rf "metrics-server-$DOWNLOAD_VERSION"
+      g3kubectl apply -f "${GEN3_HOME}/kube/services/metrics-server/" -n kube-system
     )
   else
-    gen3_log_info "not deploying metrics outside default namespace"
+    gen3_log_info "not deploying metrics outside default namespace, or current version ($CURRENT_VERSION) matches desired version ($DESIRED_VERSION)"
   fi
 }
 

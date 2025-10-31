@@ -2,18 +2,18 @@
 
 GEN3_AGGS_DAILY="gen3-aggs-daily"
 
-
 #
 # Get the number of unique users
 #
 gen3_logs_user_count() {
+    local gen3_namespace="$(gen3_logs_get_arg ns_name "default" "$@")"
     local queryStr="$(gen3 logs rawq "$@" aggs=yes)"
     local aggs="$(cat - <<EOM
   {
       "unique_user_count" : {
         "cardinality" : {
             "field" : "message.user_id.keyword",
-            "precision_threshold": 1000
+            "precision_threshold": 10
         }
       }
   }
@@ -21,7 +21,7 @@ EOM
     )"
     local namespace="$(cat - <<EOM
 {"term": {
-  "message.kubernetes.namespace_name.keyword": "default"
+  "message.kubernetes.namespace_name.keyword": "$gen3_namespace"
 }}
 EOM
     )";
@@ -35,6 +35,7 @@ EOM
 # HTTP response code histogram
 #
 gen3_logs_code_histogram() {
+    local gen3_namespace="$(gen3_logs_get_arg ns_name "default" "$@")"
     local queryStr="$(gen3 logs rawq "$@" aggs=yes)"
     local aggs=$(cat - <<EOM
   {
@@ -50,7 +51,7 @@ EOM
     )
     local namespace="$(cat - <<EOM
 {"term": {
-  "message.kubernetes.namespace_name.keyword": "default"
+  "message.kubernetes.namespace_name.keyword": "$gen3_namespace"
 }}
 EOM
     )";
@@ -59,10 +60,256 @@ EOM
     gen3_retry gen3_logs_curljson "_all/_search?pretty=true" "-d${queryStr}"  
 }
 
+gen3_logs_user_histogram() {
+    local gen3_namespace="$(gen3_logs_get_arg ns_name "default" "$@")"
+    local queryStr="$(gen3 logs rawq "$@" aggs=yes)"
+    local aggs="$(cat - <<EOM
+  {
+      "users" : {
+          "terms" : {
+              "field" : "message.user_id.keyword",
+              "size"  : 100
+          }
+      }
+  }
+EOM
+    )"
+    local namespace="$(cat - <<EOM
+{"term": {
+  "message.kubernetes.namespace_name.keyword": "$gen3_namespace"
+}}
+EOM
+    )";
+    queryStr=$(jq -r --argjson aggs "$aggs" --argjson ns "$namespace" '.aggregations=$aggs | .query.bool.must += [ $ns ]' <<<${queryStr})
+    
+    gen3_log_info "$queryStr"
+    gen3_retry gen3_logs_curljson "_all/_search?pretty=true" "-d${queryStr}"  
+}
+
+#
+# /ga4gh response codes
+#
+gen3_logs_ga4ghrcodes_histogram() {
+    local gen3_namespace="$(gen3_logs_get_arg ns_name "default" "$@")"
+    local queryStr="$(gen3 logs rawq "$@" aggs=yes | jq -r '. | del(.query.bool.must[0])')"
+    local aggs="$(cat - <<EOM
+  {
+    "aggs": {
+      "terms": {
+        "field": "message.http_status_code"
+      }
+    }
+  }
+EOM
+    )"
+    local query="$(cat - <<EOM
+    [
+    {
+      "match_phrase": {
+        "message.http_request": {
+          "query": "/ga4gh/drs/v1/objects"
+        }
+      }
+    },
+    {
+      "match_phrase": {
+        "message.kubernetes.labels.app": {
+          "query": "indexd"
+        }
+      }
+    }
+    ]
+EOM
+  )"
+    local namespace="$(cat - <<EOM
+  {
+    "term": {
+      "message.kubernetes.namespace_name.keyword": "$gen3_namespace"
+    }
+  }
+EOM
+    )";
+    queryStr=$(jq -r --argjson aggs "$aggs" --argjson ns "$namespace" --argjson query "$query" '.aggregations=$aggs  | .query.bool.must += [ $ns ] | .query.bool.must += $query ' <<<${queryStr})
+    
+    gen3_log_info "$queryStr"
+    gen3_retry gen3_logs_curljson "_all/_search?pretty=true" "-d${queryStr}"  
+}
+
+#
+# Download protocol buckets
+#
+gen3_logs_protocol_histogram() {
+    local gen3_namespace="$(gen3_logs_get_arg ns_name "default" "$@")"
+    local queryStr="$(gen3 logs rawq "$@" aggs=yes)"
+    local aggs="$(cat - <<EOM
+  {
+      "aggs": {
+        "terms": {
+          "script": {
+            "inline": "def p = doc['message.http_request.keyword'].value; def i = p.indexOf('protocol='); def s = p.substring(i+9, p.length());return s"
+          }
+        }
+      }
+  }
+EOM
+    )"
+    local namespace="$(cat - <<EOM
+{"term": {
+  "message.kubernetes.namespace_name.keyword": "$gen3_namespace"
+}}
+EOM
+    )";
+    local protocol="$(cat - <<EOM
+    { "should": [
+    {
+      "match_phrase": {
+        "message.http_request": "protocol"
+      }
+    },
+    {
+      "match_phrase": {
+        "message.http_request": "\\/user\\/data\\/download\\/"
+      }
+    }
+  ],
+  "minimum_should_match": 2}
+EOM
+    )";
+    queryStr=$(jq -r --argjson aggs "$aggs" --argjson protocol "$protocol" --argjson ns "$namespace" '.aggregations=$aggs | .query.bool +=  $protocol | .query.bool.must += [ $ns ]' <<<${queryStr})
+    
+    gen3_log_info "$queryStr"
+    gen3_retry gen3_logs_curljson "_all/_search?pretty=true" "-d${queryStr}"  
+}
+
+#
+# Login provider buckets
+#
+gen3_logs_loginprovider_histogram() {
+    local gen3_namespace="$(gen3_logs_get_arg ns_name "default" "$@")"
+    local queryStr="$(gen3 logs rawq "$@" aggs=yes)"
+    local aggs="$(cat - <<EOM
+  {
+    "aggs": {
+      "terms": {
+        "script": {
+          "inline": "def p = doc['message.http_request.keyword'].value; def i = p.indexOf('/user/login/'); def s = p.substring(i+12, p.indexOf('/', 12));return s"
+        }
+      }
+    }
+  }
+EOM
+    )"
+    local namespace="$(cat - <<EOM
+{"term": {
+  "message.kubernetes.namespace_name.keyword": "$gen3_namespace"
+}}
+EOM
+    )";
+    local query_should="$(cat - <<EOM
+    { "should": [
+        {
+          "match_phrase": {
+            "message.http_request": "/user/login/fence/login"
+          }
+        },
+        {
+          "match_phrase": {
+            "message.http_request": "/user/login/google/login"
+          }
+        },
+        {
+          "match_phrase": {
+            "message.http_request": "/user/login/ras/callback"
+          }
+        }
+      ],
+      "minimum_should_match": 1}
+EOM
+    )";
+    queryStr=$(jq -r --argjson aggs "$aggs" --argjson protocol "$query_should" --argjson ns "$namespace" '.aggregations=$aggs | .query.bool +=  $protocol | .query.bool.must += [ $ns ]' <<<${queryStr})
+    
+    gen3_log_info "$queryStr"
+    gen3_retry gen3_logs_curljson "_all/_search?pretty=true" "-d${queryStr}"  
+}
+
+#
+# Fence OIDC logins
+#
+oidc_clientid_toname() {
+  id=$1
+  name=$(echo "select name from client where client_id='$id';" | gen3 psql fence --no-align --tuples-only)
+  if [ -z "$name" ]; then
+    name=$id
+  fi
+  echo "$name"
+}
+oidc_aggs_output() {
+  results="$1"
+  output='{ "aggregations": {"aggs": {"buckets": []}}}' 
+  while IFS= read -r line; do
+    read count id <<< $line
+    name=$(oidc_clientid_toname $id)
+    output=$(jq --arg id "$name" --arg count "$count" '.aggregations.aggs.buckets += [{"key": $id, "doc_count": ($count | tonumber)}]' <<<${output})
+  done <<< "$results"
+  echo "$output"
+}
+
+gen3_logs_oidc_logins() {
+  local gen3_namespace="$(gen3_logs_get_arg ns_name "default" "$@")"
+  local queryStr="$(gen3 logs rawq "$@" | jq -r '. | del(.query.bool.must[0])')"
+  local namespace="$(cat - <<EOM
+{"term": {
+  "message.kubernetes.namespace_name.keyword": "$gen3_namespace"
+}}
+EOM
+)" 
+  local src='"message.http_request"'
+  echo $src | jq -r 
+  local query="$(cat - <<EOM
+    [
+      {
+        "match_phrase": {
+          "message.http_request": {
+            "query": "/oauth2/authorize?"
+          }
+        }
+      },
+      {
+        "match_phrase": {
+          "message.kubernetes.labels.app": {
+            "query": "fence"
+          }
+        }
+      },
+      {
+        "match_phrase": {
+          "message.http_status_code": {
+            "query": "200"
+          }
+        }
+      },
+      {
+        "match_phrase": {
+          "message.http_verb": {
+            "query": "POST"
+          }
+        }
+      }
+    ]
+EOM
+  )"
+  queryStr=$(jq -r --argjson src "$src" --argjson ns "$namespace" --argjson query "$query" '.query.bool.must += $query | ._source = [$src]' <<<${queryStr})
+  gen3_log_info "$queryStr"
+  results=$(gen3_retry gen3_logs_curljson "_all/_search?pretty=true" "-d${queryStr}" | jq -r '.hits.hits[]._source.message.http_request | .[index("client_id="):index("&red")]'| egrep -o "client_id=([^&]*)" | awk -F = '{print $2}' | sort | uniq -c | sort -nr )
+  ret=$(oidc_aggs_output "$results")
+  echo "$ret"
+}
+
 #
 # Response time histogram
 #
 gen3_logs_rtime_histogram() {
+    local gen3_namespace="$(gen3_logs_get_arg ns_name "default" "$@")"
     local queryStr="$(gen3 logs rawq "$@" aggs=yes)"
     local aggs=$(cat - <<EOM
   {
@@ -78,7 +325,7 @@ EOM
     )
     local namespace="$(cat - <<EOM
 {"term": {
-  "message.kubernetes.namespace_name.keyword": "default"
+  "message.kubernetes.namespace_name.keyword": "$gen3_namespace"
 }}
 EOM
     )";

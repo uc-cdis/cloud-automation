@@ -34,7 +34,7 @@ variable subnetwork {
   #default     = "default"
 }
 
-variable target_tags {
+variable target_tags = {
   description = "List of target tags to allow traffic using firewall rule."
   type        = "list"
   #default = []

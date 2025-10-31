@@ -4,5 +4,5 @@ metadata:
   name: gp2
 provisioner: kubernetes.io/aws-ebs
 parameters:
-  type: gp2 
-  zone: us-east-1a
+  type: gp2
+  encrypted: "true"

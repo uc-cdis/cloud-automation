@@ -11,12 +11,13 @@ gen3_load "gen3/lib/g3k_manifest"
 manifestPath=$(g3k_manifest_path)
 deployVersion="$(jq -r ".[\"arborist\"][\"deployment_version\"]" < "$manifestPath")"
 if [ -z "$deployVersion" ]; then
-  deployVersion="1"
+  gen3_log_err "must set arborst.deployment_version to 2 in manifest.json"
+  exit 1
 fi
 
 if [ "$deployVersion" -gt  "1" ]; then
-  echo "setting up arborist deployment version 2..."
-  gen3 kube-setup-secrets
+  gen3_log_info "setting up arborist deployment version 2..."
+  [[ -z "$GEN3_ROLL_ALL" ]] && gen3 kube-setup-secrets
 
   # provision a new db and get creds (if doesn't exist already)
   if ! g3kubectl describe secret arborist-g3auto | grep dbcreds.json > /dev/null 2>&1; then
@@ -29,7 +30,7 @@ if [ "$deployVersion" -gt  "1" ]; then
 
   if [[ -f "$(gen3_secrets_folder)/g3auto/arborist/dbcreds.json" ]]; then
     # Initialize arborist database and user list
-    cd "${WORKSPACE}/${vpc_name}"
+    cd "$(gen3_secrets_folder)"
     if [[ ! -f "$(gen3_secrets_folder)/.rendered_arborist_db" ]]; then
       gen3 job run arboristdb-create
       echo "Waiting 10 seconds for arboristdb-create job"

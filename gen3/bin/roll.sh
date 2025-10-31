@@ -43,7 +43,7 @@ gen3_roll() {
 
   if [[ "$depName" == "all" ]]; then # special case
     echo "gen3 kube-roll-all" 1>&2
-    gen3 kube-roll-all
+    gen3 kube-roll-all "$@"
     return $?
   fi
 
@@ -69,15 +69,20 @@ gen3_roll() {
 
   # Get the service name, so we can verify it's in the manifest
   local serviceName
-  serviceName="$(basename "$templatePath" | sed 's/-deploy.*yaml$//')"
+  serviceName="$(basename "$templatePath" | sed 's/\(-root\)*-deploy.*yaml$//')"
 
   if g3k_config_lookup ".versions[\"$serviceName\"]" < "$manifestPath" > /dev/null 2>&1; then
     if ! (g3k_manifest_filter "$templatePath" "" "$@" | g3kubectl apply -f -); then
       gen3_log_err "gen3_roll" "bailing out of roll $serviceName"
       return 1
     fi
-    # update network policy - disable for now
     gen3 kube-setup-networkpolicy service "$serviceName"
+  # Set the same img version for both fence & presigned-url-fence
+  elif [[ "$depName" == "presigned-url-fence" ]]; then
+    if ! (g3k_manifest_filter "$templatePath" "" "fence" | g3kubectl apply -f -); then
+      gen3_log_err "gen3_roll" "bailing out of roll $serviceName"
+      return 1
+    fi
   else
     gen3_log_warn "gen3_roll" "not rolling $serviceName - no manifest entry in $manifestPath"
     return 1

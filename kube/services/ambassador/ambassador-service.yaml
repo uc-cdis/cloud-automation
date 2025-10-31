@@ -9,5 +9,10 @@ spec:
   ports:
   - port: 80
     targetPort: 8080
+    name: proxy
+  # admin port - https://www.getambassador.io/docs/latest/howtos/prometheus/
+  - port: 8877
+    targetPort: 8877
+    name: admin
   selector:
     service: ambassador

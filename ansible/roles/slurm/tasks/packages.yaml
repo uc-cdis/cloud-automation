@@ -1,0 +1,35 @@
+---
+
+- name: "slurm | install basic packages"
+  apt:
+    name: '{{ item }}'
+    state: present
+    update_cache: yes
+  loop:
+    - build-essential
+    - libmunge-dev
+    - python
+    - python3
+    - atop
+    - munge
+    - supervisor
+    - mysql-client
+    - libmysqlclient-dev
+    - htop
+    - samtools
+    - sysstat
+    - dnsmasq
+    - python3-pip
+  become: yes
+
+
+- name: "slurm | install dependencies"
+  pip:
+    name: '{{ item }}'
+    executable: pip3
+  loop:
+    - boto3
+  environment:
+    http_proxy: "{{ http_proxy }}:{{ http_proxy_port }}"
+    https_proxy: "{{ https_proxy }}:{{ https_proxy_port }}"
+

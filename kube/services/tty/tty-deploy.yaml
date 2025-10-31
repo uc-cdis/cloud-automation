@@ -1,0 +1,126 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "tty"
+spec:
+  selector:
+    # Deployment only select pods based on the 'app' label
+    matchLabels:
+      app: "tty"
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: "tty"
+        public: "yes"
+        internet: "yes"
+        netvpc: "yes"
+        GEN3_DATE_LABEL
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 25
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - tty
+              topologyKey: "kubernetes.io/hostname"
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND
+      serviceAccountName: tty-sa
+      securityContext:
+        fsGroup: 1000
+      containers:
+      - name: "tty"
+        GEN3_TTY_IMAGE|-image: quay.io/cdis/ws-wetty:2020.12-|
+        ports:
+          - containerPort: 3000
+        env:
+          - name: SSHHOST
+            value: localhost
+          - name: SSHPASS
+            value: gen3
+          - name: SSHUSER
+            value: ubuntu
+          - name: SSHPORT
+            value: "2222"
+          - name: BASE
+            value: /tty/admin/
+          - name: TITLE
+            value: "Gen3 Terminal"
+        # add hook to refresh access token
+        command: ["/bin/bash" ]
+        args:
+          - "-c"
+          - |
+            for path in node_modules/wetty/build/client/wetty.js node_modules/wetty/dist/client/index.js; do 
+              if [[ -f "$path" ]]; then
+                echo -e '\n\nsetInterval(function(){fetch("/user/user");}, 180000);' >> "$path"
+              fi
+            done
+            exec npm start
+        resources:
+          requests:
+            cpu: 0.3
+            memory: 200Mi
+          limits:
+            cpu: 0.5
+            memory: 500Mi
+        imagePullPolicy: Always
+        livenessProbe:
+          httpGet:
+            path: /tty/admin/
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /tty/admin/
+            port: 3000
+
+      - name: awshelper
+        GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
+        imagePullPolicy: Always
+        command: ["/bin/bash" ]
+        args:
+          - "-c"
+          - |
+            env | grep ^KUBE | awk '{ print "export " $0 }' >> /home/ubuntu/.bashrc
+            exec bash /opt/usersshd/sshdStart.sh
+        env:
+          - name: KUBECTL_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+        livenessProbe:
+          tcpSocket:
+            port: 2222
+          initialDelaySeconds: 10
+          periodSeconds: 60
+        readinessProbe:
+          tcpSocket:
+            port: 2222

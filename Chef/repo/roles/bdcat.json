@@ -1,0 +1,16 @@
+{
+  "name": "bdcat",
+  "description": "This is an example role defined as JSON",
+  "chef_type": "role",
+  "json_class": "Chef::Role",
+  "default_attributes": {
+    "adminvm": {
+      "adminUsers": ["bdcat-internalstaging","bdcatprod","dataguids","gtexdev","gtexprod","internalstaging","stageprod","stagingdatastage","ubuntu"]
+    }
+  },
+  "override_attributes": {
+  },
+  "run_list": [
+      "recipe[cdis_admin_vm]"
+  ]
+}

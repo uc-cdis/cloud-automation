@@ -28,7 +28,9 @@ gen3 workon cdistest devplanetv1
 ### VPC peering request acceptance by CSOC admin VM
 When we launch a new data commons; it fails when we run the `gen3 tfapply` for the first time. At this point, we need to login to the csoc_admin VM and run the following command:
 gen3 approve_vpcpeering_request <child_vpc_name>
-The underneath script basically looks for a new VPC peering request, if any accepts it, tags it and create an appropriate route to the csoc_main_vpc private subnet route table.
+The underneath script basically looks for a new VPC peering request, if any accepts it, tags it and create an appropriate route to the csoc_main_vpc private subnet route table. This script accepts an optional flag `--get-route-table` which programmatically gets the route table id(s) of the VPC which is accepting the peering request.
+
+
 Once this is completed successfully, we can run the `gen3 tfplan` and `gen3 tfapply` again.
 
 ## tf_files/aws/data_bucket

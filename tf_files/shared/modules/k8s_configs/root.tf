@@ -54,14 +54,14 @@ data "template_file" "configmap" {
   }
 }
 
-data "template_file" "kube_vars" {
-  template = "${file("${path.module}/kube-vars.sh.tpl")}"
+#data "template_file" "kube_vars" {
+#  template = "${file("${path.module}/kube-vars.sh.tpl")}"
 
-  vars {
-    vpc_name  = "${var.vpc_name}"
-    s3_bucket = "${var.kube_bucket_name}"
-  }
-}
+#  vars {
+#    vpc_name  = "${var.vpc_name}"
+#    s3_bucket = "${var.kube_bucket_name}"
+#  }
+#}
 
 #--------------------------------------------------------------
 # Legacy stuff ...
@@ -72,16 +72,16 @@ resource "null_resource" "config_setup" {
   triggers {
     creds_change  = "${data.template_file.creds.rendered}"
     config_change = "${data.template_file.configmap.rendered}"
-    kube_change   = "${data.template_file.kube_vars.rendered}"
+#    kube_change   = "${data.template_file.kube_vars.rendered}"
   }
 
   provisioner "local-exec" {
     command = "mkdir -p ${var.vpc_name}_output; echo '${data.template_file.creds.rendered}' >${var.vpc_name}_output/creds.json"
   }
 
-  provisioner "local-exec" {
-    command = "echo \"${data.template_file.kube_vars.rendered}\" > ${var.vpc_name}_output/kube-vars.sh"
-  }
+#  provisioner "local-exec" {
+#    command = "echo \"${data.template_file.kube_vars.rendered}\" > ${var.vpc_name}_output/kube-vars.sh"
+#  }
 
   provisioner "local-exec" {
     command = "echo \"${data.template_file.configmap.rendered}\" > ${var.vpc_name}_output/00configmap.yaml"

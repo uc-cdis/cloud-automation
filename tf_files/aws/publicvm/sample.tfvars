@@ -1,17 +1,30 @@
-vpc_name        = "THE_VPC_NAME - default is: vadcprod"
+#Automatically generated from a corresponding variables.tf on 2022-07-12 16:07:24.564137
 
-instance_type   = "default is: t3.small"
+#The name of the VPC these resources will be spun up in
+vpc_name = "vadcprod"
 
-ssh_in_secgroup = "should already exist - default is: ssh_eks_vadcprod"
+#The EC2 instance type to use for VM(s) spun up from this module. For more information on EC2 instance types, see:
+#https://aws.amazon.com/ec2/instance-types/
+instance_type = "t3.small"
 
-egress_secgroup = "should already exist - default is: out"
+#Security group for SSH
+ssh_in_secgroup = "ssh_eks_vadcprod"
 
-subnet_name     = "public subnet under vpc_name - default is: public"
+#The name of the security group for egress. This should already exist
+egress_secgroup = "out"
 
-volume_size     = "for the vm - default is 500"
+#The public subnet located under vpc_name. By default is set to public
+subnet_name = "public"
 
-policies        = ["list of policies ARNs to attach to the role that will be attached to this VM"]
+#Volume size of the VM in GB (technically GiB, but what's a few bits among friends?)
+volume_size = 500
 
-ami             = "ami to use, if empty (default) latest ubuntu available will be used"
+#List of policy ARNs to attach to the role that will be attached to this VM
+policies = []
 
-vm_name         = "Name for the vm, should be unique, there is no default value for this one, so you must set something here"
+#The AMI to use for the machine, if nothing is specified, the latest version of Ubuntu available will be used
+ami = ""
+
+#The name for the VM, should be unique.
+vm_name= ""
+

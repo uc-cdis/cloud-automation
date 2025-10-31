@@ -10,6 +10,7 @@ if [[ ! -f "$GEN3_HOME/gen3/lib/utils.sh" ]]; then
   unset GEN3_HOME
   return 1
 fi
+
 export GEN3_HOME
 
 source "$GEN3_HOME/gen3/lib/utils.sh"
@@ -27,10 +28,18 @@ fi
 export GEN3_PS1_OLD=${GEN3_PS1_OLD:-$PS1}
 
 #
+# Try to automate KUBECONFIG setup
+#
+if ! g3kubectl versions 2> /dev/null && [[ -z "$KUBECONFIG" && -f "$(gen3_secrets_folder)/kubeconfig" ]]; then
+  export KUBECONFIG="$(gen3_secrets_folder)/kubeconfig"
+fi
+
+#
 # Flag values - cleared on each call to 'gen3'
 #
 GEN3_DRY_RUN_FLAG=${GEN3_DRY_RUN:-"false"}
 GEN3_VERBOSE_FLAG=${GEN3_VERBOSE:-"false"}
+
 
 #
 # Little helper to gen3_run to set gen3 workon environment variables
@@ -161,6 +170,12 @@ gen3_run() {
     )
     resultCode=$?
     ;;
+  replicas) # support legacy replicas
+    (
+      gen3_run scaling replicas "$@"
+    )
+    resultCode=$?
+    ;;
   runjob) # support legacy runjob
     (
       gen3_run job run "$@"
@@ -181,7 +196,7 @@ gen3_run() {
       g3k "$commandStr" "$@"
       resultCode=$?
       if [[ $resultCode -eq 2 ]]; then
-        echo "ERROR unknown command $commandStr"
+        gen3_log_err "unknown command $commandStr"
         bash "$GEN3_HOME/gen3/bin/usage.sh" "$commandStr"
       fi
     fi
@@ -191,7 +206,7 @@ gen3_run() {
   if [[ ! -z "$scriptName" ]]; then
     local scriptPath="$scriptFolder/$scriptName"
     if [[ ! -f "$scriptPath" ]]; then
-      echo "ERROR - internal bug - $scriptPath does not exist"
+      gen3_log_err "internal bug - $scriptPath does not exist"
       return 1
     fi
     GEN3_DRY_RUN=$GEN3_DRY_RUN_FLAG GEN3_VERBOSE=$GEN3_VERBOSE_FLAG bash "$GEN3_HOME/gen3/bin/$scriptName" "$@"
@@ -199,6 +214,7 @@ gen3_run() {
   fi
   return $resultCode
 }
+
 
 gen3() {
   if [[ ! -d "$GEN3_HOME/gen3/bin" ]]; then

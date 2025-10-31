@@ -142,3 +142,10 @@ Add indexd users:
 * extend the `indexd.user_db` portion of `creds.json` with `username:password` entries (`gen3 random` is handy for generating passwords), and reset the `indexd_creds` secret
 * `gen3 runjob indexd-userdb`
 
+### metadata-aggregate-sync
+
+Sync [aggregate metadata](https://github.com/uc-cdis/metadata-service#aggregation-apis) to a metadata service.
+
+* Update the configuration as specified in the metadata service docs
+* `gen3 kube-setup-metadata` to update k8s configMaps and secrets as needed
+* `gen3 job run metadata-aggregate-sync`

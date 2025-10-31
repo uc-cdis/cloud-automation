@@ -19,16 +19,6 @@ patch_kube() {
   g3kubectl patch deployment "$depName" -p   "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"`date +'%s'`\"}}}}}"
 }
 
-#
-# Patch replicas
-#
-g3k_replicas() {
-  if [[ -z "$1" || -z "$2" ]]; then
-    echo -e $(red_color "g3k replicas deployment-name replica-count")
-    return 1
-  fi
-  g3kubectl patch deployment $1 -p  '{"spec":{"replicas":'$2'}}'
-}
 
 get_pod() {
   local pod
@@ -37,7 +27,7 @@ get_pod() {
   (
     set +e
     # prefer Running pods
-    pod=$(g3kubectl get pods --output=jsonpath='{range .items[*]}{.status.phase}{"   "}{.metadata.name}{"\n"}{end}' | grep Running | awk '{ print $2 }' | grep -m 1 -E "$name-[^\(canary\)]")
+    pod=$(g3kubectl get pods --output=jsonpath='{range .items[*]}{.status.phase}{"   "}{.metadata.name}{"\n"}{end}' | grep Running | awk '{ print $2 }' | grep -v "cdis-github-org" | grep -m 1 -E "$name-[^\(canary\)]")
     if [[ -z "$pod" ]]; then # fall back to any pod if no Running pods available
       pod=$(g3kubectl get pods --output=jsonpath='{range .items[*]}{.metadata.name}  {"\n"}{end}' | grep -m 1 $name)
     fi
@@ -95,14 +85,11 @@ g3k() {
       "random")
         random_alphanumeric "$@"
         ;;
-      "replicas")
-        g3k_replicas "$@"
-        ;;
       "update_config")
         update_config "$@"
         ;;
       *)
-        echo "ERROR: unknown command (g3k): $command"
+        gen3_log_err "unknown command (g3k): $command"
         exit 2
         ;;
       esac

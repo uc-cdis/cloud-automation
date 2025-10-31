@@ -16,10 +16,10 @@ gen3 kube-setup-secrets
 #
 aws_access_key_id="$(aws configure get jenkins.aws_access_key_id)"
 aws_secret_access_key="$(aws configure get jenkins.aws_secret_access_key)"
-google_acct1_email="$(jq -r '.jenkins.google_acct1.email' < ${WORKSPACE}/qaplanetv1/creds.json)"
-google_acct1_password="$(jq -r '.jenkins.google_acct1.password' < ${WORKSPACE}/qaplanetv1/creds.json)"
-google_acct2_email="$(jq -r '.jenkins.google_acct2.email' < ${WORKSPACE}/qaplanetv1/creds.json)"
-google_acct2_password="$(jq -r '.jenkins.google_acct2.password' < ${WORKSPACE}/qaplanetv1/creds.json)"
+google_acct1_email="$(jq -r '.jenkins.google_acct1.email' < $(gen3_secrets_folder)/creds.json)"
+google_acct1_password="$(jq -r '.jenkins.google_acct1.password' < $(gen3_secrets_folder)/creds.json)"
+google_acct2_email="$(jq -r '.jenkins.google_acct2.email' < $(gen3_secrets_folder)/creds.json)"
+google_acct2_password="$(jq -r '.jenkins.google_acct2.password' < $(gen3_secrets_folder)/creds.json)"
 
 if [ -z "$aws_access_key_id" -o -z "$aws_secret_access_key" ]; then
   gen3_log_err 'not configuring jenkins - could not extract secrets from aws configure'
@@ -55,6 +55,8 @@ g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/clusterrolebinding-devops
 
 # Note: requires Jenkins entry in cdis-manifest
 gen3 roll jenkins
+gen3 roll jenkins-worker
+gen3 roll jenkins-ci-worker
 
 #
 # Get the ARN of the SSL certificate for the commons -

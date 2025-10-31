@@ -1,0 +1,382 @@
+{
+  "gaTrackingId": "UA-119127212-4",
+  "graphql": {
+    "boardCounts": [
+      {
+        "graphql": "_case_count",
+        "name": "Case",
+        "plural": "Cases"
+      },
+      {
+        "graphql": "_study_count",
+        "name": "Study",
+        "plural": "Studies"
+      },
+      {
+        "graphql": "_visit_count",
+        "name": "Visit",
+        "plural": "Visits"
+      }
+    ],
+    "chartCounts": [
+      {
+        "graphql": "_case_count",
+        "name": "Case"
+      },
+      {
+        "graphql": "_study_count",
+        "name": "Study"
+      }
+    ],
+    "projectDetails": "boardCounts"
+  },
+  "components": {
+    "appName": "The BRAIN Commons Portal",
+    "index": {
+      "introduction": {
+        "heading": "BRAIN Commons",
+        "text": "The BRAIN Commons supports the management, analysis and sharing of brain health data for the research community with the aim of accelerating discovery and development of diagnostics, treatment and prevention of diseases impacting the brain. The BRAIN Commons enables cross-project analyses through the harmonization of data to a common data model and data dictionary, and a cloud-based analysis workspace implementing Jupyter notebooks.",
+        "link": "/submission"
+      },
+      "buttons": [
+        {
+          "name": "Data Dictionary",
+          "icon": "data-field-define",
+          "body": "Browse the nodes and properties of the graph data model used in the BRAIN Commons.",
+          "link": "/DD",
+          "label": "Explore Data Model"
+        },
+        {
+          "name": "Explore Data",
+          "icon": "data-explore",
+          "body": "Search and download subsets of data from the BRAIN Commons using intuitive navigation tools.",
+          "link": "/explorer",
+          "label": "Explore data"
+        },
+        {
+          "name": "Query Data",
+          "icon": "data-access",
+          "body": "Search and download subsets of data from the BRAIN Commons using GraphQL queries.",
+          "link": "/query",
+          "label": "Query data"
+        },
+        {
+          "name": "Analyze Data",
+          "icon": "data-analyze",
+          "body": "Perform analysis on the BRAIN Commons data using Jupyter Notebooks.",
+          "link": "/workspace",
+          "label": "Run analysis"
+        }
+      ]
+    },
+    "navigation": {
+      "items": [
+        {
+          "icon": "dictionary",
+          "link": "/DD",
+          "color": "#a2a2a2",
+          "name": "Dictionary"
+        },
+        {
+          "icon": "exploration",
+          "link": "/explorer",
+          "color": "#a2a2a2",
+          "name": "Exploration"
+        },
+        {
+          "icon": "query",
+          "link": "/query",
+          "color": "#a2a2a2",
+          "name": "Query"
+        },
+        {
+          "icon": "workspace",
+          "link": "#hostname#workspace/",
+          "color": "#a2a2a2",
+          "name": "Workspace"
+        },
+        {
+          "icon": "profile",
+          "link": "/identity",
+          "color": "#a2a2a2",
+          "name": "Profile"
+        }
+      ]
+    },
+    "topBar": {
+      "items": [
+        {
+          "icon": "upload",
+          "link": "/submission",
+          "name": "Submit Data"
+        },
+        {
+          "link": "https://help.braincommons.org",
+          "name": "Documentation"
+        }
+      ]
+    },
+    "login": {
+      "title": "BRAIN Commons",
+      "subTitle": "Explore, Analyze, and Share Data",
+      "text": "The BRAIN Commons is a scalable cloud-based platform for computational discovery designed for the brain health community. The BRAIN Commons empowers the global research community by providing access to multi-modal data, state-of-the-art analytic tools and a secure interoperable system for data sharing to accelerate discovery and development of therapies, diagnostic tests, and other technologies for the treatment and prevention of diseases impacting the brain.",
+      "contact": "If you have any questions about access or the registration process, please contact ",
+      "email": "support@braincommons.org"
+    },
+    "certs": {
+      "privacy_policy": {
+        "hasCorrectAnswers": false,
+        "title": "Privacy Policy and Terms of Use",
+        "subtitle": "Please read and agree to each by clicking \"I Agree.\"",
+        "description": "",
+        "questions": [
+          {
+            "name": "Privacy Policy",
+            "question": "This website, located at www.braincommons.org (the “Site”), is provided by Cohen Veterans Bioscience, Inc. (“CVB,” “we,” “our,” or “us”), to the person accessing the Site (“you” or “your”).\nYour access to, and use of, the Site is subject to the BRAIN Commons Terms of Use (the “Terms of Use”). We have created this BRAIN Commons Privacy Policy (this “Privacy Policy”) to explain what information we gather when you visit or interact with the Site, how we and others may use your information, and the security approaches we use to protect your information. This Privacy Policy is incorporated into and made part of the Terms of Use. Capitalized terms used but not defined in this Privacy Policy have the meanings given to them in the Terms of Use.\nBy using the Site, or by signing below, you consent to the collection and use of your information in accordance with this Privacy Policy. If we decide to change this Privacy Policy, we will post the updated version on this page. Changes to this Privacy Policy will apply only to information collected after the date of the change.\nNote Regarding Contributed Data on the Site: The Site is an online platform dataspace or “commons” to facilitate and encourage sharing and analyses of various datasets from research into brain disorders and diseases (collectively, “Data”). CVB strives to foster ethical, authorized and lawful Data sharing and use. CVB is responsible for managing the Site. Users are responsible for their use of the Data and related tools. We prohibit Users and other contributors from posting any raw Data to the Site, unless it is uploaded pursuant to and in accordance with a BRAIN Commons Data Contributor Agreement between us and the contributor of Data. Any such contributed Data must be de-identified in accordance with all applicable laws and regulations, and such Data must not include any personally identifiable information or other regulated personal information (collectively, “personal information”) of any patients, subjects or participants in the clinical studies through which the Data was generated or gathered. Please review the BRAIN Commons Data Use Policy for more information about contributing, using and sharing Data. We may access or use contributed Data for the purposes of operating, maintaining, monitoring, analyzing, improving, controlling, or customizing the Site, as contemplated by the Terms of Use or our other applicable Policies or agreements. We do not re-identify de-identified information.\n1. What information is gathered?\nWe may collect and retain information from or about you when you register on the Site, seek authentication, send or respond to communications, or participate in another Site feature. Here are the types of personal information we gather:\n    • Information You Give Us: When registering or seeking authentication, or otherwise communicating with us, we may ask you for your name, email address, mailing address, phone number, credentials or other similar information.\n    • Automatic Information: We receive and store certain types of information whenever you interact with us, including IP addresses and session identifiers. Like many websites, we use “cookies” to enhance your experience and gather information about Users and visits to the Site. Please refer to the “Do we use 'cookies'?” section below for information about cookies and how we use them.\n    • Information from Other Sources: For purposes such as authentication, monitoring, completeness or accuracy, we may receive information about you from other sources, including third parties you have authorized to share information with us, and we may add or relate such information to your account.\n    • Contributed Data: As discussed herein, and in the Terms of Use and other applicable Policies, certain contributed Data may be available via the Site. Access to and use of contributed Data is subject to the Zone Rights applicable to such Data and all applicable Policies.\n2. How do we respond to “Do Not Track” signals?\nBecause there is not yet a common understanding of how to interpret web browser- based “Do Not Track” (“DNT”) signals other than cookies, we do not currently respond to, or provide Users with a different Site experience based on, undefined “DNT” signals to the Site.\n3. How do we use your personal information?\nWe may use your personal information in any of the following ways:\n    • To authenticate or update your information.\n    • To administer your account or profile.\n    • To respond to your support requests or otherwise communicate with you.\n    • To provide or facilitate any services or transactions associated with your account.\n    • To personalize and optimize your Site experience and to learn about your preferences.\n    • To monitor your compliance with the Terms of Use and all applicable Policies.\n    • To prevent or remedy any unauthorized or disruptive activity.\n    • To administer a survey or other Site feature.\n    • To operate, maintain, analyze, improve, control, or customize the Site.\n4. Do we disclose the information we collect?\nExcept as otherwise described in this Privacy Policy, we do not sell, trade, or otherwise transfer personal information to outside parties unless we provide you with advance notice. We may disclose personal information as described below:\n    • Agents and Contractors: We may contract with other companies and individuals to operate the Site and to perform functions on our behalf. Examples include maintaining and hosting the Site, analyzing data, and providing support. Our agents and contractors have access to personal information needed to perform their functions, but they must reasonably safeguard such information and they may not use it or disclose it for other purposes.\n    • Authentication and Monitoring: We may disclose your personal information to third parties as reasonably necessary to authenticate you and your information, as applicable. To facilitate transparency and collaboration, we may use or facilitate monitoring tools that show us and other Users certain information regarding your conduct on the Site, including Data types or analysis tools accessed or contributed. You will have the ability to adjust certain privacy settings with respect to any such tools. Please click here for more information about such monitoring tools.\n    • Business Transfers: In the event that we transfer our assets, or reorganize, merge or transfer our entity, we may provide your information to the purchaser to enable continued use of the Site. We will take reasonable steps to seek similar treatment of your information, but the purchaser might operate under a different privacy policy.\n    • Protection of CVB and Others: We release personal information when we believe it is appropriate to comply with law; enforce or apply the Terms of Use or our other applicable Policies or agreements; or protect the rights, privacy, property, or safety of CVB, Users or others. We may share information regarding unauthorized or suspicious activity with affected Users, governance board for the BRAIN Commons, an independent Institutional Review Board or other ethics board, or institutional authorities, as applicable. We may assist Data contributors with their review submissions to an ethics or other review board.\nSubject to applicable law, we may share aggregated and statistical information with third parties.\n5. How is personal information corrected or updated?\nYou can correct or update your personal information by re-registering, updating your profile, or by contacting us at hello@braincommons.org. You can also request that we delete your personal information or remove you from our communications.\n6. Do we use “cookies”?\nYes. We use web tracking tools such as cookies and web beacons. A cookie is a small data file that certain websites write to your hard drive when you visit those pages, but the only personal information a cookie can contain is information you supply yourself. We use cookies to track User traffic patterns when you click on various links throughout the Site to help us understand your preferences and to offer better experiences and tools on the Site.\nWe may contract with third party service providers to assist us in better understanding our Users. These service providers are not permitted to use the information collected on our behalf, except to help us conduct and improve the Site.\nYou can choose to have your computer warn you each time a cookie is being sent, or you can choose to turn off all cookies, through your browser settings. Each browser is a little different, so look at your browser Help menu to learn the correct way to modify your cookies. If you turn cookies off, you might not be able to access or use certain Site services, features or functionality.\n7. How secure is personal information?\nWe follow generally accepted industry security standards to safeguard and help prevent unauthorized access, maintain data security, and properly use your personal information. However, no commercial method of information transfer over the Internet or electronic data storage is known to be 100% secure. As a result, we cannot guarantee the absolute security of that information during its transmission or its storage in our systems.\nIt is important for you to protect against unauthorized access to your password and to your computer. Be sure to sign off when you are finished using the Site.\n8. Discussion Forums and Third Party Links\nThe Site may include User-to-User communication functionality, such as discussion forums. If you choose to use any of these features, any information you disclose could be accessed and further disclosed by other Users.\nIn an attempt to provide you with increased value, we may include third party links on the Site. These linked sites have separate and independent privacy policies, which we encourage you to review. We therefore have no responsibility or liability for the content and activities of these linked sites. Nonetheless, we seek to protect the integrity of the Site and welcome any feedback about these linked sites (including if a specific link does not work).\n9. Questions and Feedback\nAny questions and feedback about the Site or this Privacy Policy should be directed to hello@braincommons.org.\n10. Important Notices to Non-United States Residents\nIt is important to note that the Site is operated in the United States. If you are located outside of the United States, please be aware that any personal information you provide to us will be transferred to the United States. By using the Site and/or providing us with your personal information, you consent to this transfer.\n11. Children’s Privacy\nThe Site is not directed to, and we do not knowingly collect personal information from, children under 13 years of age. If a child has provided us with personal information, a parent or guardian of that child may send an email message to hello@braincommons.org with “Request for Child Information Removal” in the subject line and the name and age of the child in the body of the message. After confirmation, we will make reasonable efforts to delete the child’s information from the database that stores information for the Site.",
+            "options": ["I agree"],
+            "answer": 0,
+            "hint": "Click on I agree"
+          },
+          {
+            "name": "Term of Use",
+            "question": "Welcome to the BRAIN Commons, a knowledge commons that collocates or integrates data, storage and computing infrastructure with services, tools, interfaces and applications for managing, analyzing, and sharing data to create an interoperable resource for the brain and other research community that enables and encourages data sharing, collaboration and data- driven discovery (the “BRAIN Commons”). The BRAIN Commons is managed by Cohen Veterans Bioscience, Inc. (“CVB,” “we,” or “us”) or its designees (as applicable, the “BC Manager”). These BRAIN Commons Terms of Use (these “Terms”) are a binding legal agreement between you and CVB regarding your access to and use of the technology platform stewarded by the Open Commons Consortium and utilized by the BRAIN Commons, including any website, platform or application, or any embedded or associated services, software, data or content, provided or made available in connection with the BRAIN Commons (collectively, as may be updated, modified or replaced from time to time, the “Platform”).\nPlease read these Terms carefully. By accessing, registering for, or using the Platform, any services provided or made available in connection with the Platform (collectively, “Services”), or any data, software or other materials or content provided or made available on or through the Platform (collectively, “Content” and any such data, “Data”), or by signing below, you agree to be bound by these Terms and to use the Platform, including any Services or Content, in accordance with these Terms. If you are using the Platform on behalf of or in association with an entity, you must comply with such entity’s policies and procedures relevant to your access, registration, or use of the Platform.\nIn addition, when using certain features of the Platform, you also will be subject to the policies, guidelines and terms applicable to such features (collectively, as may be updated from time to time, “Policies”). All Policies, including without limitation the BRAIN Commons Privacy Policy, the BRAIN Commons Data Use Policy, and any additional terms applicable to accessing or using certain Data that are established by the Data contributor and posted on or otherwise made available in connection with the Platform (collectively, “Additional Data Use Terms”), are incorporated by reference into these Terms. If these Terms are inconsistent with any Policy, the terms in the Policy will control to the extent of the inconsistency with respect to the scope of the Policy.\nWe may periodically make changes to these Terms, and we will identify the date of last update. We will post the updated Terms on the Platform, and we will use commercially reasonable efforts to post changes in advance if we reasonably determine that such changes are material. We may also, in our discretion, use other commercially reasonable methods to attempt to notify you of such changes. Changes to these Terms will be effective upon posting on the Platform. We encourage you to review the most recent version of these Terms frequently. If you continue to use the Platform after we modify these Terms, you will be deemed to have consented to the updated Terms as of the date of the modification. If you do not agree to any provision of these Terms, you must not use the Platform.\n1. Eligibility\n    Use of the Platform is void where prohibited. You represent and warrant that any information you submit to the Platform or otherwise to the BC Manager is accurate, current and complete, that you are 18 years of age or older (or your parent or guardian has reviewed and agreed to these Terms on your behalf), and that you are fully able and competent to enter into and abide by these Terms. Each account on the Platform may be used by one individual, and each individual may create only a single account.\n2. Account Registration\n    You must register to use the Platform. When you register, you agree to (a) provide accurate, current and complete information about you as may be prompted by registration forms on the Platform (“Registration Data”); (b) maintain the security of any logins, passwords, or other credentials that you select or that are provided to you for use on the Platform; and (c) maintain and promptly update the Registration Data, and any other information you provide to us, and to keep all such information accurate, current and complete. You will notify us as soon as practicable of any unauthorized use of your account or any other breach of security by emailing us at notice@braincommons.org.\n3. Fees\n    If your access to or use of the Platform, or any Services or Content, is subject to any applicable fees, you will be notified of such fees prior to your access or use and you will timely and fully pay us all such amounts in accordance with these Terms. Except as otherwise expressly set forth by the BC Manager (or the applicable provider) in writing, all amounts due under or in connection with these Terms shall be paid within 30 days of the date of invoice. The BC Manager (or the applicable provider) shall be entitled to (a) interest on overdue unpaid amounts at the lesser of (i) the rate of 1.5% per month, or (ii) the maximum rate permissible under applicable law; and (b) reimbursement for all reasonable, documented costs of collection of such amounts.\n4. Access to and Use of Data and other Content\n    a. Overview.\n        Data will be made available through the Platform using a tiered system, as discussed in greater detail in the BRAIN Commons Data Use Policy. This Section 4(a) contains a brief overview of the tiered Data access system, but you should review the BRAIN Commons Data Use Policy carefully. In the event of any conflict or inconsistency between this Section 4(a) and the BRAIN Commons Data Use Policy (or any applicable Additional Data Use Terms), the BRAIN Commons Data Use Policy (or Additional Data Use Terms, as applicable) will govern to the extent of the conflict or inconsistency with respect to the scope of such Policy.\nSubject to the terms and conditions of these Terms, effective upon completion and verification of your registration, the BC Manager hereby grants you a limited, non- transferable, non-sublicensable, revocable license to use the Platform and the Data solely in accordance with the rules for access and use applicable to the Data (the “Zone Rights”), these Terms, any applicable Additional Data Use Terms, and the BRAIN Commons Data Use Policy, solely with respect to your applicable authorized level(s) of Data access rights (each such level, a “Zone”), solely for, as applicable, the approved purposes and within the approved scope set forth in the applicable Zone access request, and solely for research or educational purposes. The Data contributor will set (and may subsequently modify) the Zone Rights for the particular Data, which will fall into one of three categories:\nZone 1 (Public access): Use by any registered user of the Platform (each, a “User”); certain access and functionality may be enhanced once a User has been verified (each, an “Authorized User”).\nZone 2 (Controlled access): Use by Authorized Users after submission of a Zone access request and approval by or through the Data Access Committee (or, as applicable, via another approval process implemented by the BC Manager).\nZone 3 (Exclusive access): Use only by the Data contributor and Authorized Users designated by the Data contributor after (i) submission of a Zone access request and approval by or through the Data Access Committee (or, as applicable, via another approval process implemented by the BC Manager), subject to the Data contributor’s Authorized User designations, and (ii) as applicable, entering into an organizational or dataset specific data use agreement.\n    b. Contribution.\n        You may not post any raw Data or subject-level metadata to the Platform, except pursuant to and in accordance with a separate BRAIN Commons Data Contributor Agreement between you and CVB (if applicable, the “DCA”).\n    c. Disclaimer.\n        We take no responsibility and assume no liability for any data, software or other materials or content (excluding raw Data or subject-level metadata provided pursuant to the DCA) that you post or transmit on or through the Platform, including any modifications or derivatives thereof (collectively, “User Content”), or for any loss, damage, creation, or processing of any User Content. Although we have no obligation to screen, edit, or monitor any User Content posted on or transmitted through the Platform, we reserve the right, and have discretion, to remove and screen any User Content posted, stored, or transmitted on or through the Platform at any time and without notice.\n    d. License.\n        If you post or transmit any User Content on or through the Platform, then you hereby grant us and all other Users a non-exclusive, royalty-free, perpetual, irrevocable, worldwide, transferable and fully sublicensable right and license to use, reproduce, modify, adapt, publish, translate, create derivative works from, distribute, perform, and display such User Content throughout the world in any media.\n    e. Representations and Warranties.\n        If you post or transmit any User Content on or through the Platform, then you represent and warrant that (i) you own and control all of the rights to the User Content that you post or transmit, or you otherwise have the right and authority to post such User Content to the Platform and to grant us and other Users the rights granted under these Terms; (ii) no User Content contains any Restricted Data; and (iii) the use and posting of User Content you supply does not violate the BRAIN Commons Data Use Policy or these Terms, will not violate any rights of or cause injury to any person or entity, and will not otherwise create any harm or liability of any type for us or for third parties.\n        For the purposes of these Terms, “Restricted Data” is (1) any information that is regulated by: (A) any applicable national, federal, state or local law, rule, directive or regulation relating to the privacy of personal information, including without limitation the Health Insurance Portability and Accountability Act of 1996 and its implementing regulations (collectively, “HIPAA”); the Directive 95/46/EC of the European Parliament and of the Council dated 24th October 1995, any subordinate legislation passed under that Directive and any other similar law or regulation; (B) any applicable privacy policy or practice; or (C) any law or regulation concerning the notification to data subjects, law enforcement or other third parties of the occurrence of any actual or suspected disclosure of restricted data or personally identifiable information; (2) any personally identifiable information; or (3) any information or data that is owned by or exclusively licensed to any individual or entity, or in respect of which the use, retention, duplication, or disclosure thereof, is restricted by any individual or entity (including any governmental authority).\n        All Content accessible through the Platform or in connection with the BRAIN Commons is for informational purposes only. Materials are not a substitute for professional advice on any matter, medical or otherwise. Always seek the advice of a qualified health professional. CVB and the BC Manager do not recommend or endorse any treatment, institution, professional, physician, product, procedure, or other information that may be mentioned through the Platform or in connection with the BRAIN Commons.\n5. Confidentiality\n    Without limiting any other applicable obligations or restrictions, you will keep strictly confidential (using at least reasonable care), and not disclose or make available to any third party, any information you obtain or access via, regarding or in connection with the Platform or the BRAIN Commons that is marked as confidential or should reasonably be treated as confidential (excluding information specifically identified by CVB, the BC Manager or the source as non-confidential).\n6. Use Restrictions\n    In connection with any access to or use of the Platform (or any Services or Content), you agree not to:\n    a. Contribute any Restricted Data;\n    b. Publish, present or otherwise disclose Data, or results from analysis of Data,\n    obtained through the Platform without properly attributing (i) the Data source using the language provided by the Data contributor of that Data set, and (ii) CVB using the language posted on the Platform or otherwise provided by CVB;\n    c. Distribute, disclose, make available or download Data, except as expressly authorized by the BC Manager and solely in accordance with the BRAIN Commons Data Use Policy and any applicable Additional Data Use Terms;\n    d. Use or attempt to use Services or Content to harm, marginalize, or discriminate against individuals or populations;\n    e. Identify or contact, or make any attempt to identify or contact, any individual to which any Data pertains;\n    f. Create a false identity, impersonate another person or entity in any way, or falsely imply that any third-party service is associated with the Platform or the BRAIN Commons;\n    g. Upload or otherwise transmit to or through the Platform any Content that infringes, misappropriates, or violates any third party right;\n    h. Upload or otherwise transmit to or through the Platform any Content that violates, or causes us or our affiliates to violate, any applicable law or regulation;\n    i. Upload or otherwise transmit to or through the Platform any unlawful, harmful, harassing, defamatory, threatening, hateful or otherwise objectionable or inappropriate Content, or any Content that can cause harm or delay to the Platform (or any connected or related systems) or can expose CVB, the BC Manager or other Users to risk of harm, damage, liability or loss;\n    j. Upload or otherwise transmit to or through the Platform any trade secrets or information for which you have any obligation of confidentiality or professional secrecy;\n    k. Upload or otherwise transmit to or through the Platform any unsolicited or unauthorized advertising, promotional materials, junk mail, spam, or any other form of solicitation (commercial or otherwise);\n    l. Copy or modify any components of the Platform that are not licensed under the Apache Version 2.0 license or under a substantially similar open source license (collectively, “Proprietary Components”) for any purpose, or reverse engineer, decompile, modify, translate, disassemble or discover the source code of any Proprietary Components;\n    m. Distribute, disclose, market, rent, lease or otherwise transfer the Platform (or any component thereof) to any other individual or entity;\n    n. Gain unauthorized access to the Platform (or any associated Services or Content), to any other User’s account, to any Zones, authority or personally identifiable information, or to any related or connected systems;\n    o. Post, transmit or otherwise make available any virus, worm, spyware or any other computer code, file or program that may or is intended to damage or hijack the operation of any hardware, software, equipment or systems;\n    p. Remove, disable, damage, bypass, circumvent or otherwise interfere with any security-related features of the Platform, including without limitation features that limit or prevent access to Zones, except that you may use passwords and other credentials we provide solely as expressly authorized and intended;\n    q. Interfere with or disrupt the Platform (or any related or connected systems) or violate the regulations, policies or procedures of any Platform-related systems;\n    r. Violate these Terms or any applicable laws or regulations; or\n    s. Assist or permit any persons in engaging in any of the activities described above.\nAdditionally, you acknowledge the following in connection with your use of the Platform: we may use third-party vendors and hosting partners to provide the hardware, software, networking, storage, and related technology used to operate the Platform, as further specified in the BRAIN Commons Privacy Policy; and subject to applicable law, technical processing and transmission of the Platform, including Services or Content made available thereon, may be unencrypted and involve (i) transmissions over various networks, and (ii) changes to conform and adapt to technical requirements of connecting networks or devices.\n7. Modifications\n    We reserve the right to modify, discontinue and restrict, temporarily or permanently, all or part of the BRAIN Commons or the Platform (including any Services or Content) without notice in our sole discretion. Neither we nor our licensors, nor any other Users, will be liable to you or to any third party for any modification, discontinuance or restriction of the BRAIN Commons or the Platform (or any associated Services) or any deletion of any Content or Data stored on, or otherwise associated with, your account on the Platform.\n8. Term and Termination\n    Your account remains in effect unless you cancel it or the BC Manager terminates your account as provided by these Terms. Notwithstanding any other provision of these Terms, we reserve the right, without notice and in our sole discretion, to suspend or terminate your account and to block, restrict and prevent your future access to and use of the Platform. Without limiting the generality of the foregoing, the BC Manager may terminate your account in cases of actual or suspected fraud, abuse or violations of these Terms or applicable law, or to protect itself or any Users from potential harm, disruption, damage, liability or loss. If your account is terminated for any reason, we reserve the right (but do not have the obligation) to delete any Data or other Content associated with your account. Upon any suspension or termination of your account, you must immediately cease using the Platform. All provisions of these Terms that by their nature should survive the termination of your license to access the Platform or any termination of these Terms (including, without limitation, provisions governing indemnification, limitations of liability, confidentiality, disclaimers of warranty, use restrictions, and intellectual property) will continue to remain in full force and effect after any termination.\n9. Feedback\n    Any comments, suggestions, ideas or other information, related to the Platform, the BRAIN Commons or CVB, submitted by you to us or the Platform (collectively, “Feedback”) are non-confidential (notwithstanding any notice to the contrary you may include in any accompanying communication), and you hereby grant to us and our affiliates a non-exclusive, royalty-free, perpetual, irrevocable, worldwide, transferable and fully sublicensable right to use your Feedback for any purpose and in any manner without compensation or attribution to you. Where required by applicable law or regulation, the BC Manager will respect any privacy restrictions applicable to Feedback you communicate to it.\n10. Copyright Infringement\n    We respect the intellectual property rights of others, and ask you to do the same. It is our policy to terminate the access privileges of those who infringe the intellectual property rights of others. If you believe that your work has been posted on the Platform in a way that constitutes copyright infringement, please contact us at the address below and provide the following information: (a) an electronic or physical signature of the person authorized to act on behalf of the owner of the copyright interest; (b) a description of the copyrighted work that you claim has been infringed, and identification of the time(s) and date(s) the material that you claim is infringing was displayed on the Platform; (c) your address, telephone number, and email address; (d) a statement by you that you have a good faith belief that the disputed use is not authorized by the copyright owner, its agent, or the law; and (e) a statement by you, made under penalty of perjury, that the above information in your notice is accurate and that you are the copyright owner or authorized to act on the copyright owner’s behalf.\n    If you believe that your User Content which has been removed (or to which access was disabled) is not infringing, or that you have the authorization from the copyright owner, the copyright owner's agent, or pursuant to applicable law, to post and use such User Content, you may send a counter-notice containing the following information to the copyright agent: (a) your physical or electronic signature; (b) identification of the User Content that has been removed or to which access has been disabled and the location at which the materials appeared before it was removed or disabled; (c) a statement that you have a good faith belief that the User Content was removed or disabled as a result of mistake or a misidentification of the User Content; and (d) your name, address, telephone number, and e-mail address, a statement that, to the extent permitted by applicable law, you consent exclusively to the jurisdiction of any federal or state court within the jurisdiction set forth in Section 18(b), and a statement that you will accept service of process from the person who provided notification of the alleged infringement. If a counter-notice is received by the copyright agent, we may send a copy of the counter-notice to the original complaining party.\n    Our designated agent for notice of copyright infringement can be reached at notice@braincommons.org.\n11. Trademarks\n    Any trademark, logo or other proprietary indicia contained on the Platform are trademarks or registered trademarks of CVB and its licensors, and may not be copied, imitated or used, in whole or in part, without the prior written permission of the applicable trademark holder. Reference to any products, services, processes or other information, by trade name, trademark, manufacturer, supplier, or otherwise, does not constitute or imply endorsement, sponsorship, or recommendation thereof by us, or vice versa. \n12. Ownership\n    We, our affiliates and our licensors collectively own all right, title, and interest, including all intellectual property rights, in and to the Platform. We reserve all rights not expressly granted to you in these Terms.\n13. Third-Party Content\n    The Platform may contain links or otherwise provide access to Web pages, services, data or other content of third parties (collectively, “Third-Party Content”). Your access to or use of any Third-Party Content is at your sole risk. We do not monitor, endorse, or adopt, or have any control over, any Third-Party Content. Under no circumstances will CVB or the BC Manager be responsible or liable in any way for or in connection with any Third-Party Content. Third-Party Content may be subject to separate terms and conditions. You should review, and you are solely responsible for complying with, any such third party terms.\n14. Indemnification\n    You will defend, indemnify and hold harmless CVB, the BC Manager, and its and their respective affiliates, and their respective directors, officers, agents, employees, licensors, and suppliers from and against all claims, losses, liabilities, damages, costs and expenses (including reasonable attorneys’ fees and expenses) arising out of or related to your User Content, your use of the Platform (or any activity under your account or credentials), your violation of these Terms, or your violation of any rights of a third party, except to the extent arising from the gross negligence or willful misconduct of the BC Manager.\n15. Disclaimer of Warranties\n    EXCEPT AS EXPRESSLY SET FORTH IN THESE TERMS, (A) CVB AND THE BC MANAGER HEREBY DISCLAIM ALL WARRANTIES RELATED TO THE PLATFORM, THE BRAIN COMMONS, OR ANY SERVICES, DATA OR OTHER CONTENT MADE AVAILABLE THEREON OR ASSOCIATED THEREWITH, INCLUDING WITHOUT LIMITATION THE IMPLIED WARRANTIES OF MERCHANTABILITY, NON-INFRINGEMENT AND FITNESS FOR A PARTICULAR PURPOSE; AND (B) THE PLATFORM AND THE BRAIN COMMONS ARE PROVIDED “AS IS” AND WITHOUT ANY WARRANTY RELATED TO ACCURACY, COMPLETENESS, QUALITY OR THAT THEY WILL BE UNINTERRUPTED OR ERROR FREE.\n    YOU MUST NOT MAKE ANY REPRESENTATION OR WARRANTY ON BEHALF OF THE BRAIN COMMONS OR ANY OTHER USER REGARDING THE PLATFORM, THE BRAIN COMMONS OR ANY SERVICES, DATA OR OTHER CONTENT THAT YOU OBTAIN ON OR IN CONNECTION WITH THE PLATFORM OR THE BRAIN COMMONS, EXCEPT TO THE EXTENT AS MAY BE EXPRESSLY AUTHORIZED BY A USER WITH RESPECT TO SERVICES, DATA OR OTHER CONTENT PROVIDED BY SUCH USER.\n    SOME JURISDICTIONS MAY PROHIBIT A DISCLAIMER OF WARRANTIES AND YOU MAY HAVE OTHER RIGHTS THAT VARY FROM JURISDICTION TO JURISDICTION.\n16. Limitations of Liability\n    TO THE FULLEST EXTENT PERMISSIBLE PURSUANT TO APPLICABLE LAW, NEITHER CVB NOR THE BC MANAGER NOR ANY OF THEIR RESPECTIVE OFFICERS, DIRECTORS, LICENSORS, OR SUPPLIERS WILL BE LIABLE TO ANY PARTY UNDER THESE TERMS OR OTHERWISE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR EXEMPLARY DAMAGES ARISING OUT OF OR IN CONNECTION WITH THE USE OR ACCESS OF OR INABILITY TO USE OR ACCESS THE PLATFORM, THE BRAIN COMMONS OR ANY SERVICES OR CONTENT MADE AVAILABLE THROUGH THE PLATFORM OR THE BRAIN COMMONS, INCLUDING WITHOUT LIMITATION DAMAGES FOR LOSS OF PROFITS, GOODWILL, USE, DATA OR OTHER INTANGIBLE LOSSES (REGARDLESS OF THE BASIS OF THE CLAIM AND EVEN IF ADVISED OF THE POSSIBILITY OF THESE DAMAGES).\n    TO THE FULLEST EXTENT PERMISSIBLE PURSUANT TO APPLICABLE LAW, THE MAXIMUM TOTAL LIABILITY OF CVB AND THE BC MANAGER AND THEIR RESPECTIVE SUPPLIERS AND LICENSORS TO YOU FOR ALL CLAIMS UNDER THESE TERMS OR OTHERWISE IN CONNECTION WITH THE PLATFORM OR THE BRAIN COMMONS IS $50, REGARDLESS OF THE BASIS OF THE CLAIM.\n    APPLICABLE LAW MAY NOT ALLOW THE LIMITATION OR EXCLUSION OF LIABILITY OR INCIDENTAL OR CONSEQUENTIAL DAMAGES, SO THE ABOVE LIMITATIONS OR EXCLUSIONS IN THIS SECTION MAY NOT FULLY APPLY TO YOU. IN SUCH CASES, YOU AGREE THAT BECAUSE SUCH WARRANTY DISCLAIMERS AND LIMITATIONS OF LIABILITY REFLECT A REASONABLE AND FAIR ALLOCATION OF RISK BETWEEN YOU AND CVB, AND ARE FUNDAMENTAL ELEMENTS OF THE BASIS OF THE BARGAIN BETWEEN YOU AND CVB, CVB’S AND THE BC MANAGER’S AND ITS AND THEIR RESPECTIVE LICENSORS’ AND SUPPLIERS’ LIABILITY WILL BE LIMITED TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW.\n    THE LIMITATIONS IN THIS SECTION WILL APPLY EVEN IF ANY LIMITED REMEDY FAILS OF ITS ESSENTIAL PURPOSE, TO THE EXTENT PERMITTED BY APPLICABLE LAW.\n17. Electronic Communications\n    By accessing or using the Platform, you consent to receiving electronic communications from us. You agree that any notices, agreements, disclosures, or other communications that we send to you electronically will satisfy any legal communication requirements, including that such communications be in writing.\n18. Governing Law & Jurisdiction\n    a. Governing Law. Unless otherwise agreed in writing between you and CVB, these Terms are governed by and construed in accordance with the laws of the State of New York, excluding conflicts of law principles.\n    b. Jurisdiction. Unless otherwise agreed in writing between you and CVB, any dispute or claim arising out of or relating to the Platform, the BRAIN Commons or these Terms must be brought exclusively in the state or federal courts within the State of New York (except that a party may seek preliminary equitable relief in any court of competent jurisdiction in relation to intellectual property rights or confidentiality obligations).\n19. General\n    Our failure to act in a particular circumstance does not waive our ability to act with respect to that circumstance or similar circumstances. We will not be responsible or liable for any failure or delay to perform any of our obligations under these Terms resulting from any event or circumstance beyond our reasonable control. Any provision of these Terms that is found to be invalid, unlawful, or unenforceable will be enforced to the maximum extent permissible under applicable law and in all other jurisdictions and circumstances (and otherwise will be severed from these Terms), and the remaining provisions of these Terms will continue to be in full force and effect. The section headings and titles in these Terms are for convenience only and have no legal or contractual effect. You may not assign or delegate any of your rights or obligations under these Terms without our prior written consent, and any purported assignment in contravention of the foregoing will be null and void. These Terms will be binding upon and inure to the benefit of the parties hereto and their respective successors and permitted assigns. Any dispute or claim arising out of or relating to these Terms or any use of the Platform must be commenced within one year after the claim arose.\n    These Terms, including all Policies, constitute the entire agreement between you and CVB concerning the Platform. These Terms supersede all prior agreements or communications between you and CVB regarding the subject matter of these Terms.\n20. Questions & Contact Information\n    If you have any questions or concerns about the Platform, the BRAIN Commons, or these Terms, you may contact CVB by email at info@braincommons.org.",
+            "options": ["I agree"],
+            "answer": 0,
+            "hint": "Click on I agree"
+          }
+        ]
+      }
+    },
+    "footerLogos": [
+      {
+        "src": "/src/img/gen3.png",
+        "href": "https://ctds.uchicago.edu/gen3",
+        "alt": "Gen3 Data Commons"
+      },
+      {
+        "src": "/src/img/createdby.png",
+        "href": "https://ctds.uchicago.edu/",
+        "alt": "Center for Translational Data Science at the University of Chicago"
+      }
+    ]
+  },
+  "requiredCerts": ["privacy_policy"],
+  "featureFlags": {
+    "explorer": true,
+    "noIndex": true
+  },
+  "dataExplorerConfig": {
+    "charts": {
+      "project_id": {
+        "chartType": "count",
+        "title": "Projects"
+      },
+      "node_id": {
+        "chartType": "count",
+        "title": "Cases"
+      },
+      "gender": {
+        "chartType": "pie",
+        "title": "Gender"
+      },
+      "race": {
+        "chartType": "bar",
+        "title": "Race"
+      },
+      "ethnicity": {
+        "chartType": "bar",
+        "title": "Ethnicity"
+      }
+    },
+    "filters": {
+      "tabs": [
+        {
+          "title": "Study Selection",
+          "fields": [
+            "project_id"
+          ]
+        },
+        {
+          "title": "Demographics",
+          "fields": [
+            "gender",
+            "race",
+            "ethnicity",
+            "veteran_status",
+            "age_at_enrollment",
+            "age_at_onset",
+            "education_years"
+          ]
+        },
+        {
+          "title": "Assessment",
+          "fields": [
+            "unified_parkinsons_disease_ratings",
+            "mds_updrs",
+            "hopkins_verbal_learning_tests",
+            "scales_for_outcomes_in_pds",
+            "modified_schwab_england_scales",
+            "baseline_dyspnea_indexes",
+            "hamilton_depression_ratings",
+            "state_trait_anxiety_inventories",
+            "upenn_smell_tests",
+            "geriatric_depression_scales",
+            "montreal_cognitive_functional_tests",
+            "mini_mental_status_exams",
+            "rem_sleep_behaviors",
+            "epworth_sleepiness_scales"
+          ]
+        }
+      ]
+    },
+    "table": {
+      "enabled": true,
+      "fields": [
+        "project_id",
+        "submitter_id",
+        "gender",
+        "race",
+        "ethnicity",
+        "age_at_enrollment",
+        "age_at_onset",
+        "education_years"
+      ]
+    },
+    "guppyConfig": {
+      "dataType": "case",
+      "nodeCountTitle": "Cases",
+      "fieldMapping": [
+        {"field": "unified_parkinsons_disease_ratings", "name": "UPDRS"},
+        {"field": "mds_updrs", "name": "MDS-UPDRS"},
+        {"field": "hopkins_verbal_learning_tests", "name": "HVLT-R"},
+        {"field": "scales_for_outcomes_in_pds", "name": "Scales for Outcomes in Parkinson’s Disease – Autonomic"},
+        {"field": "modified_schwab_england_scales", "name": "Modified Schwab"},
+        {"field": "baseline_dyspnea_indexes", "name": "BDI"},
+        {"field": "hamilton_depression_ratings", "name": "Hamilton"},
+        {"field": "state_trait_anxiety_inventories", "name": "Anxiety – State-Trait Anxiety Inventory (STAI)"},
+        {"field": "upenn_smell_tests", "name": "UPSIT"},
+        {"field": "geriatric_depression_scales", "name": "Geriatric Depression Scale Short Form Questionnaire"},
+        {"field": "montreal_cognitive_functional_tests", "name": "MOCA"},
+        {"field": "mini_mental_status_exams", "name": "MMSE"},
+        {"field": "rem_sleep_behaviors", "name": "REM Sleep Behavior Disorder Questionnaire"},
+        {"field": "epworth_sleepiness_scales", "name": "Epworth Sleepiness Scale"},
+        {"field": "_aliquots_count", "name": "Aliquots Count"},
+        {"field": "_read_group_count", "name": "Read Groups Count"},
+        {"field": "_samples_count", "name": "Samples Count"},
+        {"field": "_submitted_expression_arrays_count", "name": "Submitted Expression Arrays Count"},
+        {"field": "_submitted_unaligned_reads_count", "name": "Submitted Unaligned Reads Count"}
+      ],
+      "manifestMapping": {
+        "resourceIndexType": "file",
+        "resourceIdField": "object_id",
+        "referenceIdFieldInResourceIndex": "case_id",
+        "referenceIdFieldInDataIndex": "case_id"
+      },
+      "accessibleFieldCheckList": ["project_id"],
+      "accessibleValidationField": "project_id"
+    },
+    "buttons": [
+      {
+        "enabled": true,
+        "type": "data",
+        "title": "Download Data",
+        "leftIcon": "user",
+        "rightIcon": "download",
+        "fileName": "data.json"
+      },
+      {
+        "enabled": true,
+        "type": "manifest",
+        "title": "Download Manifest",
+        "leftIcon": "datafile",
+        "rightIcon": "download",
+        "fileName": "manifest.json"
+      }
+    ]
+  },
+   "fileExplorerConfig": {
+    "charts": {
+      "data_type": {
+        "chartType": "stackedBar",
+        "title": "File Type"
+      },
+      "data_format": {
+        "chartType": "stackedBar",
+        "title": "File Format"
+      }
+    },
+    "filters": {
+      "tabs": [
+        {
+          "title": "File",
+          "fields": [
+            "project_id",
+            "data_type",
+            "data_format"
+          ]
+        }
+      ]
+    },
+    "table": {
+      "enabled": true,
+      "fields": [
+        "project_id",
+        "file_name",
+        "file_size",
+        "object_id"
+      ]
+    },
+    "guppyConfig": {
+      "dataType": "file",
+      "fieldMapping": [
+        { "field": "object_id", "name": "GUID" }
+      ],
+      "nodeCountTitle": "Files",
+      "manifestMapping": {
+        "resourceIndexType": "case",
+        "resourceIdField": "case_id",
+        "referenceIdFieldInResourceIndex": "object_id",
+        "referenceIdFieldInDataIndex": "object_id"
+      },
+      "accessibleFieldCheckList": ["project_id"],
+      "accessibleValidationField": "project_id",
+      "downloadAccessor": "object_id"
+    },
+    "buttons": [
+      {
+        "enabled": true,
+        "type": "file-manifest",
+        "title": "Download Manifest",
+        "leftIcon": "datafile",
+        "rightIcon": "download",
+        "fileName": "file-manifest.json"
+      }
+    ],
+    "dropdowns": {}
+  },
+  "useArboristUI": true,
+  "showArboristAuthzOnProfile": true,
+  "showFenceAuthzOnProfile": false,
+  "componentToResourceMapping": {
+    "Workspace": {
+      "resource": "/workspace",
+      "method": "access",
+      "service": "jupyterhub"
+    },
+    "Analyze Data": {
+      "resource": "/workspace",
+      "method": "access",
+      "service": "jupyterhub"
+    },
+    "Query": {
+      "resource": "/query_page",
+      "method": "access",
+      "service": "query_page"
+    },
+    "Query Data": {
+      "resource": "/query_page",
+      "method": "access",
+      "service": "query_page"
+    }
+  }
+}

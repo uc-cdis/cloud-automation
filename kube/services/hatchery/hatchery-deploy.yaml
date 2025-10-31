@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: hatchery-deployment
@@ -20,12 +20,15 @@ spec:
         public: "yes"
         netnolimit: "yes"
         userhelper: "yes"
+        GEN3_HATCHERY_VERSION
+        GEN3_ENV_LABEL
         GEN3_DATE_LABEL
+        GEN3_HOSTNAME_LABEL
     spec:
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
+          - weight: 25
             podAffinityTerm:
               labelSelector:
                 matchExpressions:
@@ -34,14 +37,29 @@ spec:
                   values:
                   - hatchery
               topologyKey: "kubernetes.io/hostname"
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND
       serviceAccountName: hatchery-service-account
+      securityContext:
+        fsGroup: 1001
       volumes:
         - name: hatchery-config
           configMap:
             name: manifest-hatchery
-            items:
-              - key: json
-                path: hatchery.json
       containers:
       - name: hatchery
         GEN3_HATCHERY_IMAGE
@@ -60,12 +78,37 @@ spec:
         ports:
         - containerPort: 8000
         env:
+          - name: GEN3_VPCID
+            valueFrom:
+              configMapKeyRef:
+                name: global
+                key: environment
+          - name: GEN3_ENDPOINT
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: hostname
           - name: POD_NAMESPACE
             valueFrom:
               fieldRef:
                 fieldPath: metadata.namespace
+          - name: PRISMA_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: prisma-secret
+                key: AccessKeyId 
+                optional: true
+          - name: PRISMA_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: prisma-secret
+                key: SecretKey
+                optional: true
         volumeMounts:
           - name: hatchery-config
             readOnly: true
             mountPath: /hatchery.json
-            subPath: hatchery.json
+            subPath: json
+          - name: hatchery-config
+            readOnly: true
+            mountPath: /hatchery-more-configs

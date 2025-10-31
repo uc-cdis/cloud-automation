@@ -1,0 +1,70 @@
+# gen3 job run covid19-bayes-cronjob S3_BUCKET <S3_BUCKET>
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: covid19-bayes
+spec:
+  # Weekly Sunday, Wednesday 6:00PM Chicago time == Monday, Thursday 12:00AM UTC
+  schedule: "0 0 * * 1,4"
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: gen3job
+        spec:
+          affinity:
+            nodeAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+              - weight: 100
+                preference:
+                  matchExpressions:
+                  - key: karpenter.sh/capacity-type
+                    operator: In
+                    values:
+                    - on-demand
+              - weight: 99
+                preference:
+                  matchExpressions:
+                  - key: eks.amazonaws.com/capacityType
+                    operator: In
+                    values:
+                    - ONDEMAND
+          serviceAccountName: s3-access-opencdn-databucket-gen3
+          restartPolicy: Never
+          nodeSelector:
+            role: "jupyter"
+          tolerations:
+            - key: "role"
+              operator: "Equal"
+              value: "jupyter"
+              effect: "NoSchedule"
+          containers:
+            - name: covid19-bayes
+              imagePullPolicy: Always
+              ports:
+              - containerPort: 80
+              GEN3_COVID19-BAYES_IMAGE
+              env:
+              - name: slackWebHook
+                valueFrom:
+                  configMapKeyRef:
+                    name: global
+                    key: slack_webhook
+              - name: gen3Env
+                valueFrom:
+                  configMapKeyRef:
+                    name: manifest-global
+                    key: hostname
+              - name: S3_BUCKET
+                GEN3_S3_BUCKET
+              resources:
+                requests:
+                  cpu: 4
+                  memory: 12Gi
+                limits:
+                  cpu: 4
+                  memory: 12Gi

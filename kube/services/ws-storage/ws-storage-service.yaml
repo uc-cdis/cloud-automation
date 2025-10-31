@@ -1,0 +1,15 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: ws-storage
+  name: ws-storage
+spec:
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8000
+    name: ws-storage
+  selector:
+    app: ws-storage

@@ -12,12 +12,29 @@ kind: Job
 metadata:
   name: config-fence
 spec:
-  # not yet supported - backOffLimit: 3
+  backoffLimit: 0
   template:
     metadata:
       labels:
         app: gen3job
     spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND
       serviceAccountName: useryaml-job
       volumes:
         - name: shared-data
@@ -47,7 +64,7 @@ spec:
           - name: PYTHONPATH
             value: /var/www/fence
           - name: CONVERT_OLD_CFG
-            GEN3_CONVERT_OLD_CFG
+            GEN3_CONVERT_OLD_CFG|-value: ""-|
         volumeMounts:
           - name: "creds-volume"
             readOnly: true
@@ -103,7 +120,7 @@ spec:
             cp new-fence-config.yaml /mnt/shared/new-fence-config.yaml
 
       - name: awshelper
-        image: quay.io/cdis/awshelper:master
+        GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
         imagePullPolicy: Always
         volumeMounts:
           - name: shared-data

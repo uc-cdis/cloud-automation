@@ -1,0 +1,53 @@
+azure_subscription_id=""
+azure_client_id=""
+azure_client_secret=""
+azure_tenant_id=""
+
+# VPC name is also used for DB name, so only alphanumeric characters
+vpc_name=""
+
+azure_resource_group_name=""
+
+azure_region=""
+
+login_ami=""
+
+proxy_ami=""
+
+base_ami=""
+
+db_size=10
+
+hostname="www.example.com"
+
+# ssh key to be added to kube nodes
+kube_ssh_key="ssh-rsa XXXX"
+
+# additional keys
+# format like kube_additional_keys="- \"ssh-rsa XXXX\"\n  - \"ssh-rsa XXXX\""
+kube_additional_keys=""
+
+# S3 bucket for storing kube states
+kube_bucket=""
+
+google_client_secret=""
+google_client_id=""
+
+
+# Following variables can be randomly generated passwords
+
+# base64 encoded 32 alphanumeric characters
+# cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1 | base64
+hmac_encryption_key=""
+
+# don't use ( ) " ' { } < > @ in password
+db_password_userapi=""
+
+db_password_gdcapi=""
+
+db_password_indexd=""
+
+db_instance="db.t2.micro"
+
+# password for write access to indexd
+gdcapi_indexd_password=""

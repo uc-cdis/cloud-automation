@@ -1,0 +1,57 @@
+---
+- name: get nodejs initial script
+  get_url:
+    url: https://deb.nodesource.com/setup_{{ nodejs_version }}
+    dest: /tmp/nodejs
+    mode: '0711'
+  environment:
+    http_proxy: "{{ http_proxy }}:{{ http_proxy_port }}"
+    https_proxy: "{{ https_proxy }}:{{ https_proxy_port }}"
+  become: yes
+
+- name: nodejs repo
+  shell: /tmp/nodejs #curl -sL https://deb.nodesource.com/setup_{{ nodejs_version }} | sudo -E bash -
+  environment:
+    http_proxy: "{{ http_proxy }}:{{ http_proxy_port }}"
+    https_proxy: "{{ https_proxy }}:{{ https_proxy_port }}"
+  become: yes
+
+
+- name: "worker packages"
+  apt:
+    name: '{{ item }}'
+    state: present
+    update_cache: yes
+  loop:
+    - s3cmd
+    - libpq-dev
+    - python-dev
+    - nodejs
+  become: yes
+
+- name: /usr/local/etc/gres.conf
+  template:
+    src: gres.conf.j2
+    dest: /usr/local/etc/gres.conf
+    owner: slurm
+    group: slurm
+  become: yes
+    
+
+- name: docker_opts
+  lineinfile:
+    path: /etc/default/docker
+    line: DOCKER_OPTS="-g /mnt/docker-images --log-driver=json-file --log-opt labels=production_status --log-opt env=os,customer --log-opt max-size=10m --log-opt max-file=10"
+  become: yes
+
+- name: docker_tmp
+  lineinfile:
+    path: /etc/default/docker
+    line: export TMPDIR="/mnt/docker-tmp"
+  become: yes
+
+- name: /etc/supervisor/conf.d/slurm.conf
+  template:
+    src: supervisor_worker_slurm.conf.j2
+    dest: /etc/supervisor/conf.d/slurm.conf
+  become: yes

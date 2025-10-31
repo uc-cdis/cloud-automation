@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: sftp-deployment
@@ -13,7 +13,25 @@ spec:
     metadata:
       labels:
         app: sftp
+        GEN3_DATE_LABEL
     spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND
       automountServiceAccountToken: false
       volumes:
         - name: sftp-secret
@@ -24,7 +42,7 @@ spec:
             name: sftp-conf
       containers:
       - name: sftp
-        image: quay.io/cdis/sftp:master
+        GEN3_SFTP_IMAGE|-image: quay.io/cdis/sftp:master-|
         command: ["/bin/bash", "-c"]
         args: ["cd /home/foo; for i in *.csv; do crypt $(cat dbgap-key) <$i >${i}.enc; done; /entrypoint"]
         livenessProbe:

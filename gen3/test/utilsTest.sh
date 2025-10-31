@@ -21,10 +21,18 @@ test_colors() {
 }
 
 test_env() {
+  export GEN3_MANIFEST_HOME="${GEN3_HOME}/gen3/lib/testData"
   [[ ! -z $GEN3_HOME ]]; because $? "kubes.sh defines the GEN3_HOME environment variable"
   [[ ! -z $GEN3_MANIFEST_HOME ]]; because $? "kubes.sh defines the GEN3_MANIFEST_HOME environment variable"
   [[ -d $GEN3_MANIFEST_HOME ]]; because $? "kubes.sh checks out cdis-manifest if necessary"
   [[ -d "${GEN3_MANIFEST_HOME}/test1.manifest.g3k" ]]; because $? "cdis-manifest includes a test1.manifest.g3k domain"
+}
+
+test_tform_version() {
+  local vcheck
+  vcheck="$(check_terraform_module "$GEN3_HOME/tf_files/aws/bogus")" && [[ -z "$vcheck" ]]; because $? "should default to terraform 0.11"
+  vcheck="$(check_terraform_module "$GEN3_HOME/tf_files/aws/data_bucket")" && [[ "$vcheck" == "12" ]]; because $? "data_bucket terraform should pickup version 12"
+  vcheck="$(check_terraform_module "bogus/something__custom")" && [[ "$vcheck" == "12" ]]; because $? "__custom terraform workspaces should pickup version 12"
 }
 
 test_logging() {
@@ -66,9 +74,21 @@ test_is_number() {
   ! gen3_is_number -1; because $? "is_number does not recognize negative numbers"
 }
 
+test_encode_uri_component() {
+  local testIn='sum by (envoy_cluster_name) (rate(envoy_cluster_upstream_rq_total{kubernetes_namespace="frickjack"}[12h]))'
+  local expectedOut='sum%20by%20(envoy_cluster_name)%20(rate(envoy_cluster_upstream_rq_total%7Bkubernetes_namespace%3D%22frickjack%22%7D%5B12h%5D))'
+  local testOut
+  testOut="$(gen3_encode_uri_component "$testIn")" && [[ "$testOut" == "$expectedOut" ]]; because $? "encode_uri_component works - got: $testOut"
+  testIn='!@#$^*;'
+  expectedOut="!%40%23%24%5E*%3B"
+  testOut="$(gen3_encode_uri_component "$testIn")" && [[ "$testOut" == "$expectedOut" ]]; because $? "encode_uri_component works - got: $testOut"
+}
+
 shunit_runtest "test_semver" "local,utils"
 shunit_runtest "test_colors" "local,utils"
+shunit_runtest "test_encode_uri_component" "local,utils"
 shunit_runtest "test_env" "local,utils"
 shunit_runtest "test_is_number" "local,utils"
 shunit_runtest "test_logging" "local,utils"
 shunit_runtest "test_retry" "local,utils"
+shunit_runtest "test_tform_version" "local,utils"

@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dicom-server-deployment
+  labels:
+    app: dicom-server
+spec:
+  selector:
+    matchLabels:
+      app: dicom-server
+      release: production
+  template:
+    metadata:
+      labels:
+        app: dicom-server
+        release: production
+        dborthanc: "yes"
+        public: "yes"
+        GEN3_DATE_LABEL
+        GEN3_HOSTNAME_LABEL
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - spot
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - SPOT
+      volumes:
+      - name: config-volume-g3auto
+        secret:
+          secretName: orthanc-g3auto
+      containers:
+      - name: dicom-server
+        GEN3_DICOM-SERVER_IMAGE
+        imagePullPolicy: Always
+        readinessProbe:
+          httpGet:
+            path: /system
+            port: 8042
+          initialDelaySeconds: 5
+          periodSeconds: 20
+          timeoutSeconds: 30
+        livenessProbe:
+          httpGet:
+            path: /system
+            port: 8042
+          initialDelaySeconds: 5
+          periodSeconds: 60
+          timeoutSeconds: 30
+        ports:
+        - containerPort: 8042
+        volumeMounts:
+        - name: config-volume-g3auto
+          readOnly: true
+          mountPath: /etc/orthanc/orthanc_config_overwrites.json
+          subPath: orthanc_config_overwrites.json

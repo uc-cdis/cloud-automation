@@ -252,6 +252,7 @@ def nice_it(r_data):
     
 
 
+
 def handler(event, context):
     if os.environ.get('stream_name') is not None:
         client = boto3.client('firehose')
@@ -261,13 +262,16 @@ def handler(event, context):
     for record in event['Records']:
         compressed_record_data = record['kinesis']['data']
         record_data = nice_it(json.loads(zlib.decompress(base64.b64decode(compressed_record_data), 16+zlib.MAX_WBITS).decode('utf-8')))
+
         #record_data = nice_it(record_data)
         for log_event_chunk in chunker(record_data, MESSAGE_BATCH_MAX_COUNT):
             message_batch = [{'Data': json.dumps(x)} for x in log_event_chunk]
             if message_batch:
                 if os.environ.get('stream_name') is not None:
-                    client.put_record_batch(DeliveryStreamName=os.environ['stream_name']+'_to_es', Records=message_batch)
-                    client.put_record_batch(DeliveryStreamName=os.environ['stream_name']+'_to_s3', Records=message_batch)
+                    if os.environ.get('es') is True:
+                        client.put_record_batch(DeliveryStreamName=os.environ['stream_name']+'_to_es', Records=message_batch)
+                    if os.environ.get('s3') is True:
+                        client.put_record_batch(DeliveryStreamName=os.environ['stream_name']+'_to_s3', Records=message_batch)
                 else:
                     #return message_batch
                     output += str(message_batch)

@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dicom-viewer-deployment
+  labels:
+    app: dicom-viewer
+spec:
+  selector:
+    matchLabels:
+      app: dicom-viewer
+      release: production
+  template:
+    metadata:
+      labels:
+        app: dicom-viewer
+        release: production
+        public: "yes"
+        GEN3_DATE_LABEL
+        GEN3_HOSTNAME_LABEL
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - spot
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - SPOT
+      containers:
+      - name: dicom-viewer
+        GEN3_DICOM-VIEWER_IMAGE
+        imagePullPolicy: Always
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 20
+          timeoutSeconds: 30
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 60
+          timeoutSeconds: 30
+        ports:
+        - containerPort: 80
+        

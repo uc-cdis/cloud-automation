@@ -1,0 +1,157 @@
+#
+# run with:
+# gen3 job run cedar-ingestion [CEDAR_DIRECTORY_ID $cedar_directory_id]
+#
+# CEDAR_DIRECTORY_ID
+#   The directory id will be read from 'directory_id.txt' in the
+#   'cedar-g3auto' secret.
+#   You can override the secret value with an optional command line argument.
+#
+#   The deployed CEDAR wrapper services must be able to read from this directory.
+#
+# ACCESS TOKENS
+#  Access tokens will be generated for an existing fence-client, cedar_ingest_client.
+#  The client_id and client_secret will be read from
+#  'cedar_client_credentials.json' in the 'cedar-g3auto' secret.
+#
+#  The fence-client must have MDS admin and CEDAR polices granted.
+#
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cedar-ingestion
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND
+      serviceAccountName: useryaml-job
+      volumes:
+        - name: shared-data
+          emptyDir: {}
+        - name: cedar-client-volume-g3auto
+          secret:
+            secretName: cedar-g3auto # the secret name in kube
+      initContainers:
+      - name: cedar
+        image: quay.io/cdis/awshelper:master
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        env:
+        - name: HOSTNAME
+          valueFrom:
+            configMapKeyRef:
+              name: global
+              key: hostname
+        - name: CEDAR_DIRECTORY_ID
+          GEN3_CEDAR_DIRECTORY_ID|-value: ""-|
+        - name: CEDAR_DIRECTORY_ID_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: cedar-g3auto
+              key: "directory_id.txt"
+        - name:  CEDAR_CLIENT_CREDENTIALS
+          valueFrom:
+            secretKeyRef:
+              name: cedar-g3auto
+              key: "cedar_client_credentials.json"
+        volumeMounts:
+        - name: shared-data
+          mountPath: /mnt/shared
+        resources:
+          limits:
+            cpu: 1
+            memory: 5Gi
+
+        command: ["/bin/bash" ]
+        args:
+          - "-c"
+          - |
+            if [[ -z "$CEDAR_DIRECTORY_ID" ]]; then
+              if [[ ! -z "$CEDAR_DIRECTORY_ID_SECRET" ]]; then
+                echo "CEDAR_DIRECTORY_ID is from g3auto secret"
+                export CEDAR_DIRECTORY_ID=$CEDAR_DIRECTORY_ID_SECRET
+              else
+                echo -e "ERROR: CEDAR_DIRECTORY_ID must be in secret or on command line" 1>&2
+                exit 0
+              fi
+            else
+              echo "CEDAR_DIRECTORY_ID is from command line parameter"
+            fi
+
+            if [[ ! -z "$CEDAR_CLIENT_CREDENTIALS" ]]; then
+              export CEDAR_CLIENT_ID=$(echo $CEDAR_CLIENT_CREDENTIALS | jq -r .client_id)
+              export CEDAR_CLIENT_SECRET=$(echo $CEDAR_CLIENT_CREDENTIALS | jq -r .client_secret)
+            else
+              echo -e "Could not read cedar-client credentials" 1>&2
+              exit 0
+            fi
+
+            pip install pydash
+            export GEN3_HOME="$HOME/cloud-automation"
+            python ${GEN3_HOME}/files/scripts/healdata/heal-cedar-data-ingest.py --directory $CEDAR_DIRECTORY_ID --cedar_client_id $CEDAR_CLIENT_ID --cedar_client_secret $CEDAR_CLIENT_SECRET --hostname $HOSTNAME
+            status=$?
+            if [[ $status -ne 0 ]]; then
+              echo "WARNING: non zero exit code: $status"
+            else
+              echo "All done - exit code: $status"
+              touch /mnt/shared/success
+            fi
+      containers:
+        - name: awshelper
+          env:
+            - name: slackWebHook
+              valueFrom:
+                  configMapKeyRef:
+                    name: global
+                    key: slack_webhook
+            - name: gen3Env
+              valueFrom:
+                  configMapKeyRef:
+                    name: manifest-global
+                    key: hostname
+          GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
+          volumeMounts:
+            - name: shared-data
+              mountPath: /mnt/shared
+          command: ["/bin/bash"]
+          args:
+            - "-c"
+            - |
+              if [[ ! "$slackWebHook" =~ ^http ]]; then
+                echo "Slack webhook not set"
+                exit 0
+              fi
+              if ! [ -f /mnt/shared/success ]; then
+                success="FAILED"
+                color="ff0000"
+              else
+                success="SUCCESS"
+                color="2EB67D"
+              fi
+              echo "Sending ${success} message to slack..."
+              payload="{\"attachments\": [{\"fallback\": \"JOB ${success}: cedar-ingest cronjob on ${gen3Env}\",\"color\": \"#${color}\",\"title\": \"JOB ${success}: cedar-ingest cronjob on ${gen3Env}\",\"text\": \"Pod name: ${HOSTNAME}\",\"ts\": \"$(date +%s)\"}]}"
+              echo "Payload=${payload}"
+              curl -X POST --data-urlencode "payload=${payload}" "${slackWebHook}"
+      restartPolicy: Never

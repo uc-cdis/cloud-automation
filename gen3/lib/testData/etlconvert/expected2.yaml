@@ -1,0 +1,40 @@
+{
+  "authz": {
+    "user_project_to_resource": {
+      "parent": "/programs/parent",
+      "phs000179.c1": "/programs/parent/projects/COPDGene_HMB_",
+      "phs000179.c2": "/programs/parent/projects/COPDGene_DS-CS_",
+      "phs000946.c1": "/programs/topmed/projects/EOCOPD_DS-CS-RD",
+      "phs000951.c1": "/programs/topmed/projects/COPDGene_HMB",
+      "phs000951.c2": "/programs/topmed/projects/COPDGene_DS-CS-RD",
+      "phs000954.c1": "/programs/topmed/projects/CFS_DS-HLBS-IRB-NPU",
+      "phs000956.c2": "/programs/topmed/projects/Amish_HMB-IRB-MDS",
+      "phs000964.c1": "/programs/topmed/projects/JHS_HMB-IRB-NPU",
+      "phs000964.c2": "/programs/topmed/projects/JHS_DS-FDO-IRB-NPU",
+      "phs000964.c3": "/programs/topmed/projects/JHS_HMB-IRB",
+      "phs000964.c4": "/programs/topmed/projects/JHS_DS-FDO-IRB",
+      "phs000972.c1": "/programs/topmed/projects/SAS_GRU-IRB-PUB-COL-NPU-GSO",
+      "phs000974.c1": "/programs/topmed/projects/FHS_HMB-IRB-MDS",
+      "phs000974.c2": "/programs/topmed/projects/FHS_HMB-IRB-NPU-MDS",
+      "phs000988.c1": "/programs/topmed/projects/CRA_DS-ASTHMA-IRB-MDS-RD",
+      "phs000993.c1": "/programs/topmed/projects/HVH_HMB-IRB-MDS",
+      "phs000993.c2": "/programs/topmed/projects/HVH_DS-CVD-IRB-MDS",
+      "phs000997.c1": "/programs/topmed/projects/VAFAR_HMB-IRB",
+      "phs001024.c1": "/programs/topmed/projects/PARTNERS_HMB",
+      "phs001032.c1": "/programs/topmed/projects/VU_AF_GRU-IRB",
+      "phs001040.c1": "/programs/topmed/projects/WGHS_HMB",
+      "phs001062.c1": "/programs/topmed/projects/MGH_AF_HMB-IRB",
+      "phs001062.c2": "/programs/topmed/projects/MGH_AF_DS-AF-IRB-RD",
+      "phs001143.c1": "/programs/topmed/projects/BAGS_GRU-IRB",
+      "phs001189.c1": "/programs/topmed/projects/CCAF_AF_GRU-IRB",
+      "phs001211.c1": "/programs/topmed/projects/ARIC_HMB-IRB",
+      "phs001237.c1": "/programs/topmed/projects/WHI_HMB-IRB",
+      "phs001237.c2": "/programs/topmed/projects/WHI_HMB-IRB-NPU",
+      "phs001359.c1": "/programs/topmed/projects/GOLDN_DS-CVD-IRB",
+      "phs001368.c2": "/programs/topmed/projects/CHS_HMB-NPU-MDS",
+      "phs001412.c1": "/programs/topmed/projects/AACAC_HMB-IRB-COL-NPU",
+      "phs001412.c2": "/programs/topmed/projects/AACAC_DS-DHD-IRB-COL-NPU",
+      "topmed": "/programs/topmed"
+    }
+  }
+}

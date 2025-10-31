@@ -47,7 +47,7 @@ gen3_healthcheck() {
   # refer to k8s api docs for pod status info
   # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#podstatus-v1-core
   gen3_log_info "Getting all pods..."
-        
+
   local allPods=$(g3kubectl get pods --all-namespaces -o json | \
     jq -r '[
       .items[] | {
@@ -105,10 +105,10 @@ gen3_healthcheck() {
 
   # check internet access
   gen3_log_info "Checking internet access..."
-  local curlCmd="curl --max-time 15 -s -o /dev/null -I -w %{http_code} http://www.google.com"
+  local curlCmd="curl --max-time 15 -s -o /dev/null -I -w %{http_code} https://www.google.com"
   local statusCode=0
-  if [[ $HOSTNAME == *"admin"* ]]; then # if in admin vm, run curl in fence pod
-    statusCode=$(g3kubectl exec $(gen3 pod fence) -- $curlCmd)
+  if [[ $HOSTNAME == *"admin"* ]]; then # if in admin vm, run curl in devterm
+    statusCode=$(gen3 devterm -c $curlCmd)
   else # not inside adminvm, curl from here
     statusCode=$($curlCmd)
   fi
@@ -117,13 +117,13 @@ gen3_healthcheck() {
   if [[ "$statusCode" -lt 200 || "$statusCode" -ge 400 ]]; then
     internetAccess=false
   fi
- 
+
   # check internet access with explicit proxy
   gen3_log_info "Checking explicit proxy internet access..."
   local http_proxy="http://cloud-proxy.internal.io:3128"
   local statusCodeExplicit=0
-  if [[ $HOSTNAME == *"admin"* ]]; then # inside adminvm, curl from fence pod
-    statusCodeExplicit=$(g3kubectl exec $(gen3 pod fence) env http_proxy=$http_proxy https_proxy=$http_proxy -- $curlCmd)
+  if [[ $HOSTNAME == *"admin"* ]]; then # inside adminvm, curl from devterm
+    statusCodeExplicit=$(gen3 devterm -c env http_proxy=$http_proxy https_proxy=$http_proxy -- $curlCmd)
   else # not inside adminvm, curl from here
     statusCodeExplicit=$(
       export http_proxy=$http_proxy
@@ -136,6 +136,10 @@ gen3_healthcheck() {
   if [[ "$statusCodeExplicit" -lt 200 || "$statusCodeExplicit" -ge 400 ]]; then
     internetAccessExplicitProxy=false
   fi
+
+  gen3_log_info "Clearing Evicted pods"
+  sleep 5
+  clear_evicted_pods
 
   local healthJson=$(cat - <<EOM
   {
@@ -151,7 +155,7 @@ gen3_healthcheck() {
   }
 EOM
   )
-  
+
   if ! jq -r . <<<"$healthJson" > /dev/null; then
     gen3_log_err "failed to assemble valid json data: $healthJson"
     return 1
@@ -189,7 +193,7 @@ EOM
     if [[ "${slackWebHook}" == 'None' || -z "${slackWebHook}" ]]; then
       gen3_log_err "WARNING: slackWebHook is None or doesn't exist; not sending results to Slack"
     else
-      local hostname="$(g3kubectl get configmap manifest-global -o json | jq -r '.data.hostname')"
+      local hostname="$(gen3 api hostname)"
       local payload="$(cat - <<EOM
 payload={
   "text": ":warning: Healthcheck failed for ${hostname}",
@@ -203,6 +207,10 @@ EOM
       curl --max-time 15 -X POST --data-urlencode "${payload}" "${slackWebHook}" 1>&2
     fi
   fi
+}
+
+clear_evicted_pods() {
+  g3kubectl get pods -A -o json | jq '.items[] | select(.status.reason!=null) | select(.status.reason | contains("Evicted")) | "kubectl delete pods \(.metadata.name) -n \(.metadata.namespace)"' | xargs -n 1 bash -c  2> /dev/null || true
 }
 
 gen3_healthcheck "$@"

@@ -1,0 +1,18 @@
+kind: NetworkPolicy
+metadata:
+  annotations:
+  name: influxdb-policy
+  namespace: default
+spec:
+  egress:
+  - {}
+  ingress:
+  - ports:
+    - port: 8086
+      protocol: TCP
+  podSelector:
+    matchLabels:
+      app: influxdb
+  policyTypes:
+  - Ingress
+  - Egress

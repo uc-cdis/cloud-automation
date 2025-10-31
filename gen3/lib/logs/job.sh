@@ -18,8 +18,10 @@ gen3_logs_joblog_query() {
   local statusMin
   local statusMax
   local aggs   # aggregations
-  local fields 
+  local fields
+  local app="gen3job"
 
+  app="$(gen3_logs_get_arg app "${app}" "$@")"
   vpcName="$(gen3_logs_get_arg vpc "${vpc_name:-"all"}" "$@")"
   startDate="$(gen3_logs_fix_date "$(gen3_logs_get_arg start 'yesterday 00:00' "$@")")"
   endDate="$(gen3_logs_fix_date "$(gen3_logs_get_arg end 'tomorrow 00:00' "$@")")"
@@ -54,7 +56,7 @@ ENESTED
           "message.kubernetes.labels.job-name.keyword": "${jobName}"
         }},
         {"term": {
-          "message.kubernetes.labels.app": "gen3job"
+          "message.kubernetes.labels.app": "$app"
         }},
         $(
           if [[ "$vpcName" != all ]]; then

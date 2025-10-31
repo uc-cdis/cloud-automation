@@ -2,10 +2,9 @@
 # Kinesis stream logs
 
 resource "aws_s3_bucket" "management-logs_bucket" {
-  bucket = "management-logs-remote-accounts"
-  acl    = "private"
+  bucket = "${var.log_bucket_name}"
 
-  tags {
+  tags = {
     Environment  = "ALL"
     Organization = "CTDS"
   }
@@ -51,7 +50,7 @@ resource "aws_kinesis_stream" "management-logs_stream" {
   name        = "management-logs_stream"
   shard_count = 1
 
-  tags {
+  tags = {
     Environment  = "ALL"
     Organization = "CTDS"
   }
@@ -215,7 +214,7 @@ resource "aws_iam_role_policy" "firehose_policy" {
 
 resource "aws_cloudwatch_log_group" "management-logs_group" {
   name = "management-logs"
-  tags {
+  tags = {
     Environment = "ALL"
     Organization = "CTDS"
   }
@@ -302,7 +301,7 @@ resource "aws_iam_role" "lambda_role" {
 EOF
 }
 
-data "aws_iam_policy_document" "lamda_policy_document" {
+data "aws_iam_policy_document" "lambda_policy_document" {
   statement {
     actions = [
       "logs:*",
@@ -340,7 +339,7 @@ data "aws_iam_policy_document" "lamda_policy_document" {
 
 resource "aws_iam_role_policy" "lambda_policy" {
   name   = "management-logs_lambda_policy"
-  policy = "${data.aws_iam_policy_document.lamda_policy_document.json}"
+  policy = "${data.aws_iam_policy_document.lambda_policy_document.json}"
   role   = "${aws_iam_role.lambda_role.id}"
 }
 

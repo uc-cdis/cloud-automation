@@ -88,7 +88,8 @@ _tfapply_update_secrets() {
 EOF
   gen3 secrets sync
   
-  gen3 trash --apply
+  # Leave the terraform infrastructure breadcrumbs
+  #gen3 trash --apply
 }
 
 #

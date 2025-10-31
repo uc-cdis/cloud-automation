@@ -1,0 +1,14 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: argo-wrapper-service
+spec:
+  selector:
+    app: argo-wrapper
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+      name: http
+      nodePort: null
+  type: ClusterIP

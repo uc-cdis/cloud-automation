@@ -10,9 +10,8 @@
 
 resource "aws_s3_bucket" "management-logs_bucket" {
   bucket = "${var.account_name}-management-logs"
-  acl    = "private"
 
-  tags {
+  tags = {
     Environment  = "${var.account_name}"
     Organization = "CTDS"
   }
@@ -101,7 +100,7 @@ resource "aws_s3_bucket_policy" "b" {
 
 resource "aws_cloudwatch_log_group" "management-logs_group" {
   name = "${var.account_name}_management-logs"
-  tags {
+  tags = {
     Environment = "ALL"
     Organization = "CTDS"
   }
@@ -168,7 +167,7 @@ resource "aws_cloudtrail" "logs-trail" {
   s3_bucket_name = "${aws_s3_bucket.management-logs_bucket.id}"
   s3_key_prefix = "management-logs"
 
-  tags {
+  tags = {
     Environment = "${var.account_name}"
     Organization = "CTDS"
   }
@@ -183,4 +182,3 @@ resource "aws_cloudwatch_log_subscription_filter" "csoc_subscription" {
   log_group_name  = "${aws_cloudwatch_log_group.management-logs_group.name}"
   filter_pattern  = ""
 }
-

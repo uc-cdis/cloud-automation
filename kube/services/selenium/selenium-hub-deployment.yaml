@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: selenium-hub
+  name: selenium-hub
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: selenium-hub
+  template:
+    metadata:
+      labels:
+        app: selenium-hub
+      annotations:
+        "cluster-autoscaler.kubernetes.io/safe-to-evict": "false"
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND
+      containers:
+      - env:
+        - name: GRID_MAX_SESSION
+          value: "42"
+        - name: GRID_BROWSER_TIMEOUT
+          value: "0"
+        - name: SE_SESSION_REQUEST_TIMEOUT
+          value: "1200"
+        image: quay.io/cdis/selenium-hub:4.0.0
+        imagePullPolicy: Always
+        name: hub
+        ports:
+        - containerPort: 4444
+          protocol: TCP
+        - containerPort: 4442
+          protocol: TCP
+        - containerPort: 4443
+          protocol: TCP
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /status
+            port: 4444
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /status
+            port: 4444
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+      terminationGracePeriodSeconds: 30

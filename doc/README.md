@@ -8,14 +8,18 @@ For example - `gen3 help aws` opens `aws.md`
 
 ## Frequently used
 
-* [aws](./aws.md)
+* [api](./api.md) - indexd-post-folder, access-token, new-program, new-project
 * [arun](./arun.md)
+* [aws](./aws.md)
+* [awsrole](./awsrole.md)
+* [awsuser](./awsuser.md)
+* [iam-serviceaccount](./iam-serviceaccount.md)
 * [devterm](./devterm.md)
 * [db](./db.md)
 * [dashboard](./dashboard.md)
 * [es](./es.md) - elastic search
 * [gitops](./gitops.md) - manifest filter, configmaps, history, sync, tagging releases, etc
-* [ec2](./ec2.md) - describe, reboot
+* [ec2](./ec2.md) - describe, reboot, snapshot
 * [job logs|pods|run](./job.md)
 * [joblogs](./job.md) - see [job logs](./job.md)
 * [jupyter](./jupyter.md) - j-namespace, upgrade
@@ -24,6 +28,7 @@ For example - `gen3 help aws` opens `aws.md`
 * [kube-setup-revproxy](./kube-setup-revproxy.md)
 * [kube-setup-secrets](./kube-setup-secrets.md)
 * [kube-wait4-pods](./kube-wait4-pods.md)
+* [maintenance mode](./maintenance.md)
 * [psql](./psql.md)
 * [random](./random.md)
 * [replicas](./replicas.md)
@@ -48,6 +53,7 @@ For example - `gen3 help aws` opens `aws.md`
 * [kube-setup-jupyterhub](./kube-setup-jupyterhub.md)
 * [kube-setup-peregrine](./kube-setup-peregrine.md)
 * [kube-setup-pidgin](./kube-setup-pidgin.md)
+* [waf - webapp firewall](./waf.md)
 
 ## Terraform related
 
@@ -79,7 +85,7 @@ For example - `gen3 help aws` opens `aws.md`
 * [utility vm](../tf_files/aws/modules/utility-vm/README.md)
 * [explorer infrastructure](https://github.com/uc-cdis/cdis-wiki/blob/master/dev/gen3/data_explorer/README.md)
 * [automation for gcp](../tf_files/gcp/commons/README.md)
-* [gcp bucket access flows for DCF](https://github.com/uc-cdis/fence/blob/master/docs/google_architecture.md)
+* [gcp bucket access flows for DCF](https://github.com/uc-cdis/fence/blob/master/docs/additional_documentation/google_architecture.md)
 * [authn and authz with fence](https://github.com/uc-cdis/fence/blob/master/README.md)
 * [jenkins](../kube/services/jenkins/README.md)
 * [jupyterhub configuration](../kube/services/jupyterhub/README.md)
@@ -100,8 +106,8 @@ For example - `gen3 help aws` opens `aws.md`
 
 ## More
 
-* [api](./api.md) - indexd-post-folder, access-token, new-program, new-project
 * [approve_vpcpeering_request](./approve_vpcpeering_request.md)
+* [ha-proxy](./ha-squid-migration.md) - Migration from a single squid instance to an HA proxy solution
 * [kube-backup](./kube-backup.md)
 * [kube-dev-namespace](./kube-dev-namespace.md)
 * [kube-extract-config](./kube-extract-config.md)

@@ -19,7 +19,7 @@ resource "aws_cloudtrail" "logger_trail" {
       values = ["${aws_s3_bucket.data_bucket.arn}/"]
     }
   }
-  tags {
+  tags = {
     Name        = "${var.vpc_name}_data-bucket"
     Environment = "${var.environment}"
     Purpose     = "trail_for_${var.vpc_name}_data_bucket"

@@ -1,0 +1,15 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: dicom-viewer-service
+spec:
+  selector:
+    app: dicom-viewer
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+      nodePort: null
+      name: http
+  type: ClusterIP
+  

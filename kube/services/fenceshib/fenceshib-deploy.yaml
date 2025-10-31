@@ -1,5 +1,5 @@
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: fenceshib-deployment
@@ -30,7 +30,7 @@ spec:
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
+          - weight: 25
             podAffinityTerm:
               labelSelector:
                 matchExpressions:
@@ -39,8 +39,27 @@ spec:
                   values:
                   - fenceshib
               topologyKey: "kubernetes.io/hostname"
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND
       automountServiceAccountToken: false
       volumes:
+        - name: yaml-merge
+          configMap:
+            name: "fence-yaml-merge"
 # -----------------------------------------------------------------------------
 # DEPRECATED! Remove when all commons are no longer using local_settings.py
 #             for fence.
@@ -73,9 +92,6 @@ spec:
         - name: fence-jwt-keys
           secret:
             secretName: "fence-jwt-keys"
-        - name: fence-yaml
-          configMap:
-            name: fence
         - name: cert-volume
           secret:
             secretName: "cert-fence-service"
@@ -85,6 +101,9 @@ spec:
         - name: fenceshib-secret
           secret:
             secretName: "fenceshib-g3auto"
+        - name: fenceshib-config
+          configMap:
+            name: "fenceshib-config"
       containers:
       - name: fenceshib
         GEN3_FENCESHIB_IMAGE
@@ -98,6 +117,12 @@ spec:
             configMapKeyRef:
               name: manifest-global
               key: hostname
+        - name: FENCE_PUBLIC_CONFIG
+          valueFrom:
+            configMapKeyRef:
+              name: manifest-fence
+              key: fence-config-public.yaml
+              optional: true
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
@@ -144,8 +169,12 @@ spec:
             subPath: "logo.svg"
           - name: "config-volume"
             readOnly: true
-            mountPath: "/var/www/fence/fence-config.yaml"
+            mountPath: "/var/www/fence/fence-config-secret.yaml"
             subPath: fence-config.yaml
+          - name: "yaml-merge"
+            readOnly: true
+            mountPath: "/var/www/fence/yaml_merge.py"
+            subPath: yaml_merge.py
           - name: "fence-google-app-creds-secret-volume"
             readOnly: true
             mountPath: "/var/www/fence/fence_google_app_creds_secret.json"
@@ -154,9 +183,6 @@ spec:
             readOnly: true
             mountPath: "/var/www/fence/fence_google_storage_creds_secret.json"
             subPath: fence_google_storage_creds_secret.json
-          - name: "fence-yaml"
-            mountPath: "/var/www/fence/user.yaml"
-            subPath: user.yaml
           - name: "cert-volume"
             readOnly: true
             mountPath: "/mnt/ssl/service.crt"
@@ -174,10 +200,22 @@ spec:
             readOnly: true
             mountPath: "/fence/jwt-keys.tar"
             subPath: "jwt-keys.tar"
-          - name: "fenceshib-secret"
+          - name: "fenceshib-config"
             readOnly: true
             mountPath: "/etc/shibboleth/shibboleth2.xml"
             subPath: "shibboleth2.xml"
+          - name: "fenceshib-config"
+            readOnly: true
+            mountPath: "/etc/shibboleth/attribute-map.xml"
+            subPath: "attribute-map.xml"
+          - name: "fenceshib-config"
+            readOnly: true
+            mountPath: "/etc/shibboleth/inc-md-cert.pem"
+            subPath: "inc-md-cert.pem"
+          - name: "fenceshib-config"
+            readOnly: true
+            mountPath: "/etc/shibboleth/metadata.xml"
+            subPath: "metadata.xml"
           - name: "fenceshib-secret"
             readOnly: true
             mountPath: "/etc/ssl/private/incommon-login.bionimbus.org.key"
@@ -186,11 +224,15 @@ spec:
             readOnly: true
             mountPath: "/etc/ssl/certs/incommon-login.bionimbus.org.crt"
             subPath: "incommon-login.bionimbus.org.crt"
-          - name: "fenceshib-secret"
-            readOnly: true
-            mountPath: "/etc/shibboleth/inc-md-cert.pem"
-            subPath: "inc-md-cert.pem"
         resources:
+            requests:
+              memory: 500Mi
             limits:
-              cpu: 2
-              memory: 1200Mi
+              memory: 2400Mi
+        command: ["/bin/bash"]
+        args:
+          - "-c"
+          - |
+            echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
+            python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
+            bash /fence/dockerrunshib.bash && if [[ -f /dockerrun.sh ]]; then /dockerrun.sh; fi

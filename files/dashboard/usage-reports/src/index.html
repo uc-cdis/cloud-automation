@@ -1,0 +1,142 @@
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta http-equiv="Content-Security-Policy" 
+    content="default-src 'none'; 
+    img-src 'self' data: https://www.google-analytics.com; 
+    script-src 'self' https://www.google-analytics.com; 
+    style-src 'self' 'unsafe-inline' https://unpkg.com https://fonts.googleapis.com; 
+    object-src 'none'; 
+    worker-src 'self';
+    connect-src 'self';
+    font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com"
+    >
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+
+  <link href="./base.css" rel="stylesheet" />
+  <link href="./reportsTable.css" rel="stylesheet" />
+  <link href="./reportsTabPanel.css" rel="stylesheet" />
+  <link href="./windowSizer.css" rel="stylesheet" />    
+
+
+  <link href="./reportsApp.css" rel="stylesheet" />
+</head>
+
+<body>
+    <header class="g3reports-header">
+        <h1>Gen3 Reports</h1>
+    </header>
+    <main>
+      <section id="daterange">
+        <h3>Report Window</h3>
+        <g3r-window-sizer></g3r-window-sizer>
+      </section>
+      <section id="downloadprotocol" class="g3reports-datapanel g3reports-downloadprotocol">
+        <h3>Signed Urls</h3>
+        <p>
+          Number of signed urls generated, split by protocol.
+        </p>
+        <g3r-table></g3r-table>
+      </section>
+      <section id="loginproviders" class="g3reports-datapanel g3reports-loginproviders">
+        <h3>Logins by provider</h3>
+        <p>
+          Number of login events, split by login provider. 
+        </p>
+        <g3r-table></g3r-table>
+      </section>
+      <section id="loginproviders" class="g3reports-datapanel g3reports-drsrcodes">
+        <h3>DRS URI Response Codes</h3>
+        <p>
+          Response codes DRS URI endpoints (/ga4gh/drs/v1/objects) from indexd service.
+        </p>
+        <g3r-table></g3r-table>
+      </section>
+      <section id="oidclogins" class="g3reports-datapanel g3reports-oidclogins">
+        <h3>Logins via Fence as an OIDC client</h3>
+        <p>
+          Number of logins via Fence as an OIDC client
+        </p>
+        <g3r-table></g3r-table>
+      </section>
+      <section id="users" class="g3reports-datapanel g3reports-users">
+        <h3>Unique Users</h3>
+        <p>
+          Daily unique authenticated users.
+        </p>
+        <g3r-table></g3r-table>
+      </section>
+      <section id="rcodes" class="g3reports-datapanel g3reports-rcodes">
+          <h3>Response Codes</h3>
+          <p>
+            Response codes histogram for requests over the last several days
+            (same date range as unique users above).
+          </p>
+          <g3r-tabpanel>
+            <div name="all" class="g3r-tabpanel__tab">
+              <g3r-table></g3r-table>
+            </div>    
+            <div name="fence" class="g3r-tabpanel__tab">
+              <g3r-table></g3r-table>
+            </div>
+            <div name="indexd" class="g3r-tabpanel__tab">
+                <g3r-table></g3r-table>
+            </div>
+            <div name="guppy" class="g3r-tabpanel__tab">
+              <g3r-table></g3r-table>
+            </div>
+            <div name="peregrine" class="g3r-tabpanel__tab">
+              <g3r-table></g3r-table>
+            </div>
+            <div name="sheepdog" class="g3r-tabpanel__tab">
+              <g3r-table></g3r-table>
+            </div>        
+          </g3r-tabpanel>
+
+      </section>
+      <section id="rtimes" class="g3reports-datapanel g3reports-rtimes">
+          <h3>Response Times (seconds)</h3>
+          <p>
+            Response time histogram for requests over the last several days
+            (same date range as unique users above).
+          </p>
+          <g3r-tabpanel>
+              <div name="all" class="g3reports-rtimes__scrollbox g3r-tabpanel__tab">
+                <g3r-table></g3r-table>
+              </div>    
+              <div name="fence" class="g3reports-rtimes__scrollbox g3r-tabpanel__tab">
+                <g3r-table></g3r-table>
+              </div>
+              <div name="indexd" class="g3reports-rtimes__scrollbox g3r-tabpanel__tab">
+                  <g3r-table></g3r-table>
+              </div>
+              <div name="guppy" class="g3reports-rtimes__scrollbox g3r-tabpanel__tab">
+                <g3r-table></g3r-table>
+              </div>
+              <div name="peregrine" class="g3reports-rtimes__scrollbox g3r-tabpanel__tab">
+                <g3r-table></g3r-table>
+              </div>
+              <div name="sheepdog" class="g3reports-rtimes__scrollbox g3r-tabpanel__tab">
+                <g3r-table></g3r-table>
+              </div>        
+          </g3r-tabpanel>
+      </section>
+      <section id="projects" class="g3reports-datapanel g3reports-projects">
+        <h3>Users per project</h3>
+        <p>
+          Number of users with access to the given projects according to <em>fence</em>
+          as of the most recent sample taken (last 24 hours).
+        </p>
+        <g3r-table></g3r-table>
+      </section>
+  
+      <section id="status" class="g3reports-status">
+        <p>Loading ...</p>
+      </section>
+    </main>
+
+    <script type="module" src="reportsMain.js"></script>
+</body>
+
+</html>

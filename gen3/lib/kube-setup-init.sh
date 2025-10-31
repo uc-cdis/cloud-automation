@@ -13,13 +13,20 @@ if [[ -z "$GEN3_NOPROXY" ]]; then
 fi
 
 export DEBIAN_FRONTEND=noninteractive
-if [[ -z "$vpc_name" && $# -lt 1 ]]; then
-  vpc_name="$(g3kubectl get configmap global -o json | jq -r .data.environment)"
+if [[ -z "$vpc_name" ]]; then
+  if ! vpc_name="$(gen3 api environment)"; then
+    if [[ -f "$(gen3_secrets_folder)/00configmap.yaml" ]]; then
+      g3kubectl apply -f "$(gen3_secrets_folder)/00configmap.yaml"
+    else
+      gen3_log_err "ERROR: to determine vpc_name from environment, also unable to configure global configmap - missing $(gen3_secrets_folder)/00configmap.yaml"
+      exit 1
+    fi
+  fi
+  vpc_name="$(gen3 api environment)" || vpc_name=""  # catch errors below
 fi
 
-vpc_name=${vpc_name:-$1}
 if [ -z "${vpc_name}" ]; then
-  echo "ERROR: vpc_name variable not set - bailing out"
+  gen3_log_err "vpc_name variable not set - bailing out"
   exit 1
 fi
 

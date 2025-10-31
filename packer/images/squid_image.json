@@ -1,0 +1,94 @@
+{
+  "variables": {
+    "aws_region": "us-east-1",
+    "aws_instance_type": "m3.medium",
+    "aws_access_key": "",
+    "aws_secret_key": "",
+    "source_ami": ""
+  },
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "access_key": "{{user `aws_access_key`}}",
+      "secret_key": "{{user `aws_secret_key`}}",
+      "region": "{{user `aws_region`}}",
+      "source_ami": "{{user `source_ami`}}",
+      "instance_type": "{{user `aws_instance_type`}}",
+      "ssh_username": "ubuntu",
+      "ami_name": "squid-image {{timestamp}}"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": [
+        "sleep 30",
+        "sudo apt-get update",
+        "sudo apt-get install -y build-essential wget libssl-dev",
+        "wget http://www.squid-cache.org/Versions/v3/3.5/squid-3.5.26.tar.xz",
+        "tar -xJf squid-3.5.26.tar.xz",
+        "mkdir squid-build"
+      ]
+    },
+    {
+      "type": "file",
+      "source": "configs/ftp_whitelist",
+      "destination": "/tmp/ftp_whitelist"
+    },
+    {
+      "type": "file",
+      "source": "configs/web_whitelist",
+      "destination": "/tmp/web_whitelist"
+    },
+    {
+      "type": "file",
+      "source": "configs/web_wildcard_whitelist",
+      "destination": "/tmp/web_wildcard_whitelist"
+    },
+    {
+      "type": "file",
+      "source": "configs/squid.conf",
+      "destination": "/tmp/squid.conf"
+    },
+    {
+      "type": "file",
+      "source": "configs/squid-build.sh",
+      "destination": "/home/ubuntu/squid-build/squid-build.sh"
+    },
+    {
+      "type": "file",
+      "source": "configs/iptables.conf",
+      "destination": "/tmp/iptables.conf"
+    },
+    {
+      "type": "file",
+      "source": "configs/squid",
+      "destination": "/tmp/squid"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "cd /home/ubuntu/squid-build/",
+        "bash squid-build.sh",
+        "sudo make install",
+        "sudo mv /tmp/ftp_whitelist /etc/squid/ftp_whitelist",
+        "sudo mv /tmp/web_whitelist /etc/squid/web_whitelist",
+        "sudo mv /tmp/web_wildcard_whitelist /etc/squid/web_wildcard_whitelist",
+        "sudo mv /tmp/squid.conf /etc/squid/squid.conf",
+        "sudo mv /tmp/iptables.conf /etc/iptables.conf",
+        "sudo mkdir /etc/squid/ssl",
+        "sudo openssl genrsa -out /etc/squid/ssl/squid.key 2048",
+        "sudo openssl req -new -key /etc/squid/ssl/squid.key -out /etc/squid/ssl/squid.csr -subj '/C=XX/ST=XX/L=squid/O=squid/CN=squid'",
+        "sudo openssl x509 -req -days 3650 -in /etc/squid/ssl/squid.csr -signkey /etc/squid/ssl/squid.key -out /etc/squid/ssl/squid.crt",
+        "sudo cat /etc/squid/ssl/squid.key /etc/squid/ssl/squid.crt | sudo tee /etc/squid/ssl/squid.pem",
+        "sudo mv /tmp/squid /etc/init.d/squid",
+        "sudo chmod 0755 /etc/init.d/squid",
+        "sudo chown -R proxy:proxy /var/log/squid/",
+        "sudo sed -i 's/^exit/#exit/' /etc/rc.local",
+        "sudo sh -c 'echo service squid start >> /etc/rc.local'",
+        "sudo sh -c 'echo exit 0 >> /etc/rc.local'",
+        "sudo sh -c 'echo post-up iptables-restore /etc/iptables.conf >> /etc/network/interfaces.d/eth0.cfg'"
+      ]
+    }
+  ]
+}

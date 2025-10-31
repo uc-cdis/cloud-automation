@@ -1,0 +1,103 @@
+controller:
+  parallelism: 7
+  metricsConfig:
+    # -- Enables prometheus metrics server
+    enabled: true
+    servicePort: 9090
+
+  resources:
+    requests:
+      memory: 8Gi
+    limits:
+      memory: 8Gi
+
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /metrics
+    prometheus.io/port: "9090"
+
+  resourceRateLimit:
+    limit: 40
+    burst: 4
+
+  # -- enable persistence using postgres
+  persistence:
+    connectionPool:
+      maxIdleConns: 100
+      maxOpenConns: 0
+      connMaxLifetime: 300s
+    archive: true
+    archiveLabelSelector:
+      matchLabels:
+        workflows.argoproj.io/archive-strategy: "true"
+    postgresql:
+      host: GEN3_ARGO_DB_HOST
+      port: 5432
+      database: GEN3_ARGO_DB_NAME
+      tableName: argo_workflows
+      #   # the database secrets must be in the same namespace of the controller
+      userNameSecret:
+        name: argo-db-creds
+        key: db_username
+      passwordSecret:
+        name: argo-db-creds
+        key: db_password
+    nodeStatusOffLoad: true
+
+  workflowDefaults:
+    spec:
+      archiveLogs: true
+      onExit: alert-on-timeout
+      templates:
+        - name: alert-on-timeout
+          script:
+            image: quay.io/cdis/amazonlinux-debug:master
+            command: [sh]
+            envFrom:
+              - secretRef:
+                  name: slack-webhook-secret
+            source: |
+              failure_reason=$(echo {{workflow.failures}} | jq 'any(.[]; .message == "Step exceeded its deadline")' )
+              if [ "$failure_reason" = "true" ]; then
+                curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"ALERT: Workflow {{workflow.name}} has been killed due to timeout\"}" "$SLACK_WEBHOOK_URL"
+              fi
+
+  # -- [Node selector]
+  nodeSelector:
+    kubernetes.io/os: linux
+  # -- [Tolerations] for use with node taints
+  tolerations: []
+  # -- Assign custom [affinity] rules
+  affinity: {}
+  # -- Leverage a PriorityClass to ensure your pods survive resource shortages.
+  ## ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/
+  priorityClassName: ""
+
+server:
+  baseHref: "/argo/"
+  # -- Extra arguments to provide to the Argo server binary, such as for disabling authentication.
+  extraArgs:
+    - --auth-mode=server
+    - --auth-mode=client
+  extraEnv:
+    - name: ARGO_HTTP1
+      value: "true"
+  resources:
+    requests:
+      memory: 8Gi
+    limits:
+      memory: 8Gi
+
+# -- Influences the creation of the ConfigMap for the workflow-controller itself.
+useDefaultArtifactRepo: true
+
+# -- Use static credentials for S3 (eg. when not using AWS IRSA)
+useStaticCredentials: false
+artifactRepository:
+  # -- Archive the main container logs as an artifact
+  archiveLogs: true
+  # -- Store artifact in a S3-compliant object store
+  s3:
+    bucket: GEN3_ARGO_BUCKET
+    endpoint: s3.amazonaws.com
+    useSDKCreds: true

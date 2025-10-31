@@ -19,13 +19,8 @@
       user: "{{ ansible_user_id }}"
       #user: "{{ _user }}"
       state: present
-      #      key: '{{ lookup(''file'', ''../keys/kyle'') }}'
       #      key: '{{ lookup(''file'', item ) }}'
       key: '{{ lookup(''url'', ''https://github.com/'' + item) }}'
     loop:
-      #      - ../keys/kyle
-      #      - ../keys/rarya.old
-      #      - ../keys/giangbui
-      #      - ../keys/thanhn
-      #      - ../keys/cgmeyer
-      - zflamig.keys 
+      #      - ../keys/someone
+      - github_user.keys 

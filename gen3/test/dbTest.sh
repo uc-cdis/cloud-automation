@@ -43,12 +43,16 @@ test_db_create() {
   namespace="$(gen3 db namespace)"
   if [[ ! -f "$(gen3_secrets_folder)/creds.json" ]]; then
     # gen3 db setup checks that creds.json exists to avoid accidental execution - 
-    # let's bypass that check
+    # let's bypass that check - setup a temp secrets folder
+    local tempRoot="$(mktemp -d "$XDG_RUNTIME_DIR/testDbCreate_XXXXXX")"
+    export GEN3_SECRETS_HOME="${tempRoot}/Gen3Secrets"
+    [[ "$(gen3_secrets_folder)" == $GEN3_SECRETS_HOME ]]; because $? "Temp secrets setup worked as expected"
     mkdir -p "$(gen3_secrets_folder)"
     echo '{}' > "$(gen3_secrets_folder)/creds.json"
   fi
   [[ -n "$namespace" ]]; because $? "gen3_db_namespace should give a valid value: $namespace"
-  gen3 klock lock dbctest dbctest 300 -w 300; because $? "must acquire a lock to run test_db_create"
+  local klockOwner="dbctest_$$"
+  gen3 klock lock dbctest "$klockOwner" 300 -w 300; because $? "must acquire a lock to run test_db_create"
 
   # cleanup from previous run if necessary
   g3kubectl delete secret "${serviceName}-g3auto"
@@ -68,7 +72,7 @@ test_db_create() {
   serverName="$(gen3 db creds "$serviceName" | jq -r '.g3FarmServer')"
   [[ "$serverName" == "server1" ]]; because $? "db creds includes new service the farm server: $serverName"
   
-  gen3 klock unlock dbctest dbctest
+  gen3 klock unlock dbctest "$klockOwner"
 }
 
 test_db_creds() {
@@ -83,15 +87,15 @@ test_db_services() {
 
 test_db_snapshot_list() {
   local snapshotJson
-  snapshotJson="$(gen3 db snapshot list server1)"; because $? "gen3 db snapshot list server1 should work"
+  snapshotJson="$(gen3 db snapshot list server2)"; because $? "gen3 db snapshot list server2 should work"
   local snapCount
-  snapCount="$(jq -e -r '.DBSnapshots | length' <<<"$snapshotJson")"; 
+  snapCount="$(jq -e -r '.DBClusterSnapshots | length' <<<"$snapshotJson")"; 
     because $? "snap list json has expected structure"
   [[ "$snapCount" =~ ^[0-9]+$ && "$snapCount" -gt 0 ]]; because $? "server1 has at least 1 snapshot"
 }
 
 test_db_snapshot_take() {
-  gen3 db snapshot take server1 --dryrun; because $? "gen3 db snapshot take server1 should work"
+  gen3 db snapshot take server2 --dryrun; because $? "gen3 db snapshot take server2 should work"
 }
 
 test_db_backup_restore() {
@@ -110,7 +114,7 @@ test_db_backup_restore() {
     oldDb="$(jq -r -e .db_database <<< "$oldCreds")"; because $? "$service old creds should include .db_database"
     [[ "$newDb" != "$oldDb" ]]; because $? "$service restore should create a new db: $newDb ?= $oldDb"
     # cleanup
-    gen3 psql $service -c "DROP DATABASE $newDb;"
+    gen3 psql aurora -c "DROP DATABASE $newDb;" || true
   done
 }
 

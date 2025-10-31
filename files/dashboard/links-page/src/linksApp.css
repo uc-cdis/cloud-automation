@@ -1,0 +1,23 @@
+
+header {
+  margin: auto;
+}
+
+main {
+	width: 100%;
+	min-width: 320px;
+	height: 100%;
+	min-height: 320px;
+  padding: 0px;
+}
+
+section {
+  width: 100%;
+  min-height: 100px;
+  margin-top: 10px;
+}
+
+
+.links-linklist__error {
+  color: red;
+}

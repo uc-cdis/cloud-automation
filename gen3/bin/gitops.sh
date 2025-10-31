@@ -83,11 +83,25 @@ gen3_run_tfplan() {
   local apply
   
 
-  module=$1
-  quiet=$2
-  apply=$3
+  args=("$@")
+  ELEMENTS=${#args[@]}
+  for (( i=0;i<$ELEMENTS;i++)); do 
+    #echo ${args[${i}]} 
+    if [ "${args[${i}]}" == "vpc" ] || [ "${args[${i}]}" == "eks" ] || [ "${args[${i}]}" == "management-logs" ];
+    then
+      module="${args[${i}]}"
+    elif [ "${args[${i}]}" == "apply" ];
+    then
+      apply="${args[${i}]}"
+    elif [ "${args[${i}]}" == "quiet" ];
+    then
+      quiet="${args[${i}]}"
+    fi
+  done
+
   sns_topic="arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic"
   #sns_topic="arn:aws:sns:us-east-1:433568766270:fauzi-alert-channel"
+
 
   (
     cd ~/cloud-automation
@@ -113,17 +127,7 @@ gen3_run_tfplan() {
 
       if [[ ${current_branch} == "master" ]];
       then
-        case "$module" in
-          "vpc")
-            message=$(_gen3_run_tfplan_vpc ${apply})
-            ;;
-          "eks")
-            message=$(_gen3_run_tfplan_eks ${apply})
-            ;;
-          "management-logs")
-            message=$(_gen3_run_tfplan_management-logs ${apply})
-            ;;
-        esac
+        message=$(_gen3_run_tfplan_x ${module} ${apply})
       else
         message=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
         echo "cloud-automation for ${vpc_name} is not on the master branch:" > ${message}
@@ -145,71 +149,55 @@ gen3_run_tfplan() {
 
 }
 
-#
-# Apply changes picket up by tfplan
-#
-_gen3_run_tfapply_eks() {
-  gen3_run_tfplan "$@" "quiet" "apply"
-}
-
 
 #
-# Apply changes picket up by tfplan
+# Apply changes picked up by tfplan
 #
-_gen3_run_tfapply_vpc() {
-  #echo "$@"
-  gen3_run_tfplan "$@" "quiet" "apply"
-}
-
-#
-# Apply changes picket up by tfplan
-#
-_gen3_run_tfapply_management-logs() {
-  gen3_run_tfplan "$@" "quiet" "apply"
-}
-
-#
-# Public function to start tfapply, only for eks, for the VPC it might not be a good idea
-# or at least it needs some deeper supervisiohn
-#
-
 gen3_run_tfapply() {
   local module=$1
-  if [ ${module} == "vpc" ];
-  then
-    _gen3_run_tfapply_vpc "$@"
-  elif [ ${module} == "eks" ];
-  then
-    _gen3_run_tfapply_eks "$@"
-  elif [ ${module} == "management-logs" ];
-  then
-    _gen3_run_tfapply_management-logs "$@"
-  fi
+  gen3_run_tfplan "$@" "quiet" "apply"
 }
 
 #
-# Function that checks for uncomitted changes to cloud-automation
-# and also if there are unapplied changes to the vpc module
+# Run a terraform plan and output a short version of the plan
+# 
 #
-_gen3_run_tfplan_vpc() {
-
+_gen3_run_tfplan_x(){
   local plan
   local slack_hook
   local tempFile
   local output
   local apply
+  local module
+  local profile
+  local vpc_module
 
-  apply=$1
+  apply=$2
+  module=$1
+  profile=$(grep profile ~/.aws/config | awk '{print $2}' | cut -d] -f1 |head -n1)
 
-  gen3 workon $(grep profile ~/.aws/config  |awk '{print $2}'| cut -d] -f1 |head -n1) ${vpc_name} > /dev/null 2>&1
-  #plan=$(gen3 tfplan | grep "Plan")
+  if [ -n ${module} ] && [ "${module}" == "vpc" ];
+  then
+    vpc_module=${vpc_name}
+  elif [ -n ${module} ];
+  then
+    vpc_module="${vpc_name}_${module}"
+  else
+    gen3_log_error "There has been an error running tfplan, no module has been selected"
+    exit 2
+  fi
+    
+  gen3_log_info "Entering gen3 workon ${profile} ${vpc_module}"
+  gen3 workon ${profile} ${vpc_module} > /dev/null 2>&1
+
   output="$(gen3 tfplan)"
-  plan=$(echo -e "${output}" | grep "Plan")
+  plan=$(echo -e "${output}" |grep "Plan")
 
+  gen3_log_info ${plan}
   if [ -n "${plan}" ];
   then
     tempFile=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
-    echo "${vpc_name} has unapplied plan:" > ${tempFile}
+    echo "${vpc_name}_${module} has unapplied plan:" > ${tempFile}
     echo -e "${plan}"| sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" >> ${tempFile}
     if [ -n "$apply" -a "$apply" == "apply" ];
     then
@@ -219,76 +207,10 @@ _gen3_run_tfplan_vpc() {
       echo "No apply this time" >> ${tempFile}
     fi
   fi
+  #gen3_log_info "${tempFile}"
   echo "${tempFile}"
 }
 
-#
-# Function that checks for uncomitted changes to cloud-automation
-# and also if there are unapplied changes to the eks module
-#
-_gen3_run_tfplan_eks() {
-
-  local plan
-  local slack_hook
-  local tempFile
-  local apply
-  local output
-
-  apply=$1
-
-  gen3 workon $(grep profile ~/.aws/config  |awk '{print $2}'| cut -d] -f1|head -n1) ${vpc_name}_eks > /dev/null 2>&1
-  output="$(gen3 tfplan)"
-  plan=$(echo -e "${output}" | grep "Plan")
-
-  if [ -n "${plan}" ];
-  then
-    tempFile=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
-    echo "${vpc_name}_eks has unapplied plan:" > ${tempFile}
-    echo -e "${plan}"| sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" >> ${tempFile}
-    if [ -n "$apply" -a "$apply" == "apply" ];
-    then
-      echo -e "${output}" >> ${tempFile}
-      gen3 tfapply >> ${tempFile} 2>&1
-    else
-      echo "No apply this time" >> ${tempFile}
-    fi
-  fi
-  echo "${tempFile}"
-}
-
-#
-# Function that checks for uncomitted changes to cloud-automation
-# and also if there are unapplied changes to the eks module
-#
-_gen3_run_tfplan_management-logs() {
-
-  local plan
-  local slack_hook
-  local tempFile
-  local apply
-  local output
-
-  apply=$1
-
-  gen3 workon $(grep profile ~/.aws/config  |awk '{print $2}'| cut -d] -f1|head -n1) $(grep profile ~/.aws/config  |awk '{print $2}'| cut -d] -f1|head -n1)_management-logs > /dev/null 2>&1
-  output="$(gen3 tfplan)"
-  plan=$(echo -e "${output}" | grep "Plan")
-
-  if [ -n "${plan}" ];
-  then
-    tempFile=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
-    echo "${vpc_name}_management-logs has unapplied plan:" > ${tempFile}
-    echo -e "${plan}"| sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" >> ${tempFile}
-    if [ -n "$apply" -a "$apply" == "apply" ];
-    then
-      echo -e "${output}" >> ${tempFile}
-      gen3 tfapply >> ${tempFile} 2>&1
-    else
-      echo "No apply this time" >> ${tempFile}
-    fi
-  fi
-  echo "${tempFile}"
-}
 
 # command to update dictionary URL and image versions
 #
@@ -298,6 +220,8 @@ gen3_gitops_sync() {
   local versions_roll=false
   local portal_roll=false
   local etl_roll=false
+  local covid_cronjob_roll=false
+  local fence_roll=false
   local slack=false
   local tmpHostname
   local resStr
@@ -306,6 +230,7 @@ gen3_gitops_sync() {
   local versionsAttachment
   local commonsManifestDir
   local portalDiffs
+  local fenceDiffs
   local etlDiffs
 
   if [[ $1 = '--slack' ]]; then
@@ -340,13 +265,41 @@ gen3_gitops_sync() {
     dict_roll=true
   fi
 
+  # covid19-cronjob image check 
+  gen3_log_info "checking cronjobs versions."
+  gen3_log_info "checking if env manifest consists covid19-notebook-etl service"
+  if g3k_config_lookup '.versions."covid19-notebook-etl"'; then
+    gen3_log_info "it does ... !"
+    if g3kubectl get configmap manifest-versions; then
+      oldImage=$(g3kubectl get configmap manifest-versions -o=json | jq '.data."covid19-notebook-etl"' | tr -d \" )
+    fi
+    newImage=$(g3k_config_lookup '.versions."covid19-notebook-etl"')
+    gen3_log_info "old image is: $oldImage"
+    gen3_log_info "new image is: $newImage"
+    if [[ $newImage == $oldImage ]]; then
+      gen3_log_info "The images are same, skipping covid19-etl-cronjob update"
+    else
+      gen3_log_info "Images are different, updating cronjobs"
+      covid_cronjob_roll=true
+    fi
+  else
+    gen3_log_info "it doesn't ... skipping covid19-notebook-etl roll!"
+  fi
+
+
   # image versions check
   if g3kubectl get configmap manifest-versions; then
     oldJson=$(g3kubectl get configmap manifest-versions -o=json | jq ".data")
   fi
-  newJson=$(g3k_config_lookup ".versions")
   echo "old JSON is: $oldJson"
-  echo "new JSON is: $newJson"
+  newJson=$(g3k_config_lookup ".versions")
+  # Make sure the script exits if newJSON contains invalid JSON 
+  if [ $? -ne 0 ]; then
+    echo "Error: g3k_config_lookup command failed- invalid JSON"
+    exit 1
+  else
+    echo "new JSON is: $newJson"
+  fi
   if [[ -z $newJson ]]; then
     echo "Manifest does not have versions section. Unable to get new versions, skipping version update."
   elif [[ -z $oldJson ]]; then
@@ -354,9 +307,9 @@ gen3_gitops_sync() {
     versions_roll=true
   else 
     changeFlag=0
-    for key in $(echo $newJson | jq -r "keys[]"); do
-      newVersion=$(echo $newJson | jq ".\"$key\"")
-      oldVersion=$(echo $oldJson | jq ".\"$key\"") 
+    for key in $(jq -r "keys[]" <<< "$newJson"); do
+      newVersion=$(jq ".\"$key\"" <<< "$newJson")
+      oldVersion=$(jq ".\"$key\"" <<< "$oldJson") 
       echo "$key old Version is: $oldVersion"
       echo "$key new Version is: $newVersion"
       if [ "$oldVersion" !=  "$newVersion" ]; then
@@ -434,6 +387,33 @@ gen3_gitops_sync() {
     portal_roll=true
   fi
 
+  # fence manifest directory config check
+  if [[ ! -f "${commonsManifestDir}/manifests/fence/fence-config-public.yaml" ]]; then
+    gen3_log_info "Fence Manifests file not found, skipping fence update"
+  else
+    local fenceConfigFilename
+    local fenceConfigMapFile
+    local fenceCommonsFilepath
+    local fenceComparingFile
+    local fenceDiffMsg
+    FenceDiffMsg=""
+    fenceConfigFilename="fence-config-public.yaml"
+    fenceCommonsFilepath="${commonsManifestDir}/manifests/fence/$fenceConfigFilename"
+    fenceConfigMapFile=$(g3kubectl get cm manifest-fence -o json | jq -r '.data."'"$fenceConfigFilename"'"' | tr -d '\n')
+    # get file contents from default file or commons's file
+    fenceComparingFile=$(cat $fenceCommonsFilepath | tr -d '\n')
+    # check for a diff
+    if [[ "${fenceConfigMapFile}" = null ]]; then
+      FenceDiffMsg="Diff in fence-config/${fenceConfigFilename} - file not found in secret"
+    elif [[ "${fenceConfigMapFile}" != "${fenceComparingFile}" ]]; then
+      FenceDiffMsg="Diff in fence-config/${fenceConfigFilename} - difference between file and secret"
+    fi
+    if [[ -n "${FenceDiffMsg}" ]]; then
+      fenceDiffs="${fenceDiffs} \n${FenceDiffMsg}"
+      gen3_log_info "$FenceDiffMsg"
+      fence_roll=true
+    fi
+  fi
   if [[ ! -f "${commonsManifestDir}/etlMapping.yaml" ]]; then
     gen3_log_info "etl mapping file not found, skipping etl update"
   else
@@ -463,20 +443,40 @@ gen3_gitops_sync() {
   echo "DRYRUN flag is: $GEN3_DRY_RUN"
   if [ "$GEN3_DRY_RUN" = true ]; then
     echo "DRYRUN flag detected, not rolling"
-    gen3_log_info "dict_roll: $dict_roll; versions_roll: $versions_roll; portal_roll: $portal_roll; etl_roll: $etl_roll"
+    gen3_log_info "dict_roll: $dict_roll; versions_roll: $versions_roll; portal_roll: $portal_roll; etl_roll: $etl_roll; fence_roll: $fence_roll"
   else
-    if [[ ( "$dict_roll" = true ) || ( "$versions_roll" = true ) || ( "$portal_roll" = true )|| ( "$etl_roll" = true ) ]]; then
+    if [[ ( "$dict_roll" = true ) || ( "$versions_roll" = true ) || ( "$portal_roll" = true )|| ( "$etl_roll" = true )  || ( "$covid_cronjob_roll" = true ) || ("$fence_roll" = true) ]]; then
       echo "changes detected, rolling"
+      tmpHostname=$(gen3 api hostname)
+      if [[ $slack = true ]]; then
+        curl -X POST --data-urlencode "payload={\"text\": \"Gitops-sync Cron: Changes detected on ${tmpHostname} - rolling...\"}" "${slackWebHook}"
+      fi
+
       # run etl job before roll all so guppy can pick up changes
       if [[ "$etl_roll" = true ]]; then
           gen3 update_config etl-mapping "$(gen3 gitops folder)/etlMapping.yaml"
           gen3 job run etl --wait ETL_FORCED TRUE
       fi
+
+      # update fence ConfigMap before roll-all
+      if [[ "$fence_roll" = true ]]; then
+          gen3 update_config manifest-fence "$(gen3 gitops folder)/manifests/fence/fence-config-public.yaml"
+      fi 
+
+      if [[ "$covid_cronjob_roll" = true ]]; then
+        if g3k_config_lookup '.global."covid19_data_bucket"'; then
+          s3Bucket_url=$(kubectl get configmap manifest-global -o json | jq .data.covid19_data_bucket | tr -d \" )
+          echo "##S3BUCKET_URL : ${s3Bucket_url}"
+          gen3 job run covid19-notebook-etl-cronjob S3_BUCKET s3://${s3Bucket_url}
+        else 
+          echo "The global block does not contain the covid19 databucket URL"
+          echo "not running the covid19-notebook-etl job ..."
+        fi
+      fi    
       gen3 kube-roll-all
       rollRes=$?
       # send result to slack
       if [[ $slack = true ]]; then
-        tmpHostname=$(g3kubectl get configmap manifest-global -o jsonpath={.data.hostname})
         resStr="SUCCESS"
         color="#1FFF00"
         if [[ $rollRes != 0 ]]; then
@@ -492,10 +492,21 @@ gen3_gitops_sync() {
         if [[ "$portal_roll" = true ]]; then
           portalAttachment="\"title\": \"Portal Diffs\", \"text\": \"${portalDiffs}\", \"color\": \"${color}\""
         fi
+        if [[ "$fence_roll" = true ]]; then
+          fenceAttachment="\"title\": \"Fence Diffs\", \"text\": \"${fenceDiffs}\", \"color\": \"${color}\""
+        fi
         if [[ "$etl_roll" = true ]]; then
           etlAttachment="\"title\": \"ETL Diffs\", \"text\": \"${etlDiffs}\", \"color\": \"${color}\""
         fi
-        curl -X POST --data-urlencode "payload={\"text\": \"Gitops-sync Cron: ${resStr} - Syncing dict and images on ${tmpHostname}\", \"attachments\": [{${dictAttachment}}, {${versionsAttachment}}, {${portalAttachment}}, {${etlAttachment}}]}" "${slackWebHook}"
+        if [[ "$covid_cronjob_roll" = true ]]; then
+          covidAttachment="\"title\": \"Covid Cronjob update\", \"text\": \"Updated covid19 notebook etl version\", \"color\": \"${color}\""
+        fi
+        curl -X POST --data-urlencode "payload={\"text\": \"Gitops-sync Cron: ${resStr} - Syncing dict and images on ${tmpHostname}\", \"attachments\": [{${dictAttachment}}, {${versionsAttachment}}, {${portalAttachment}}, {${fenceAttachment}}, {${etlAttachment}}, {${covidAttachment}}]}" "${slackWebHook}"
+      fi
+      # update cronjobs
+      if [[ "$versions_roll" = true ]]; then
+          gen3_gitops_update_fence_cron_jobs
+          gen3_gitops_update_all_cron_jobs
       fi
     else
       echo "no changes detected, not rolling"
@@ -519,6 +530,58 @@ gen3_gitops_rsync() {
     return 1
   fi
   ssh "$target" "bash -ic 'gen3 gitops sync'"
+}
+
+# Function to check and update cronjobs
+update_cronjob() {
+  local cronjob_name=$1
+  local manifest_image=$2
+
+  gen3_log_info "Checking cronjob $cronjob_name..."
+
+  # Extract cronjob schedule directly using kubectl with jsonpath
+  local cronjob_schedule=$(kubectl get cronjobs.batch $cronjob_name -o jsonpath='{.spec.schedule}')
+
+  # Check if the cronjob exists
+  if [[ -z "$cronjob_schedule" ]]; then
+    gen3_log_info "Cronjob $cronjob_name does not exist."
+    return
+  fi
+
+  # Update cronjob with the image in manifest-versions ConfigMap
+  gen3_log_info "Updating cronjob $cronjob_name to use image $manifest_image..."
+  gen3 job cron $cronjob_name "$cronjob_schedule"
+}
+
+#
+# Update all cronjobs
+#
+gen3_gitops_update_all_cron_jobs() {
+
+  # List of cronjobs
+  local IFS=$'\n'  # Set Internal Field Separator to newline
+  local active_cronjobs=($(kubectl get cronjobs -o custom-columns=":metadata.name" | awk 'NF'))
+
+  # Loop through each cronjob and check/update if needed
+  for cronjob in "${active_cronjobs[@]}"; do
+    update_cronjob "$cronjob"
+  done
+}
+
+#
+# Update fence cronjobs
+#
+gen3_gitops_update_fence_cron_jobs() {
+  # Fetch the manifest-versions ConfigMap and extract the fence image
+  local fence_manifest_image=$(kubectl get cm manifest-versions -o jsonpath='{.data.fence}')
+
+  # List of fence-related cronjobs
+  local fence_cronjobs=("fence-delete-expired-clients" "fence-cleanup-expired-ga4gh-info")
+
+  # Loop through each fence-related cronjob and check/update if needed
+  for cronjob in "${fence_cronjobs[@]}"; do
+    update_cronjob "$cronjob" "$fence_manifest_image"
+  done
 }
 
 #
@@ -584,57 +647,198 @@ gen3_gitops_history() {
   )
 }
 
+
+#
+# Create a manifest- configmap from the given json blob.
+# Pass additional arguments through to kubectl
+#
+# @param configMapName
+# @param json string to process - ignored if ""
+# @param varargs other arguments to pass to kubectl create configmap
+#
+gen3_gitops_json_to_configmap() {
+  local argList=()
+  local configMapName="$1"
+  shift || return 1
+  local json="$1"
+  shift || return 1
+  if [[ $# -gt 0 ]]; then
+    argList+=("$@")
+  fi
+  if [[ -n "$json" ]]; then
+    local key
+    local value
+    local keyList
+    # make sure it's valid json object or array
+    keyList="$(jq -r '. | keys[]' <<< "$json")" || return 1
+    # convert to array, only consider keys that start with a letter
+    if keyList=( $(grep '^[a-zA-Z]' <<< "$keyList") ); then
+      for key in "${keyList[@]}"; do
+        value="$(jq -r --arg key "$key" '.[$key]' <<< "$json")"
+        if [[ -n "$value" ]]; then
+          argList+=("--from-literal" "$key=$value")
+        fi
+      done
+    fi
+    argList+=("--from-literal" "json=$json")
+  fi
+  gen3_log_info "create configmap $configMapName"
+  # for debugging - gen3_log_info "g3kubectl create configmap $configMapName ${argList[@]}"
+  g3kubectl create configmap "$configMapName" "${argList[@]}"
+}
+
+
+#
+# Generate manifest entries for the files in the given folder
+#
+# @param folder to pull into manifest configmap
+#
+gen3_gitops_configmap_folder() {
+  local folder="$1"
+  shift || return 1
+  if [[ -n "$folder" && -d "$folder" && "$(basename "$folder")" =~ ^[0-9A-Za-z] ]]; then
+    local key="$(basename "$folder")"
+    local cMapName="manifest-$key"
+    local gotData=false
+    local key2
+    local json=""
+    local folderEntry
+    local argList=()
+    for folderEntry in "$folder/"*; do
+      if [[ -f "$folderEntry" ]]; then
+        key2="$(basename "$folderEntry")"
+        gotData=true
+        argList+=("--from-file=$folderEntry")
+        if [[ "$key2" == "${key}.json" ]]; then
+          # to help transition data out of the master manifest.json
+          json="$(cat "$folderEntry")"
+        fi
+      fi
+    done
+    if [[ "$gotData" == "true" ]]; then
+      gen3_gitops_json_to_configmap "manifest-$key" "$json" "${argList[@]}"
+      return $?
+    fi
+  fi
+  gen3_log_err "invalid manifest folder: $folder"
+  return 1
+}
+
+#
+# Get the sorted list of all the configmap keys from
+# manifest.json, manifests/ folder, and gen3/lib/manifestDefaults/
+#
+# @param manifestFolder optional - defaults to (dirname g3k_manifest_path)
+gen3_gitops_configmaps_list() {
+  local manifestFolder="$1"
+  shift || manifestFolder="$(dirname $(g3k_manifest_path))"
+  if ! [[ -n "$manifestFolder" && -d "$manifestFolder" && -f "$manifestFolder/manifest.json" ]]; then
+    gen3_log_err "failed to establish manifest folder - $manifestFolder"
+    return 1
+  fi
+  local keyList="$(mktemp "$XDG_RUNTIME_DIR/cfmap_list_XXXXXX")"
+  # keys from manifest.json
+  jq -r '. | keys[]' < "$manifestFolder/manifest.json" > "$keyList" || return $?
+  # keys from manifests/ folder
+  if [[ -d "$manifestFolder/manifests" ]]; then
+    (cd "$manifestFolder" && find manifests -mindepth 2 -maxdepth 2 -type f | awk -F / '{ print $2 }') >> "$keyList" || return $?
+  fi
+  # keys from manifestDefaults/ folder
+  if [[ -d "$GEN3_HOME/gen3/lib/manifestDefaults" ]]; then
+    (cd "$GEN3_HOME/gen3/lib/" && find manifestDefaults -mindepth 2 -maxdepth 2 -type f | awk -F / '{ print $2 }') >> "$keyList"
+  else
+    gen3_log_warn "failed to find manifestDefaults folder: $GEN3_HOME/gen3/lib/manifestDefaults"
+  fi
+  echo "etl-mapping" >> "$keyList"
+  echo "all" >> "$keyList"
+  sort -u < "$keyList" | grep -v -e '^[[:space:]]*$' | grep -v '^notes$'
+  rm "$keyList"
+}
+
+#
+# Extract project-mapping from user.yaml for etl
+#
+gen3_gitops_etlconvert() {
+  yq -r '[ (.users | .[] | .projects // [] | .[] | { "key": .auth_id, "value": .resource }), (.rbac.user_project_to_resource // {} | to_entries | .[]), (.authz.user_project_to_resource // {} | to_entries | .[]) ] | map(select(.value != null)) | sort_by(.key) | from_entries | { authz: { user_project_to_resource: . } }'
+}
+
 #
 # g3k command to create configmaps from manifest
+#
+# @param folder optional parameter - if set, then scans folder for configmap
 #
 gen3_gitops_configmaps() {
   local manifestPath
   manifestPath=$(g3k_manifest_path)
   if [[ ! -f "$manifestPath" ]]; then
-    echo -e "$(red_color "ERROR: manifest does not exist - $manifestPath")" 1>&2
+    gen3_log_err "manifest does not exist - $manifestPath"
     return 1
   fi
 
   if ! grep -q global $manifestPath; then
-    echo -e "$(red_color "ERROR: manifest does not have global section - $manifestPath")" 1>&2
+    gen3_log_err "manifest does not have global section - $manifestPath"
     return 1
   fi
 
-  # if old configmaps are found, deletes them
-  if g3kubectl get configmaps -l app=manifest | grep -q NAME; then
-    g3kubectl delete configmaps -l app=manifest
+  local manifestFolder
+  manifestFolder="$(dirname "$manifestPath")"
+  local keyList
+  local deleteList
+  if [[ $# -gt 0 ]]; then
+    keyList=( "$@" )
+    for key in "${keyList[@]}"; do
+      if [[ "$key" == "etl-mapping" ]]; then
+        deleteList+=( "$key" )
+      else
+        deleteList+=( "manifest-$key" )
+      fi
+    done
+  else
+    keyList=( $(gen3_gitops_configmaps_list) ) || return 1
+    mapfile -t deleteList < <( g3kubectl get configmaps -o custom-columns=:.metadata.name --no-headers=true | grep "manifest-\|etl-" )
   fi
-
-  g3kubectl create configmap manifest-all --from-literal json="$(g3k_config_lookup "." "$manifestPath")"
-  g3kubectl label configmap manifest-all app=manifest
 
   local key
   local key2
-  local value
-  local execString
-  local etlPath
-  
-  etlPath=$(dirname $(g3k_manifest_path))/etlMapping.yaml
-  if [[ -f "$etlPath" ]]; then
-    gen3 update_config etl-mapping "$etlPath"
-  fi
+  local etlPath="$manifestFolder/etlMapping.yaml"
+  local cMapName
+  local json
+  local defaultsDir="${GEN3_HOME}/gen3/lib/manifestDefaults"
+  local result=0
 
-  for key in $(g3k_config_lookup 'keys[]' "$manifestPath"); do
-    if [[ $key != 'notes' ]]; then
-      local cMapName="manifest-$key"
-      execString="g3kubectl create configmap $cMapName "
-      for key2 in $(g3k_config_lookup ".[\"$key\"] | keys[]" "$manifestPath" | grep '^[a-zA-Z]'); do
-        value="$(g3k_config_lookup ".[\"$key\"][\"$key2\"]" "$manifestPath")"
-        if [[ -n "$value" ]]; then
-          execString+="--from-literal $key2='$value' "
-        fi
-      done
-      local jsonSection="--from-literal json='$(g3k_config_lookup ".[\"$key\"]" "$manifestPath")'"
-      execString+=$jsonSection
-      eval $execString
-      g3kubectl label configmap $cMapName app=manifest
+  # delete everything in a single call for performance
+  # grab existing configmaps from k8s env 
+  g3kubectl delete configmaps "${deleteList[@]}"
+
+  for key in "${keyList[@]}"; do
+    if [[ "$key" == "etl-mapping" ]]; then
+      if [[ -f "$etlPath" ]]; then
+        gen3_gitops_json_to_configmap "$key" "" "--from-file=${etlPath##*/}=${etlPath}"
+        result=$((result + $?))
+      else
+        gen3_log_warn "no etl-mapping at $etlPath"
+      fi
+    elif [[ "$key" == "all" ]]; then
+      g3kubectl create configmap manifest-all --from-literal json="$(g3k_config_lookup "." "$manifestPath")"
+      result=$((result + $?))
+    elif [[ -d "$manifestFolder/manifests/$key" ]]; then
+      gen3_log_info "loading $key from $manifestFolder/manifests/$key"
+      gen3_gitops_configmap_folder "$manifestFolder/manifests/$key"
+      result=$((result + $?))
+    elif json="$(jq -e -r --arg key "$key" '.[$key]' < "$manifestPath")" && [[ -n "$json" ]]; then
+      gen3_log_info "loading $key from $manifestPath"
+      cMapName="manifest-$key"
+      gen3_gitops_json_to_configmap "$cMapName" "$json"
+      result=$((result + $?))
+    elif [[ -d "$defaultsDir/$key" ]]; then
+      gen3_log_info "loading $key from $defaultsDir/$key"
+      gen3_gitops_configmap_folder "$defaultsDir/$key"
+      result=$((result + $?))
+    else
+      gen3_log_err "ignoring invalid manifest key: $key"
     fi
   done
+  return $result
 }
 
 declare -a gen3_gitops_repolist_arr=(
@@ -654,6 +858,8 @@ declare -a gen3_gitops_repolist_arr=(
   uc-cdis/ssjdispatcher
   uc-cdis/tube
   uc-cdis/workspace-token-service
+  uc-cdis/requestor
+  uc-cdis/audit-service
 )
 
 declare -a gen3_gitops_sshlist_arr=(
@@ -881,6 +1087,12 @@ gen3_roll_path() {
   local templatePath
   cleanName="${depName%[-_]deploy*}"
   serviceName="${cleanName/-canary/}"
+  # roll the correct root frontend service
+  frontend_root="$(g3k_config_lookup ".global.frontend_root" "$manifestPath")"
+  if [[ ($serviceName == "frontend-framework" && $frontend_root == "gen3ff") || ($serviceName == "portal" && $frontend_root != "gen3ff") ]]; then
+    cleanName="$cleanName-root"
+  fi
+
   templatePath="${GEN3_HOME}/kube/services/${serviceName}/${cleanName}-deploy.yaml"
   if [[ -n "$deployVersion" && "$deployVersion" != null ]]; then
     templatePath="${GEN3_HOME}/kube/services/${serviceName}/${cleanName}-deploy-${deployVersion}.yaml"
@@ -914,8 +1126,17 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
     "configmaps")
       gen3_gitops_configmaps "$@"
       ;;
+    "configmaps-from-json")
+      gen3_gitops_json_to_configmap "$@"
+      ;;
+    "configmaps-list")
+      gen3_gitops_configmaps_list "$@"
+      ;;
     "enforce")
       gen3_gitops_enforcer "$@"
+      ;;
+    "etl-convert")
+      gen3_gitops_etlconvert "$@"
       ;;
     "folder")
       dirname "$(g3k_manifest_path)"
@@ -941,6 +1162,12 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
     "sync")
       gen3_gitops_sync "$@"
       ;;
+    "update-fence-cronjobs")
+      gen3_gitops_update_fence_cron_jobs "$@"
+      ;;      
+    "update-all-cronjobs")
+      gen3_gitops_update_all_cron_jobs "$@"
+      ;;    
     "taglist")
       gen3_gitops_repo_taglist "$@"
       ;;

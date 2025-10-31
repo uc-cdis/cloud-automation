@@ -37,8 +37,16 @@ gen3_s3_list() {
 _tfplan_s3() {
   local bucketName=$1
   local environmentName=$2
+
+  local futureRolePolicy="bucket_reader_${bucketName}"
+  if [ ${#futureRolePolicy} -gt 64 ];
+  then
+    local tmpn="${futureRolePolicy:0:64}"
+    bucketName="${tmpn//bucket_reader_}"
+  fi
   gen3 workon default "${bucketName}_databucket"
   gen3 cd
+
   cat << EOF > config.tfvars
 bucket_name="$bucketName"
 environment="$environmentName"
@@ -61,7 +69,9 @@ _tfapply_s3() {
     gen3_log_err "Unexpected error running gen3 tfapply. Please cleanup workspace in ${GEN3_WORKSPACE}"
     return 1
   fi
-  gen3 trash --apply
+
+  # leave terraform artifacts in place
+  #gen3 trash --apply
 }
 
 #
@@ -93,7 +103,8 @@ _add_bucket_to_cloudtrail() {
 #
 _bucket_exists() {
   local bucketName=$1
-  if [[ -z "$(gen3_aws_run aws s3api head-bucket --bucket $bucketName 2>&1)" ]]; then
+  gen3_aws_run aws s3api head-bucket --bucket $bucketName > /dev/null 2>&1
+  if [[ $? -eq 0 ]]; then
     echo 0
   else
     echo 1
@@ -136,7 +147,9 @@ EOF
   fi
   _tfapply_s3
   if [[ $? != 0 ]]; then
-    return 1
+    gen3_log_info "let's try that again ..."
+    _tfplan_s3 $bucketName $environmentName
+    _tfapply_s3 || return 1
   fi
 
   if [[ $cloudtrailFlag =~ ^.*add-cloudtrail$ ]]; then
@@ -156,14 +169,18 @@ gen3_s3_info() {
   local writerName="bucket_writer_$1"
   local readerName="bucket_reader_$1"
   local AWS_ACCOUNT_ID=$(gen3_aws_run aws sts get-caller-identity | jq -r .Account)
+  local bucketName=$1
+
   if [[ -z "$AWS_ACCOUNT_ID" ]]; then
     gen3_log_err "Unable to fetch AWS account ID."
     return 1
   fi
-  if [[ ! -z "$(gen3_aws_run aws s3api head-bucket --bucket $1 2>&1)" ]]; then
-    gen3_log_err "Bucket does not exist"
+
+  if [[ $(_bucket_exists $bucketName) -ne 0 ]]; then
+    gen3_log_err "Bucket '$bucketName' does not exist"
     return 1
   fi
+
   local rootPolicyArn="arn:aws:iam::${AWS_ACCOUNT_ID}:policy"
   if gen3_aws_run aws iam get-policy --policy-arn ${rootPolicyArn}/${writerName} >/dev/null 2>&1; then
     writerPolicy="{ \"name\": \"$writerName\", \"policy_arn\": \"${rootPolicyArn}/${writerName}\" } "
@@ -205,34 +222,6 @@ _fetch_bucket_policy_arn() {
     gen3_log_err "Policy does not exist"
     return 1
   fi
-}
-
-#
-# Util for checking if an entity already has a policy attached to them
-#
-# @param entityType: aws entity type (e.g. user, role...)
-# @param entityName
-# @param policyArn
-#
-_entity_has_policy() {
-  # returns true if entity already has policy, false otherwise
-  local entityType=$1
-  local entityName=$2
-  local policyArn=$3
-  # fetch policies attached to entity and check if bucket policy is already attached
-  local currentAttachedPolicies
-  currentAttachedPolicies=$(gen3_aws_run aws iam list-attached-${entityType}-policies --${entityType}-name $entityName 2>&1)
-  if [[ $? != 0 ]]; then
-    return 1
-  fi
-
-  if [[ ! -z $(echo $currentAttachedPolicies | jq '.AttachedPolicies[] | select(.PolicyArn == "'"${policyArn}"'")') ]]; then
-    echo "true"
-    return 0
-  fi
-
-  echo "false"
-  return 0
 }
 
 #
@@ -299,6 +288,25 @@ EOF
   gen3_log_info "Successfully attached policy"
 }
 
+
+#
+# Attach an SQS to the given bucket
+#
+gen3_s3_attach_sns_sqs() {
+  local bucketName="$1"
+  shift || return 1
+  ( # subshell - do not pollute parent environment
+    gen3 workon default "${bucketName}__data_bucket_queue" 1>&2
+    gen3 cd 1>&2
+    cat - > config.tfvars <<EOM
+bucket_name="$bucketName"
+EOM
+    gen3 tfplan 1>&2 || exit 1
+    gen3 tfapply 1>&2 || exit 1
+    gen3 tfoutput
+  )
+}
+
 #---------- main
 
 gen3_s3() {
@@ -316,6 +324,9 @@ gen3_s3() {
       ;;
     'attach-bucket-policy')
       gen3_s3_attach_bucket_policy "$@"
+      ;;
+    'attach-sns-sqs')
+      gen3_s3_attach_sns_sqs "$@"
       ;;
     *)
       gen3_s3_help

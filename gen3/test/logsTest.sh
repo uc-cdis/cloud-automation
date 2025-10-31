@@ -8,6 +8,10 @@ test_logs() {
   gen3 logs save ubh > /dev/null 2>&1; because $? "gen3 logs save ubh should work"
 }
 
+test_logs_cloudwatch() {
+  gen3 logs cloudwatch streams start='1 hour ago' > /dev/null; because $? "gen3 logs cloudwatch streams should work"
+}
+
 test_logs_history() {
   local result
   result=$(gen3 logs history codes vpc=qaplanetv1) && jq -e -r .aggregations.codes.buckets <<< "$result" > /dev/null 2>&1;
@@ -75,6 +79,21 @@ EOM
   rm "$tempFile"
 }
 
+#
+# this should work in the qa environment and Jenkins
+# until the test bucket goes away ...
+#
+test_logs_s3() {
+  test_logs_s3_prefix="${test_logs_s3_prefix:-s3://qaplanetv1-data-bucket-logs/log/qaplanetv1-data-bucket}"
+  gen3_log_info "test_logs_s3 with prefix: $test_logs_s3_prefix"
+  gen3 logs s3 start=today prefix="${test_logs_s3_prefix}"; because $? "gen3 logs s3 should run ok with $test_logs_s3_prefix"
+}
+
+test_logs_s3filter() {
+  for filterName in raw accessCount whoWhatWhen; do
+    cat "$GEN3_HOME/gen3/lib/testData/testS3Log.txt" | gen3 logs s3filter filter=$filterName; because $? "logs s3filter $filterName should work ok"
+  done
+}
 
 if [[ -z "$JENKINS_HOME" ]]; then # don't think jenkins can route to kibana.planx-pla.net ...
   shunit_runtest "test_logs" "logs,local"
@@ -85,4 +104,7 @@ fi
 
 shunit_runtest "test_logs_curl" "logs,local"
 shunit_runtest "test_logs_awk" "logs,local"
+shunit_runtest "test_logs_cloudwatch" "logs"
 shunit_runtest "test_logs_snapshot" "logs"
+shunit_runtest "test_logs_s3" "logs"
+shunit_runtest "test_logs_s3filter" "logs,local"

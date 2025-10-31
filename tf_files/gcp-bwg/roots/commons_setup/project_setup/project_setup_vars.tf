@@ -143,13 +143,13 @@ variable "commons_ingress_protocol" {
   default = "tcp"
 }
 
-variable "commons_ingress_ports" {
-  type = "list"
-}
+#variable "commons_ingress_ports" {
+#  type = "list"
+#}
 
-variable "commons_ingress_source_ranges" {
-  type = "list"
-}
+#variable "commons_ingress_source_ranges" {
+#  type = "list"
+#}
 
 variable "commons_ingress_target_tags" {
   type    = "list"
@@ -173,19 +173,19 @@ variable "commons_egress_protocol" {
   default = "tcp"
 }
 
-variable "commons_egress_ports" {
-  type = "list"
-}
+#variable "commons_egress_ports" {
+#  type = "list"
+#}
 
-variable "commons_egress_destination_ranges" {
-  type = "list"
-}
+#variable "commons_egress_destination_ranges" {
+#  type = "list"
+#}
 
 variable "commons_egress_target_tags" {
   type    = "list"
   default = ["commons-egress"]
 }
-
+/*
 variable "outbound_from_gke_name" {}
 variable "outbound_from_gke_network_name" {}
 
@@ -204,6 +204,7 @@ variable "outbound_from_gke_ports" {
 variable "outbound_from_gke_protocol" {}
 variable "outbound_from_gke_enable_logging" {}
 variable "outbound_from_gke_priority" {}
+
 
 variable "inbound_to_commons_name" {}
 variable "inbound_to_commons_network_name" {}
@@ -261,7 +262,7 @@ variable "inbound_from_gke_ports" {
 variable "inbound_from_gke_protocol" {}
 variable "inbound_from_gke_enable_logging" {}
 variable "inbound_from_gke_priority" {}
-
+*/
 variable "inbound_proxy_port_enable_logging" {
   default     = true
   description = "Enable firewall logging."

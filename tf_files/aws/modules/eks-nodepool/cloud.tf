@@ -38,6 +38,12 @@ resource "aws_iam_role_policy_attachment" "bucket_write" {
   role       = "${aws_iam_role.eks_control_plane_role.name}"
 }
 
+# Amazon SSM Policy 
+resource "aws_iam_role_policy_attachment" "eks-policy-AmazonSSMManagedInstanceCore" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+  role       = "${aws_iam_role.eks_control_plane_role.name}"
+}
+
 
 
 ###############################################
@@ -110,7 +116,9 @@ resource "aws_iam_policy" "access_to_kernels" {
             ],
             "Resource": [
                 "arn:aws:s3:::gen3-kernels/*",
-                "arn:aws:s3:::gen3-kernels"
+                "arn:aws:s3:::gen3-kernels",
+                "arn:aws:s3:::qualys-agentpackage",
+                "arn:aws:s3:::qualys-agentpackage/*"
             ]
         }
     ]
@@ -151,6 +159,11 @@ resource "aws_iam_role_policy_attachment" "eks-node-AmazonEKSWorkerNodePolicy" {
 
 resource "aws_iam_role_policy_attachment" "eks-node-AmazonEKS_CNI_Policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+  role       = "${aws_iam_role.eks_node_role.name}"
+}
+
+resource "aws_iam_role_policy_attachment" "eks-node-AmazonEKSCSIDriverPolicy" {
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
   role       = "${aws_iam_role.eks_node_role.name}"
 }
 
@@ -198,7 +211,7 @@ resource "aws_security_group" "eks_nodes_sg" {
 
   tags = "${
     map(
-     "Name", "${var.vpc_name}-nodes-sg",
+     "Name", "${var.vpc_name}-nodes-sg-${var.nodepool}",
      "kubernetes.io/cluster/${var.vpc_name}", "owned",
     )
   }"
@@ -265,15 +278,15 @@ resource "aws_security_group_rule" "nodes_interpool_communications" {
 resource "aws_launch_configuration" "eks_launch_configuration" {
   associate_public_ip_address = false
   iam_instance_profile        = "${aws_iam_instance_profile.eks_node_instance_profile.name}"
-  image_id                    = "${data.aws_ami.eks_worker.id}"
-  instance_type               = "${var.jupyter_instance_type}"
+  image_id                    = "${var.fips_enabled_ami}"
+  instance_type               = "${var.nodepool_instance_type}"
   name_prefix                 = "eks-${var.vpc_name}-nodepool-${var.nodepool}"
   security_groups             = ["${aws_security_group.eks_nodes_sg.id}", "${aws_security_group.ssh.id}"]
   user_data_base64            = "${base64encode(data.template_file.bootstrap.rendered)}"
   key_name                    = "${var.ec2_keyname}"
 
   root_block_device {
-    volume_size = "${var.jupyter_worker_drive_size}"
+    volume_size = "${var.nodepool_worker_drive_size}"
   }
 
 
@@ -285,10 +298,10 @@ resource "aws_launch_configuration" "eks_launch_configuration" {
 
 
 resource "aws_autoscaling_group" "eks_autoscaling_group" {
-  desired_capacity     = "${var.jupyter_asg_desired_capacity}"
+  desired_capacity     = "${var.nodepool_asg_desired_capacity}"
   launch_configuration = "${aws_launch_configuration.eks_launch_configuration.id}"
-  max_size             = "${var.jupyter_asg_max_size}"
-  min_size             = "${var.jupyter_asg_min_size}" 
+  max_size             = "${var.nodepool_asg_max_size}"
+  min_size             = "${var.nodepool_asg_min_size}" 
   name                 = "eks-${var.nodepool}worker-node-${var.vpc_name}"
   #vpc_zone_identifier  = ["${data.aws_subnet.eks_private.*.id}"]
   #vpc_zone_identifier  = ["${data.aws_subnet_ids.private.ids}"]
@@ -302,7 +315,7 @@ resource "aws_autoscaling_group" "eks_autoscaling_group" {
 
   tag {
     key                 = "Name"
-    value               = "eks-${var.vpc_name}-jupyter"
+    value               = "eks-${var.vpc_name}-${var.nodepool}"
     propagate_at_launch = true
   }
 
@@ -362,7 +375,7 @@ resource "aws_security_group" "ssh" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags {
+  tags = {
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
     Name         = "ssh_eks_${var.vpc_name}-nodepool-${var.nodepool}"

@@ -35,6 +35,7 @@ rules:
   - apiGroups: [""]
     resources:
       - "pods"
+      - "namespaces"
       - "services"
       - "replicationcontrollers"
       - "persistentvolumeclaims"
@@ -50,12 +51,28 @@ rules:
     resources: ["statefulsets", "replicasets", "daemonsets"]
     verbs: ["watch", "list", "get"]
   - apiGroups: ["storage.k8s.io"]
-    resources: ["storageclasses"]
+    resources: ["storageclasses", "csinodes"]
     verbs: ["watch", "list", "get"]
   - apiGroups: ["batch", "extensions"]
     resources: ["jobs"]
     verbs: ["get", "list", "watch", "patch"]
-    
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["create"]
+  - apiGroups: ["coordination.k8s.io"]
+    resourceNames: ["cluster-autoscaler"]
+    resources: ["leases"]
+    verbs: ["get", "update"]
+  - apiGroups: ["storage.k8s.io"]
+    resources:
+     - storageclasses
+     - csinodes
+     - csidrivers
+     - csistoragecapacities
+    verbs:
+     - watch
+     - list
+     - get
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -126,15 +143,17 @@ spec:
     metadata:
       labels:
         app: cluster-autoscaler
+      annotations:
+        prometheus.io/scrape: 'true'
+        prometheus.io/port: '8085'
     spec:
       serviceAccountName: cluster-autoscaler
       containers:
-        - image: k8s.gcr.io/cluster-autoscaler:v1.12.3
+        - image: k8s.gcr.io/autoscaling/cluster-autoscaler:CAS_VERSION
           name: cluster-autoscaler
           resources:
             limits:
-              cpu: 100m
-              memory: 300Mi
+              memory: 1600Mi
             requests:
               cpu: 100m
               memory: 300Mi
@@ -146,6 +165,7 @@ spec:
             - --skip-nodes-with-local-storage=false
             - --expander=least-waste
             - --scale-down-delay-after-add=7m
+            - --aws-use-static-instance-list=true
             - --node-group-auto-discovery=asg:tag=k8s.io/cluster-autoscaler/enabled,k8s.io/cluster-type/eks,kubernetes.io/cluster/VPC_NAME
           volumeMounts:
             - name: ssl-certs

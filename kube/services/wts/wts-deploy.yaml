@@ -1,8 +1,10 @@
 
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: wts-deployment
+  annotations:
+    gen3.io/network-ingress: "mariner"
 spec:
   selector:
     # Only select pods based on the 'app' label
@@ -24,11 +26,14 @@ spec:
         netnolimit: "yes"
         userhelper: "yes"
         GEN3_DATE_LABEL
+        GEN3_WTS_VERSION
+        GEN3_ENV_LABEL
+        GEN3_HOSTNAME_LABEL
     spec:
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
+          - weight: 25
             podAffinityTerm:
               labelSelector:
                 matchExpressions:
@@ -37,6 +42,22 @@ spec:
                   values:
                   - wts
               topologyKey: "kubernetes.io/hostname"
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - spot
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - SPOT
       terminationGracePeriodSeconds: 10
       volumes:
         - name: wts-secret
@@ -55,6 +76,12 @@ spec:
           value: "/var/www/wts/appcreds.json"
         - name: AUTH_PLUGINS
           value: k8s
+        - name: GEN3_UWSGI_TIMEOUT
+          valueFrom:
+            configMapKeyRef:
+              name: manifest-global
+              key: uwsgi-timeout
+              optional: true
         volumeMounts:
         - name: "wts-secret"
           readOnly: true
@@ -69,15 +96,51 @@ spec:
           httpGet:
             path: /_status
             port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 60
+          timeoutSeconds: 30
           failureThreshold: 10
-          initialDelaySeconds: 5
         readinessProbe:
           httpGet:
             path: /_status
             port: 80
+          periodSeconds: 20
         resources:
           requests:
-            cpu: 1
+            memory: 200Mi
           limits:
-            cpu: 2
-            memory: 1024Mi
+            memory: 512Mi
+      initContainers:
+        - name: wts-db-migrate
+          GEN3_WTS_IMAGE
+          imagePullPolicy: Always
+          volumeMounts:
+          - name: "wts-secret"
+            readOnly: true
+            mountPath: "/var/www/wts/dbcreds.json"
+            subPath: dbcreds.json
+          - name: "wts-secret"
+            readOnly: true
+            mountPath: "/var/www/wts/appcreds.json"
+            subPath: appcreds.json
+          env:
+          - name: POSTGRES_CREDS_FILE
+            value: "/var/www/wts/dbcreds.json"
+          - name: SECRET_CONFIG
+            value: "/var/www/wts/appcreds.json"
+          resources:
+            limits:
+              memory: 512Mi
+          command: ["/bin/sh"]
+          args:
+            - "-c"
+            - |
+              if hash alembic 2>/dev/null || poetry run alembic --version >/dev/null 2>&1; then
+                echo "Running DB migration"
+                cd /wts
+                # Managing virtual environments via poetry instead of python since the AL base image update, but retaining backwards compatibility
+                poetry run alembic upgrade head || alembic upgrade head
+              else
+                # WTS < 0.3.0 does not have the DB migration setup
+                echo "Alembic not installed - not running DB migration"
+              fi

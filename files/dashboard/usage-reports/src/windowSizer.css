@@ -1,0 +1,10 @@
+
+g3r-window-sizer {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+div.g3-window-sizer__input {
+  margin: 10px;
+  min-width: 100px;
+}

@@ -34,9 +34,31 @@ variable "aws_secret_key"{
 }
 
 variable "threshold"{
-  default = ""
+#  default = ""
 }
 
 variable "slack_webhook"{
   default = ""
+}
+
+
+variable "timeout" {
+  description = "Timeout threshold for the function"
+  default     = 300
+}
+
+variable "memory_size" {
+  description = "Memory allocation for the function"
+  default     = 128
+}
+
+
+variable "es" {
+  description = "Persist logs to elasticsearch"
+  default = true
+}
+
+variable "s3" {
+  description = "Persist logs to s3"
+  default = true
 }

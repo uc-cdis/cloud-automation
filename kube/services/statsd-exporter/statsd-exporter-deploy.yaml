@@ -1,10 +1,10 @@
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: "statsd-exporter"
   annotations:
-      gen3.io/network-ingress: "ambassador-gen3"
+      gen3.io/network-ingress: "ambassador-gen3,ambassador,hatchery"
 spec:
   selector:
     # Only select pods based on the 'app' label
@@ -22,8 +22,25 @@ spec:
         app: "statsd-exporter"
         GEN3_DATE_LABEL
     spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND
       containers:
       - name: "statsd-exporter"
-        GEN3_STATSD-EXPORTER_IMAGE
+        GEN3_STATSD-EXPORTER_IMAGE|-image: prom/statsd-exporter:v0.15.0-|
         resources: {}
       restartPolicy: Always

@@ -1,0 +1,45 @@
+---
+# tasks file for aws_common
+
+- name: collect facts about system services
+  service_facts:
+
+- include: packages.yaml
+  tags:
+    - packages
+    - basic
+
+- include: configuration.yaml
+  tags:
+    - configuration
+    - files
+    - basics
+
+- name: get instance-id
+  uri:
+    url: "http://169.254.169.254/latest/meta-data/instance-id"
+    return_content: yes
+    method: GET
+  register: instance_id
+
+
+
+- name: Debug
+  debug:
+    var: ansible_facts.services["amazon-cloudwatch-agent.service"]
+
+- name: print info
+  debug: var="instance_id"
+
+- name: ec2 instance tags
+  ec2_tag:
+    region: "{{ region }}"
+    resource: "{{ instance_id.content }}"
+    state: list
+  register: ec2_tags
+
+- name: print info
+  debug: var="ec2_tags.tags["slurm-type"]"
+    
+- set_fact:
+    i_facts: "{{ ec2_tags }}"

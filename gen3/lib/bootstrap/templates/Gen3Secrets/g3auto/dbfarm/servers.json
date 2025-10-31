@@ -1,0 +1,9 @@
+{
+  "server1": {
+    "db_host": "",
+    "db_username": "",
+    "db_password": "",
+    "db_database": "",
+    "farmEnabled": true
+  }
+}

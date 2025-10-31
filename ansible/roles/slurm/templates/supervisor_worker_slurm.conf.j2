@@ -1,0 +1,7 @@
+[program:munge]
+user=munge
+command=/usr/sbin/munged --foreground
+stdout_logfile=/var/log/munge/munge.log
+redirect_stderr=true
+[program:slurmd]
+command=slurmd -D

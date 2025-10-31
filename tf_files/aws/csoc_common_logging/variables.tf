@@ -25,9 +25,27 @@ variable "elasticsearch_domain" {
 }
 
 variable "threshold" {
-  default = ""
+  default = "65.0"
 }
 
 variable "slack_webhook" {
  default = ""
+}
+
+variable "timeout" {
+  default = 300
+}
+
+variable "memory_size" {
+  default = 512
+}
+
+variable "es" {
+  description = "Persist logs to elasticsearch"
+  default = true
+}
+
+variable "s3" {
+  description = "Persist logs to s3"
+  default = true
 }

@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qabot-deployment
+spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: qabot
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: qabot
+        netnolimit: "yes"
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND
+      containers:
+      - name: qabot
+        image: "quay.io/cdis/qa-bot:latest"
+        env:
+        - name: SLACK_BOT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: qabot-g3auto
+              key: "slack_bot_token.json"
+        - name: SLACK_APP_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: qabot-g3auto
+              key: "slack_app_token.json"
+        - name: GITHUB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: qabot-g3auto
+              key: "githubtoken.json"
+        - name: JIRA_API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: qabot-g3auto
+              key: "jira_api_token.json"
+        - name: JENKINS_JOB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: qabot-g3auto
+              key: "jenkins_job_token.json"
+        - name: JENKINS_USER_API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: qabot-g3auto
+              key: "jenkins1_user_api_token.json"
+        - name: JENKINS2_USER_API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: qabot-g3auto
+              key: "jenkins2_user_api_token.json"
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: 1
+          limits:
+            cpu: 2
+            memory: 512Mi
+        volumeMounts:
+        - name: slacktoken
+          mountPath: "/secret/githubtoken.json"
+      volumes:
+      - name: slacktoken
+        secret:
+          secretName: qabot-g3auto

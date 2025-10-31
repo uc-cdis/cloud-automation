@@ -34,16 +34,17 @@ gen3_aws_run() {
 
     # Try to use cached creds if possible
     if [[ -f $gen3CredsCache ]]; then
-      local nowPlus5
+      local nowPlus40
+      # leave 40 minutes in the session - some terraform plans run long
       if [[ $(uname -s) == "Linux" ]]; then
-        nowPlus5="$(date --utc --date '+5 mins' +%Y-%m-%dT%H:%M)"
+        nowPlus40="$(date --utc --date '+40 mins' +%Y-%m-%dT%H:%M)"
       else
         # date on Mac is not sophisticated
-        nowPlus5="$(date -u +%Y-%m-%dT%H:%M)"
+        nowPlus40="$(date -u +%Y-%m-%dT%H:%M)"
       fi
       gen3AwsExpire=$(jq -r '.Credentials.Expiration' < $gen3CredsCache)
 
-      if [[ "$gen3AwsExpire" =~ ^[0-9]+ && "$gen3AwsExpire" > "$nowPlus5" ]]; then
+      if [[ "$gen3AwsExpire" =~ ^[0-9]+ && "$gen3AwsExpire" > "$nowPlus40" ]]; then
         cacheIsValid="yes"
       fi
     fi
@@ -98,7 +99,7 @@ gen3_aws_run() {
 #
 gen3_workon_aws(){
   if ! ( aws configure get "${1}.region" > /dev/null ); then
-    echo -e "$(red_color "PROFILE $1 not properly configured with default region for aws cli")"
+    gen3_log_err "PROFILE $1 not properly configured with default region for aws cli"
     return 3
   fi
   export GEN3_PROFILE="$1"
@@ -106,7 +107,7 @@ gen3_workon_aws(){
   export GEN3_FLAVOR=AWS
   export GEN3_WORKDIR="$XDG_DATA_HOME/gen3/${GEN3_PROFILE}/${GEN3_WORKSPACE}"
   export AWS_PROFILE="$GEN3_PROFILE"
-  export AWS_DEFAULT_REGION=$(aws configure get "${AWS_PROFILE}.region")
+  export AWS_DEFAULT_REGION=$(aws configure get "${AWS_PROFILE}.region" || echo us-east-1)
   export AWS_ACCOUNT_ID=$(gen3_aws_run aws sts get-caller-identity | jq -r .Account)
 
   # S3 bucket where we save terraform state, etc
@@ -176,8 +177,9 @@ gen3_workon_aws(){
   elif [[ "$GEN3_WORKSPACE" =~ _role_policy_attachment$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/role_policy_attachment"
   elif [[ -d "${GEN3_HOME}/tf_files/aws/${GEN3_WORKSPACE#*__}" ]]; then
-    # NEW! support __FOLDER_NAME
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/${GEN3_WORKSPACE#*__}"
+  elif [[ "${GEN3_WORKSPACE}" =~ __custom$ ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_WORKDIR}"
   fi
 
   PS1="gen3/${GEN3_WORKSPACE}:$GEN3_PS1_OLD"
@@ -193,7 +195,7 @@ gen3_AWS.backend.tfvars() {
 bucket = "$GEN3_S3_BUCKET"
 encrypt = "true"
 key = "$GEN3_WORKSPACE/terraform.tfstate"
-region = "$(aws configure get "$GEN3_PROFILE.region")"
+region = "${AWS_DEFAULT_REGION:-us-east-1}"
 EOM
 }
 
@@ -300,6 +302,7 @@ EOM
     cat - <<EOM
 bucket_name="$(echo "$GEN3_WORKSPACE" | sed 's/[_\.]/-/g')-gen3"
 environment="${vpc_name:-$(g3kubectl get configmap global -o jsonpath="{.data.environment}")}"
+cloud_trail_count=0
 EOM
     return 0
   fi
@@ -310,8 +313,7 @@ EOM
 vpc_name="${GEN3_WORKSPACE//_demolab/}"
 instance_type="t3.small"
 instance_count=5
-# this is Reuben's key ...
-ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCfX+T2c3+iBP17DS0oPj93rcQH7OgTCKdjYS0f9s8sIKjErKCao0tRNy5wjBhAWqmq6xFGJeA7nt3UBJVuaGFbszIzs+yvjZYYVrJQdfl0yPbrKRMd/Ch77Jnqbu97Uyu8UxhGkzqEcxQrdBqhqkakhQULjcjZBnk0M1PrLwW+Pl1kRCnXnX/x3YzDR/Ltgjc57qjPbqz7+CBbuFo5OCYOY94pcXetHskvx1AAQ7ZT2c/F/p6vIH5jPKnCTjuqWuGoimp/alczLMO6n+aHgzqc9NKQUScxA0fCGxFeoEdd6b370E7j8xXMIA/xSmq8lFPam+fm3117nC4m29sRktoBI8YP4L7VPSkM/hLp/vRzVJf6U183GfvUSZPERrg+NvMeah9vgkTgzH0iN1+s2xPj6eFz7VUOQtLYTchMZ/qyyGhUzJznY0szocVd6iDbMAYm67R+QtgYEBD1hYrtUD052imb62nEXHFSL3V6369GaJ+k5BIUTGweOaUxGbJlb6fG2Aho4EWaigYRMtmlKgDFaCeJGjlQrFR9lKFzDBc3Af3RefPDVsavYGdQQRUAmueGjlks99Bvh2U53HQgQvc0iQg3ijey2YXBr6xFCMeG7MJZbPcrlQLXko4KygK94EcDPZnIH542CrtAySk/UxxwZv5u0dLsh7o+ZK9G6PO1+Q== reubenonrye@uchicago.edu"
+ssh_public_key = PUT A KEY HERE - use quotes ""
 EOM
     return 0
   fi
@@ -320,13 +322,33 @@ EOM
   if [[ "$GEN3_WORKSPACE" =~ _utilityvm$ ]]; then
      vmName=${GEN3_WORKSPACE//_utilityvm/}
      cat - <<EOM
-bootstrap_path = "cloud-automation/flavors/"
-bootstrap_script = "FILE-IN-ABOVE-PATH"
+bootstrap_path = "cloud-automation/flavors/adminvm/"
+bootstrap_script = "ubuntu-18-init.sh"
 vm_name = "${vmName}"
 vm_hostname = "${vmName}"
+# secgroup egress whitelist
 vpc_cidr_list = ["10.128.0.0/20", "52.0.0.0/8", "54.0.0.0/8"]
 aws_account_id = "ACCOUNT-ID"
 extra_vars = []
+instance_type = "t3.micro"
+ssh_key_name = "your key name -- see aws ec2 describe-key-pairs"
+user_policy = <<EOPOLICY
+THIS IS JUST AN EXAMPLE - REPLACE ACCOUNT-ID ON ADMIN VM's, 
+DELETE user_policy IF YOU DO NOT NEED THIS TO FALL BACK TO DEFAULT
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Resource": [
+        "arn:aws:iam::ACCOUNT-ID:role/csoc_adminvm"
+      ],
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOPOLICY
 EOM
     return 0
   fi
@@ -424,7 +446,6 @@ EOM
       #commonsName=${GEN3_WORKSPACE//_es/}
       cat - <<EOM
 user_perscode   = "PERSCODE you receive from the Qualys master"
-env_vpc_octet3  = "3rd OCTET OF VPC CIDR FOR QUALYS SETUP"
 EOM
       return 0
   fi
@@ -433,10 +454,100 @@ EOM
   if [[ "$GEN3_WORKSPACE" =~ _eks$ ]]; then
       commonsName=${GEN3_WORKSPACE//_eks/}
       cat - <<EOM
+### New Variables Synced From variables.tf###
+
+## General variables
+# VPC name, only alphanumeric characters. This VPC must exists arelady.
 vpc_name      = "${commonsName}"
-instance_type = "t3.xlarge"
-ec2_keyname   = "someone@uchicago.edu"
+# an existing key pair in EC2 that we want in the k8s worker nodes.
+ec2_keyname   ="someone@uchicago.edu"
 users_policy  = "${commonsName}"
+
+## Optional Variables
+# EC2 Instance type for k8s workers
+instance_type = "t3.xlarge"
+# EC2 Instance type for k8s jupyter workers
+jupyter_instance_type = "t3.large"
+# EC2 Instance type for k8s workflow workers
+workflow_instance_type = "t3.2xlarge"
+
+# the CIDR were your adminVM belongs to.
+peering_cidr = "10.128.0.0/20"
+
+# A secondary CIDR range that will get allocated the the workflow autoscaling group
+secondary_cidr_block = ""
+peering_vpc_id = "vpc-e2b51d99"
+
+# Volume size for the k8s workers
+worker_drive_size = 30
+
+# Version for EKS cluster
+eks_version = "1.16"
+
+# VPC module should have been deployed using the network_expansion = true variable, otherwise wks will fail
+workers_subnet_size = 24
+
+kernel = "N/A"
+
+# Script to initialize the workers
+bootstrap_script = "bootstrap.sh"
+# Script to initialize the jupyter workers
+jupyter_bootstrap_script = "bootstrap.sh"
+
+# Volume size for the k8s jupyter workers
+jupyter_worker_drive_size = 30
+
+# Script to initialize the workflow  workers
+workflow_bootstrap_script = "bootstrap.sh"
+workflow_worker_drive_size = 30
+
+# CIDR you want to skip the proxy when going out
+cidrs_to_route_to_gw = ""
+
+organization_name = "Basic Services"
+proxy_name = "HTTP Proxy"
+
+# number of jupyter workers
+jupyter_asg_desired_capacity = 0
+jupyter_asg_max_size = 10
+jupyter_asg_min_size = 0
+single_az_for_jupyter = false
+
+# number of workflow  workers
+workflow_asg_desired_capacity = 0
+workflow_asg_max_size = 50
+workflow_asg_min_size = 0
+deploy_workflow = false
+
+# iam/service account to your cluster
+iam-serviceaccount = false
+
+# OIDC to use for service account intergration
+oidc_eks_thumbprint = [""]
+
+# SNS topic ARN for alerts
+sns_topic_arn = "arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic"
+
+# for QualysAgent deployment
+activation_id = ""
+customer_id = ""
+
+# Enable/Disable Federal Information Processing Standards (FIPS) in EKS nodes. You need to have FIPS enabled AMI to enable this.
+fips = false
+fips_ami_kms = "arn:aws:kms:us-east-1:707767160287:key/mrk-697897f040ef45b0aa3cebf38a916f99"
+fips_enabled_ami = "ami-074d352c8e753fc93"
+
+# AZs where to deploy the kubernetes worker nodes.
+availability_zones = ["us-east-1a", "us-east-1c", "us-east-1d"]
+
+# If ha-proxy a domain to check internet access
+domain_test = "www.google.com"
+
+# If HA Squid is enabled, this should be set to true. ha-squid environment is comprised by at least two squid proxy instances in an autoscaling group.
+ha_squid = false
+
+######
+
 EOM
       return 0
   fi
@@ -455,7 +566,7 @@ EOM
 
   if [[ "$GEN3_WORKSPACE" == "management-logs" ]]; then
       cat - <<EOM
-account_id = ["830067555646", "474789003679", "655886864976", "663707118480", "728066667777", "433568766270", "733512436101", "584476192960", "236835632492", "662843554732", "803291393429", "446046036926", "980870151884", "562749638216", "707767160287", "302170346065", "636151780898", "895962626746", "222487244010", "369384647397", "547481746681"]
+account_id = ["830067555646", "474789003679", "655886864976", "663707118480", "728066667777", "433568766270", "733512436101", "584476192960", "236835632492", "662843554732", "803291393429", "446046036926", "980870151884", "562749638216", "707767160287", "302170346065", "636151780898", "895962626746", "222487244010", "369384647397", "547481746681","199578515826","236714345101","345060017512","258867494168"]
 EOM
       return 0
   fi
@@ -472,7 +583,16 @@ EOM
       return $?
   fi
   gen3_log_info "no sample vars file at ${GEN3_TFSCRIPT_FOLDER}/sample.tfvars"
-  
+
+  # else
+  if [[ "$GEN3_WORKSPACE" =~ __custom$ ]]; then
+      cat - <<EOM
+# put your custom variable values here
+EOM
+      return 0
+  fi
+
+  # else ... commons tfvars
   # ssh key to be added to VMs and kube nodes
   local SSHADD=$(which ssh-add)
   if [ -f ~/.ssh/id_rsa.pub ];
@@ -491,12 +611,6 @@ cat - <<EOM
 # VPC name is also used in DB name, so only alphanumeric characters
 vpc_name="$GEN3_WORKSPACE"
 #
-# for vpc_octet see https://github.com/uc-cdis/cdis-wiki/blob/master/ops/AWS-Accounts.md
-#  CIDR becomes 172.{vpc_octet2}.{vpc_octet3}.0/20
-#
-# octets are legacy, we should now use the full CIDR
-#vpc_octet2=GET_A_UNIQUE_VPC_172_OCTET2
-#vpc_octet3=GET_A_UNIQUE_VPC_172_OCTET3
 vpc_cidr_block="172.X.Y.0/20"
 
 dictionary_url="https://s3.amazonaws.com/dictionary-artifacts/YOUR/DICTIONARY/schema.json"
@@ -504,8 +618,13 @@ portal_app="dev"
 
 aws_cert_name="arn:aws:acm:REGION:ACCOUNT-NUMBER:certificate/CERT-ID"
 
-db_size=10
-db_instance="db.t2.micro"
+fence_db_size    = 10
+sheepdog_db_size = 10
+indexd_db_size   = 10
+
+fence_db_instance    = "db.t2.micro"
+sheepdog_db_instance = "db.t2.micro"
+indexd_db_instance   = "db.t2.micro"
 
 # This indexd guid prefix should come from Trevar/ZAC
 indexd_prefix=ENTER_UNIQUE_GUID_PREFIX

@@ -6,8 +6,7 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
-
-serverVersion="$(g3kubectl version server -o json | jq -r '.serverVersion.major + "." + .serverVersion.minor' | head -c4).0"
+serverVersion="$(g3kubectl version -o json | jq -r '.serverVersion.major + "." + .serverVersion.minor' | head -c4).0"
 if ! semver_ge "$serverVersion" "1.8.0"; then
   gen3_log_info "kube-setup-netpolciy" "K8s server version $serverVersion does not yet support network policy"
   exit 0
@@ -105,11 +104,9 @@ net_apply_jupyter() {
   local notebookNamespace
   local name
   
-  #
-  # Disable this till we bump to k8s 1.11 - 
-  # the jupyter network policies rely on compound label selectors
-  #
-  if false && g3kubectl get namespace "$notebookNamespace" > /dev/null 2>&1; then
+  notebookNamespace="$(gen3 jupyter j-namespace)"
+
+  if g3kubectl get namespace "$notebookNamespace" > /dev/null 2>&1; then
     for name in "${GEN3_HOME}/kube/services/netpolicy/base/"*.yaml; do
       (yq -r . < "$name") | jq -r --arg namespace "$notebookNamespace" '.metadata.namespace=$namespace' | g3kubectl apply -f -
     done
