@@ -327,6 +327,14 @@ function main(){
 
   max_attempts=10
   attempt_counter=0
+  
+  if [[ $DISTRO == "al2023" ]]; then
+    TOKEN=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+    EC2_INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id -H "X-aws-ec2-metadata-token: $TOKEN")
+    REGION=$(curl -s http://169.254.169.254/latest/meta-data/placement/region -H "X-aws-ec2-metadata-token: $TOKEN")
+    aws ec2 modify-instance-attribute --no-source-dest-check --instance-id $EC2_INSTANCE_ID --region $REGION
+  fi
+  
   while [ $attempt_counter -lt $max_attempts ]; do
     #((attempt_counter++))
     sleep 10
