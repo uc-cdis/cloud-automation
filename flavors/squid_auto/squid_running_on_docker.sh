@@ -14,9 +14,16 @@ if [[ $DISTRO == "Amazon Linux" ]]; then
 fi
 HOME_FOLDER="/home/${WORK_USER}"
 SUB_FOLDER="${HOME_FOLDER}/cloud-automation"
-MAGIC_URL="http://169.254.169.254/latest/meta-data/"
-AVAILABILITY_ZONE=$(curl http://169.254.169.254/latest/meta-data/placement/availability-zone -s)
-REGION=$(echo ${AVAILABILITY_ZONE::-1})
+if [[ $DISTRO == "al2023" ]]; then
+  TOKEN=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+  EC2_INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id -H "X-aws-ec2-metadata-token: $TOKEN")
+  REGION=$(curl -s http://169.254.169.254/latest/meta-data/placement/region -H "X-aws-ec2-metadata-token: $TOKEN")
+  AVAILABILITY_ZONE=$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone -H "X-aws-ec2-metadata-token: $TOKEN")
+else
+  AVAILABILITY_ZONE=$(curl http://169.254.169.254/latest/meta-data/placement/availability-zone -s)
+  REGION=$(echo ${AVAILABILITY_ZONE::-1})
+  EC2_INSTANCE_ID=$(curl http://169.254.169.254/latest/meta-data/instance-id -s)
+fi
 DOCKER_DOWNLOAD_URL="https://download.docker.com/linux/ubuntu"
 AWSLOGS_DOWNLOAD_URL="https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb"
 SQUID_CONFIG_DIR="/etc/squid"
@@ -324,7 +331,7 @@ function main(){
       --volume ${SQUID_CACHE_DIR}:${SQUID_CACHE_DIR} \
       --volume ${SQUID_CONFIG_DIR}:${SQUID_CONFIG_DIR}:ro \
        quay.io/cdis/squid:${SQUID_IMAGE_TAG}
-
+  aws ec2 modify-instance-attribute --no-source-dest-check --instance-id $EC2_INSTANCE_ID --region $REGION
   max_attempts=10
   attempt_counter=0
   while [ $attempt_counter -lt $max_attempts ]; do
