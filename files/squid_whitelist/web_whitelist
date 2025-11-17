@@ -21,7 +21,6 @@ data.mendeley.com
 data.stage.qdr.org
 dataguids.org
 api.cloudflare.com
-api.github.com
 api.login.yahoo.com
 apt.kubernetes.io
 argoproj.github.io
@@ -42,7 +41,6 @@ charts.authelia.com
 charts.crossplane.io
 charts.helm.sh
 cloud.r-project.org
-codeload.github.com
 coredns.github.io
 coreos.com
 covidstoplight.org
@@ -139,10 +137,8 @@ neuro.debian.net
 neurodeb.pirsquared.org
 nginx.org
 nvidia.github.io
-objects.githubusercontent.com
 ohsu-comp-bio.github.io
 opportunityinsights.org
-openaipublic.azureedge.net
 orcid.org
 pgp.mit.edu
 playwright.download.prss.microsoft.com
@@ -151,8 +147,6 @@ prometheus-community.github.io
 proxy.golang.org
 public.ecr.aws
 pubmirrors.dal.corespace.com
-pypi.org
-raw.githubusercontent.com
 reflector.westga.edu
 registry.npmjs.org
 registry.terraform.io
