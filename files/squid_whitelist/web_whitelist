@@ -11,6 +11,7 @@ app.getambassador.io
 awslabs.github.io
 biodata-integration-tests.net
 marketing.biorender.com
+cdn-lfs.huggingface.co
 cdn.playwright.dev
 clinicaltrials.gov
 charts.bitnami.com
@@ -89,6 +90,7 @@ helm.elastic.co
 helm.localstack.cloud
 helm.cilium.io
 http.us.debian.org
+huggingface.co
 ifconfig.io
 ingress.coralogix.us
 internet2.edu
