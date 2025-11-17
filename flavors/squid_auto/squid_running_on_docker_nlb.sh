@@ -14,16 +14,9 @@ if [[ $DISTRO == "Amazon Linux" ]]; then
 fi
 HOME_FOLDER="/home/${WORK_USER}"
 SUB_FOLDER="${HOME_FOLDER}/cloud-automation"
-if [[ $DISTRO == "al2023" ]]; then
-  TOKEN=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
-  EC2_INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id -H "X-aws-ec2-metadata-token: $TOKEN")
-  REGION=$(curl -s http://169.254.169.254/latest/meta-data/placement/region -H "X-aws-ec2-metadata-token: $TOKEN")
-  AVAILABILITY_ZONE=$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone -H "X-aws-ec2-metadata-token: $TOKEN")
-else
-  AVAILABILITY_ZONE=$(curl http://169.254.169.254/latest/meta-data/placement/availability-zone -s)
-  REGION=$(echo ${AVAILABILITY_ZONE::-1})
-  EC2_INSTANCE_ID=$(curl http://169.254.169.254/latest/meta-data/instance-id -s)
-fi
+MAGIC_URL="http://169.254.169.254/latest/meta-data/"
+AVAILABILITY_ZONE=$(curl http://169.254.169.254/latest/meta-data/placement/availability-zone -s)
+REGION=$(echo ${AVAILABILITY_ZONE::-1})
 DOCKER_DOWNLOAD_URL="https://download.docker.com/linux/ubuntu"
 AWSLOGS_DOWNLOAD_URL="https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb"
 SQUID_CONFIG_DIR="/etc/squid"
@@ -108,7 +101,7 @@ function set_squid_config(){
   cp ${SUB_FOLDER}/files/squid_whitelist/ftp_whitelist ${SQUID_CONFIG_DIR}/ftp_whitelist
   cp ${SUB_FOLDER}/files/squid_whitelist/web_whitelist ${SQUID_CONFIG_DIR}/web_whitelist
   cp ${SUB_FOLDER}/files/squid_whitelist/web_wildcard_whitelist ${SQUID_CONFIG_DIR}/web_wildcard_whitelist
-  cp ${SUB_FOLDER}/flavors/squid_auto/startup_configs/squid.conf ${SQUID_CONFIG_DIR}/squid.conf
+  cp ${SUB_FOLDER}/flavors/squid_auto/startup_configs/squid-nlb.conf ${SQUID_CONFIG_DIR}/squid.conf
   cp ${SUB_FOLDER}/flavors/squid_auto/startup_configs/cachemgr.conf ${SQUID_CONFIG_DIR}/cachemgr.conf
   cp ${SUB_FOLDER}/flavors/squid_auto/startup_configs/errorpage.css ${SQUID_CONFIG_DIR}/errorpage.css
   cp ${SUB_FOLDER}/flavors/squid_auto/startup_configs/mime.conf ${SQUID_CONFIG_DIR}/mime.conf
@@ -331,7 +324,7 @@ function main(){
       --volume ${SQUID_CACHE_DIR}:${SQUID_CACHE_DIR} \
       --volume ${SQUID_CONFIG_DIR}:${SQUID_CONFIG_DIR}:ro \
        quay.io/cdis/squid:${SQUID_IMAGE_TAG}
-  aws ec2 modify-instance-attribute --no-source-dest-check --instance-id $EC2_INSTANCE_ID --region $REGION
+
   max_attempts=10
   attempt_counter=0
   while [ $attempt_counter -lt $max_attempts ]; do
