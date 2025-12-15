@@ -180,8 +180,7 @@ data:
 
             <MetadataProvider type="Chaining" >
                 <!-- This is here because the whitelist will strip out everyone from above DiscoveryFilter otherwise -->
-                <MetadataProvider type="XML" uri="http://mdq.incommon.org/entities/idps/all"  reloadInterval="7200" legacyOrgNames="true">
-                    <SignatureMetadataFilter certificate="/etc/shibboleth/inc-md-cert.pem"/>
+                <MetadataProvider type="XML" uri="https://mdq.incommon.org/entities/idps/all"  reloadInterval="7200" legacyOrgNames="true">
                     <MetadataFilter type="Blacklist">
                         <Exclude>urn:mace:incommon:nih.gov</Exclude>
                     </MetadataFilter>
