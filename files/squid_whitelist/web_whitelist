@@ -8,9 +8,11 @@ apache.github.io
 api.epigraphdb.org
 api.monqcle.com
 app.getambassador.io
+artifacts.elastic.co
 awslabs.github.io
 biodata-integration-tests.net
 marketing.biorender.com
+cdn-lfs.huggingface.co
 cdn.playwright.dev
 clinicaltrials.gov
 charts.bitnami.com
@@ -89,6 +91,7 @@ helm.elastic.co
 helm.localstack.cloud
 helm.cilium.io
 http.us.debian.org
+huggingface.co
 ifconfig.io
 ingress.coralogix.us
 internet2.edu
@@ -147,6 +150,7 @@ public.ecr.aws
 pubmirrors.dal.corespace.com
 reflector.westga.edu
 registry.npmjs.org
+registry.ollama.ai
 registry.terraform.io
 releases.rancher.com
 rendersnake.googlecode.com
