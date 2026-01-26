@@ -181,10 +181,16 @@ data:
             <MetadataProvider type="Chaining" >
                 <!-- This is here because the whitelist will strip out everyone from above DiscoveryFilter otherwise -->
                 <MetadataProvider type="XML" uri="http://mdq.incommon.org/entities/idps/all"  reloadInterval="7200" legacyOrgNames="true">
-                    <SignatureMetadataFilter certificate="/etc/shibboleth/inc-md-cert.pem"/>
                     <MetadataFilter type="Blacklist">
                         <Exclude>urn:mace:incommon:nih.gov</Exclude>
+                        <Exclude>https://login.slub-dresden.de/idp/shibboleth</Exclude>
                     </MetadataFilter>
+                    <MetadataFilter type="Whitelist" matcher="EntityAttributes">
+                        <saml:Attribute Name="http://macedir.org/entity-category-support" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri">
+                            <saml:AttributeValue>http://refeds.org/category/research-and-scholarship</saml:AttributeValue>
+                        </saml:Attribute>
+                    </MetadataFilter>
+                    <MetadataFilter type="RequireValidUntil" maxValidityInterval="1209600"/>
                 </MetadataProvider>
                 <MetadataProvider type="XML" path="/etc/shibboleth/metadata.xml"  reloadInterval="7200" legacyOrgNames="true"></MetadataProvider>
             </MetadataProvider>
@@ -461,6 +467,6 @@ data:
            </KeyDescriptor>
            <NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:persistent</NameIDFormat>
            <SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://auth.nih.gov/affwebservices/public/saml2sso"/>
-   		<SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://auth.nih.gov/affwebservices/public/saml2sso"/>
+                <SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://auth.nih.gov/affwebservices/public/saml2sso"/>
     </IDPSSODescriptor>
    </EntityDescriptor>
