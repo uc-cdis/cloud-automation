@@ -41,6 +41,7 @@ cernvm.cern.ch
 charts.authelia.com
 charts.crossplane.io
 charts.helm.sh
+charts.s3fs-csi-driver.io
 cloud.r-project.org
 coredns.github.io
 coreos.com
