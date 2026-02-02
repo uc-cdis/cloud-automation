@@ -47,7 +47,6 @@
 .extjs.com
 .fedoraproject.org
 .figshare.com
-.ftpmirror.gnu.org
 .gen3.org
 .genome.jp
 .github.com
@@ -55,6 +54,7 @@
 .gitlab.com
 .googleapis.com
 .googleusercontent.com
+.gnu.org
 .gstatic.com
 .hashicorp.com
 .healdata.org
@@ -73,7 +73,6 @@
 .metabolomicsworkbench.org
 .metacpan.org
 .midrc.org
-.mirror.spack.io
 .nesi.org.nz
 .newrelic.com
 .niaiddata.org
@@ -113,6 +112,7 @@
 .snapcraftcontent.com
 .sourceforge.net
 .southsideweekly.com
+.spack.io
 .strrl.dev
 .theanvil.io
 .themmrf.org
