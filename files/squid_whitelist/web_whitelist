@@ -17,6 +17,8 @@ cdn.playwright.dev
 clinicaltrials.gov
 charts.bitnami.com
 ctds-planx.atlassian.net
+curl.se
+curl.haxx.se
 data.cityofchicago.org
 data.mendeley.com
 data.stage.qdr.org
@@ -90,6 +92,7 @@ grafana.github.io
 helm.elastic.co
 helm.localstack.cloud
 helm.cilium.io
+hf.space
 http.us.debian.org
 huggingface.co
 ifconfig.io
@@ -177,10 +180,12 @@ security.debian.org
 services.mathworks.com
 streaming.stat.iastate.edu
 uc-cdis.github.io
+uc-ctds-gdc-cohort-copilot.hf.space
 us-east4-docker.pkg.dev
 us-central1-docker.pkg.dev
 www.google.com
 www.icpsr.umich.edu
+www.lua.org
 www.mathworks.com
 www.oracle.com
 www.rabbitmq.com

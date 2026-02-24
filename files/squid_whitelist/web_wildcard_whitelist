@@ -52,6 +52,7 @@
 .github.com
 .githubusercontent.com
 .gitlab.com
+.gnu.org
 .googleapis.com
 .googleusercontent.com
 .gstatic.com
@@ -65,6 +66,7 @@
 .jetstack.io
 .k8s.io
 .kegg.jp
+.kernel.org
 .kidsfirstdrc.org
 .letsencrypt.org
 .m3aicommons.org
@@ -102,6 +104,7 @@
 .rcsb.org
 .rstudio.com
 .rubygems.org
+.rust-lang.org
 .sa-update.pccc.com
 .sencha.com
 .sks-keyservers.net
@@ -111,6 +114,7 @@
 .snapcraftcontent.com
 .sourceforge.net
 .southsideweekly.com
+.spack.io
 .strrl.dev
 .theanvil.io
 .themmrf.org
