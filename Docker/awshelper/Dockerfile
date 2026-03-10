@@ -75,7 +75,7 @@ RUN export CLOUD_SDK_REPO="cloud-sdk" && \
 RUN curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc| gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg && \
     echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" | tee  /etc/apt/sources.list.d/pgdg.list && \
     apt-get update && \
-    apt-get install -y postgresql-client-13
+    apt-get install -y postgresql-client-16
 
 # install terraform
 RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.15/terraform_0.11.15_linux_amd64.zip \
