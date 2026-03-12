@@ -88,6 +88,9 @@ spec:
         - name: fence-sshconfig
           configMap:
             name: "fence-sshconfig"
+        - name: fence-knownhosts
+          configMap:
+            name: "fence-knownhosts"
         - name: projects
           configMap:
             name: "projects"
@@ -181,6 +184,9 @@ spec:
           - name: "fence-sshconfig"
             mountPath: "/root/.ssh/config"
             subPath: "config"
+          - name: "fence-knownhosts"
+            mountPath: "/root/.ssh/known_hosts"
+            subPath: "known_hosts"
           - name: "projects"
             mountPath: "/var/www/fence/projects.yaml"
             subPath: "projects.yaml"
