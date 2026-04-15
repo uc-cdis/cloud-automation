@@ -90,6 +90,7 @@ golang.org
 gopkg.in
 grafana.com
 grafana.github.io
+grafana-community.github.io
 helm.elastic.co
 helm.localstack.cloud
 helm.cilium.io
@@ -150,7 +151,6 @@ playwright.download.prss.microsoft.com
 ppa.launchpad.net
 prometheus-community.github.io
 proxy.golang.org
-public.ecr.aws
 pubmirrors.dal.corespace.com
 reflector.westga.edu
 registry.npmjs.org

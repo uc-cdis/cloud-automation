@@ -7,6 +7,7 @@
 .anaconda.com
 .anaconda.org
 .apache.org
+.aws
 .azureedge.net
 .bioconductor.org
 .bionimbus.org
@@ -27,9 +28,11 @@
 .clamav.net
 .cloud.google.com
 .cloudfront.net
+.cloudflarestorage.com
 .completegenomics.com
 .covidtracking.com
 .cpan.org
+.crates.io
 .datacommons.io
 .data-commons.org
 .datadoghq.com
