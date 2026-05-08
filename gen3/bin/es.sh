@@ -28,7 +28,16 @@ es_port_forward() {
     local OFFSET
     OFFSET=$((RANDOM % 1000))
     portNum=$((OFFSET+9200))
-    g3kubectl port-forward deployment/aws-es-proxy-deployment ${portNum}:9200 1>&2 &
+    if g3kubectl get deployment "aws-es-proxy-deployment" &> /dev/null; then
+      gen3_log_info "Port-forward to aws-es-proxy"
+      g3kubectl port-forward deployment/aws-es-proxy-deployment ${portNum}:9200 1>&2 &
+    elif g3kubectl get deployment "aws-sigv4-proxy-deployment" &> /dev/null; then
+      gen3_log_info "Port-forward to aws-sigv4-proxy"
+      g3kubectl port-forward deployment/aws-sigv4-proxy-deployment ${portNum}:9200 1>&2 &
+    else
+      gen3_log_info "No ES proxy deployments available"
+      exit 0
+    fi
   fi
   export ESHOST="localhost:$portNum"
   echo "$portNum"
