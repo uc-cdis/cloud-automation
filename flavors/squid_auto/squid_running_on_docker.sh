@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 ###############################################################
 # variables
 ###############################################################
@@ -12,34 +11,30 @@ if [[ $DISTRO == "Amazon Linux" ]]; then
     DISTRO="al2023"
   fi
 fi
+
 HOME_FOLDER="/home/${WORK_USER}"
 SUB_FOLDER="${HOME_FOLDER}/cloud-automation"
+
 ###############################################################
 # configurable repo/file locations
 ###############################################################
 AUTOMATION_ROOT="${SUB_FOLDER}"
 
-AUTHORIZED_KEYS_DIR=""
-SQUID_WHITELIST_DIR=""
-UPDATEWHITELIST_SCRIPT=""
-HEALTHCHECK_SCRIPT=""
-
-AUTHORIZED_KEYS_DIR_EXPLICIT=false
-SQUID_WHITELIST_DIR_EXPLICIT=false
-UPDATEWHITELIST_SCRIPT_EXPLICIT=false
-HEALTHCHECK_SCRIPT_EXPLICIT=false
-
 SSH_KEYS_REPO=""
 SSH_KEYS_REPO_DIR="/opt/ssh-keys"
-SSH_KEYS_PATH="."
+SSH_ADMIN_KEYS_FILE="files/authorized_keys/squid_authorized_keys_admin"
+SSH_USER_KEYS_FILE="files/authorized_keys/squid_authorized_keys_user"
 
 WHITELIST_REPO=""
 WHITELIST_REPO_DIR="/opt/squid-whitelists"
-WHITELIST_PATH="."
+FTP_WHITELIST_FILE="files/squid_whitelist/ftp_whitelist"
+WEB_WHITELIST_FILE="files/squid_whitelist/web_whitelist"
+WEB_WILDCARD_WHITELIST_FILE="files/squid_whitelist/web_wildcard_whitelist"
 
 SCRIPT_REPO=""
 SCRIPT_REPO_DIR="/opt/squid-scripts"
-SCRIPT_PATH="."
+UPDATEWHITELIST_SCRIPT_FILE="flavors/squid_auto/updatewhitelist-docker.sh"
+HEALTHCHECK_SCRIPT_FILE="flavors/squid_auto/healthcheck.sh"
 
 if [[ $DISTRO == "al2023" ]]; then
   TOKEN=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
@@ -51,6 +46,7 @@ else
   REGION=$(echo ${AVAILABILITY_ZONE::-1})
   EC2_INSTANCE_ID=$(curl http://169.254.169.254/latest/meta-data/instance-id -s)
 fi
+
 DOCKER_DOWNLOAD_URL="https://download.docker.com/linux/ubuntu"
 AWSLOGS_DOWNLOAD_URL="https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb"
 SQUID_CONFIG_DIR="/etc/squid"
@@ -83,70 +79,48 @@ else
     elif [[ $i = automation_root=* ]]; then
       AUTOMATION_ROOT="$(echo "$i" | cut -d= -f2-)"
 
-    elif [[ $i = authorized_keys_dir=* ]]; then
-      AUTHORIZED_KEYS_DIR="$(echo "$i" | cut -d= -f2-)"
-      AUTHORIZED_KEYS_DIR_EXPLICIT=true
-
-    elif [[ $i = squid_whitelist_dir=* ]]; then
-      SQUID_WHITELIST_DIR="$(echo "$i" | cut -d= -f2-)"
-      SQUID_WHITELIST_DIR_EXPLICIT=true
-
-    elif [[ $i = updatewhitelist_script=* ]]; then
-      UPDATEWHITELIST_SCRIPT="$(echo "$i" | cut -d= -f2-)"
-      UPDATEWHITELIST_SCRIPT_EXPLICIT=true
-
-    elif [[ $i = healthcheck_script=* ]]; then
-      HEALTHCHECK_SCRIPT="$(echo "$i" | cut -d= -f2-)"
-      HEALTHCHECK_SCRIPT_EXPLICIT=true
-
     elif [[ $i = ssh_keys_repo=* ]]; then
       SSH_KEYS_REPO="$(echo "$i" | cut -d= -f2-)"
-
-    elif [[ $i = ssh_keys_path=* ]]; then
-      SSH_KEYS_PATH="$(echo "$i" | cut -d= -f2-)"
 
     elif [[ $i = ssh_keys_repo_dir=* ]]; then
       SSH_KEYS_REPO_DIR="$(echo "$i" | cut -d= -f2-)"
 
+    elif [[ $i = ssh_admin_keys_file=* ]]; then
+      SSH_ADMIN_KEYS_FILE="$(echo "$i" | cut -d= -f2-)"
+
+    elif [[ $i = ssh_user_keys_file=* ]]; then
+      SSH_USER_KEYS_FILE="$(echo "$i" | cut -d= -f2-)"
+
     elif [[ $i = whitelist_repo=* ]]; then
       WHITELIST_REPO="$(echo "$i" | cut -d= -f2-)"
-
-    elif [[ $i = whitelist_path=* ]]; then
-      WHITELIST_PATH="$(echo "$i" | cut -d= -f2-)"
 
     elif [[ $i = whitelist_repo_dir=* ]]; then
       WHITELIST_REPO_DIR="$(echo "$i" | cut -d= -f2-)"
 
+    elif [[ $i = ftp_whitelist_file=* ]]; then
+      FTP_WHITELIST_FILE="$(echo "$i" | cut -d= -f2-)"
+
+    elif [[ $i = web_whitelist_file=* ]]; then
+      WEB_WHITELIST_FILE="$(echo "$i" | cut -d= -f2-)"
+
+    elif [[ $i = web_wildcard_whitelist_file=* ]]; then
+      WEB_WILDCARD_WHITELIST_FILE="$(echo "$i" | cut -d= -f2-)"
+
     elif [[ $i = script_repo=* ]]; then
       SCRIPT_REPO="$(echo "$i" | cut -d= -f2-)"
 
-    elif [[ $i = script_path=* ]]; then
-      SCRIPT_PATH="$(echo "$i" | cut -d= -f2-)"
-
     elif [[ $i = script_repo_dir=* ]]; then
       SCRIPT_REPO_DIR="$(echo "$i" | cut -d= -f2-)"
+
+    elif [[ $i = updatewhitelist_script_file=* ]]; then
+      UPDATEWHITELIST_SCRIPT_FILE="$(echo "$i" | cut -d= -f2-)"
+
+    elif [[ $i = healthcheck_script_file=* ]]; then
+      HEALTHCHECK_SCRIPT_FILE="$(echo "$i" | cut -d= -f2-)"
     fi
   done
 
   echo "$1"
-fi
-
-# Build defaults only after all arguments have been parsed so argument order
-# does not cause automation_root to overwrite explicit directories.
-if [[ "${AUTHORIZED_KEYS_DIR_EXPLICIT}" == "false" ]]; then
-  AUTHORIZED_KEYS_DIR="${AUTOMATION_ROOT}/files/authorized_keys"
-fi
-
-if [[ "${SQUID_WHITELIST_DIR_EXPLICIT}" == "false" ]]; then
-  SQUID_WHITELIST_DIR="${AUTOMATION_ROOT}/files/squid_whitelist"
-fi
-
-if [[ "${UPDATEWHITELIST_SCRIPT_EXPLICIT}" == "false" ]]; then
-  UPDATEWHITELIST_SCRIPT="${AUTOMATION_ROOT}/flavors/squid_auto/updatewhitelist-docker.sh"
-fi
-
-if [[ "${HEALTHCHECK_SCRIPT_EXPLICIT}" == "false" ]]; then
-  HEALTHCHECK_SCRIPT="${AUTOMATION_ROOT}/flavors/squid_auto/healthcheck.sh"
 fi
 
 function install_basics(){
@@ -160,36 +134,49 @@ function install_basics(){
   fi
 }
 
+function resolve_file(){
+  local root_dir="$1"
+  local file_path="$2"
+
+  if [[ "${file_path}" = /* ]]; then
+    echo "${file_path}"
+  else
+    echo "${root_dir}/${file_path}"
+  fi
+}
+
 function prepare_external_files(){
+  SSH_KEYS_ROOT="${AUTOMATION_ROOT}"
+  WHITELIST_ROOT="${AUTOMATION_ROOT}"
+  SCRIPT_ROOT="${AUTOMATION_ROOT}"
+
   if [[ -n "${SSH_KEYS_REPO}" ]]; then
     rm -rf "${SSH_KEYS_REPO_DIR}"
     git clone "${SSH_KEYS_REPO}" "${SSH_KEYS_REPO_DIR}"
-    AUTHORIZED_KEYS_DIR="${SSH_KEYS_REPO_DIR}/${SSH_KEYS_PATH}"
+    SSH_KEYS_ROOT="${SSH_KEYS_REPO_DIR}"
   fi
 
   if [[ -n "${WHITELIST_REPO}" ]]; then
     rm -rf "${WHITELIST_REPO_DIR}"
     git clone "${WHITELIST_REPO}" "${WHITELIST_REPO_DIR}"
-    SQUID_WHITELIST_DIR="${WHITELIST_REPO_DIR}/${WHITELIST_PATH}"
+    WHITELIST_ROOT="${WHITELIST_REPO_DIR}"
   fi
 
   if [[ -n "${SCRIPT_REPO}" ]]; then
     rm -rf "${SCRIPT_REPO_DIR}"
     git clone "${SCRIPT_REPO}" "${SCRIPT_REPO_DIR}"
-
-    if [[ "${UPDATEWHITELIST_SCRIPT_EXPLICIT}" == "false" ]]; then
-      UPDATEWHITELIST_SCRIPT="${SCRIPT_REPO_DIR}/${SCRIPT_PATH}/updatewhitelist-docker.sh"
-    fi
-
-    if [[ "${HEALTHCHECK_SCRIPT_EXPLICIT}" == "false" ]]; then
-      HEALTHCHECK_SCRIPT="${SCRIPT_REPO_DIR}/${SCRIPT_PATH}/healthcheck.sh"
-    fi
+    SCRIPT_ROOT="${SCRIPT_REPO_DIR}"
   fi
 
-  echo "Using authorized keys directory: ${AUTHORIZED_KEYS_DIR}"
-  echo "Using squid whitelist directory: ${SQUID_WHITELIST_DIR}"
-  echo "Using updatewhitelist script: ${UPDATEWHITELIST_SCRIPT}"
-  echo "Using healthcheck script: ${HEALTHCHECK_SCRIPT}"
+  SSH_ADMIN_KEYS_FILE="$(resolve_file "${SSH_KEYS_ROOT}" "${SSH_ADMIN_KEYS_FILE}")"
+  SSH_USER_KEYS_FILE="$(resolve_file "${SSH_KEYS_ROOT}" "${SSH_USER_KEYS_FILE}")"
+
+  FTP_WHITELIST_FILE="$(resolve_file "${WHITELIST_ROOT}" "${FTP_WHITELIST_FILE}")"
+  WEB_WHITELIST_FILE="$(resolve_file "${WHITELIST_ROOT}" "${WEB_WHITELIST_FILE}")"
+  WEB_WILDCARD_WHITELIST_FILE="$(resolve_file "${WHITELIST_ROOT}" "${WEB_WILDCARD_WHITELIST_FILE}")"
+
+  UPDATEWHITELIST_SCRIPT_FILE="$(resolve_file "${SCRIPT_ROOT}" "${UPDATEWHITELIST_SCRIPT_FILE}")"
+  HEALTHCHECK_SCRIPT_FILE="$(resolve_file "${SCRIPT_ROOT}" "${HEALTHCHECK_SCRIPT_FILE}")"
 }
 
 function require_file(){
@@ -205,9 +192,9 @@ function set_admin_authorized_keys(){
   mkdir -p "${HOME_FOLDER}/.ssh"
   chmod 700 "${HOME_FOLDER}/.ssh"
 
-  require_file "${AUTHORIZED_KEYS_DIR}/squid_authorized_keys_admin"
+  require_file "${SSH_ADMIN_KEYS_FILE}"
 
-  cp "${AUTHORIZED_KEYS_DIR}/squid_authorized_keys_admin" "${HOME_FOLDER}/.ssh/authorized_keys"
+  cp "${SSH_ADMIN_KEYS_FILE}" "${HOME_FOLDER}/.ssh/authorized_keys"
   chown -R "${WORK_USER}." "${HOME_FOLDER}/.ssh"
   chmod 600 "${HOME_FOLDER}/.ssh/authorized_keys"
 }
@@ -230,6 +217,7 @@ function install_docker(){
     sudo systemctl start docker
     sudo systemctl enable docker
   fi
+
   mkdir -p /etc/docker
   cp "${SUB_FOLDER}/flavors/squid_auto/startup_configs/docker-daemon.json" /etc/docker/daemon.json
   chmod -R 0644 /etc/docker
@@ -243,13 +231,13 @@ function set_squid_config(){
   ###############################################################
   mkdir -p "${SQUID_CONFIG_DIR}/ssl"
 
-  require_file "${SQUID_WHITELIST_DIR}/ftp_whitelist"
-  require_file "${SQUID_WHITELIST_DIR}/web_whitelist"
-  require_file "${SQUID_WHITELIST_DIR}/web_wildcard_whitelist"
+  require_file "${FTP_WHITELIST_FILE}"
+  require_file "${WEB_WHITELIST_FILE}"
+  require_file "${WEB_WILDCARD_WHITELIST_FILE}"
 
-  cp "${SQUID_WHITELIST_DIR}/ftp_whitelist" "${SQUID_CONFIG_DIR}/ftp_whitelist"
-  cp "${SQUID_WHITELIST_DIR}/web_whitelist" "${SQUID_CONFIG_DIR}/web_whitelist"
-  cp "${SQUID_WHITELIST_DIR}/web_wildcard_whitelist" "${SQUID_CONFIG_DIR}/web_wildcard_whitelist"
+  cp "${FTP_WHITELIST_FILE}" "${SQUID_CONFIG_DIR}/ftp_whitelist"
+  cp "${WEB_WHITELIST_FILE}" "${SQUID_CONFIG_DIR}/web_whitelist"
+  cp "${WEB_WILDCARD_WHITELIST_FILE}" "${SQUID_CONFIG_DIR}/web_wildcard_whitelist"
 
   cp "${SUB_FOLDER}/flavors/squid_auto/startup_configs/squid.conf" "${SQUID_CONFIG_DIR}/squid.conf"
   cp "${SUB_FOLDER}/flavors/squid_auto/startup_configs/cachemgr.conf" "${SQUID_CONFIG_DIR}/cachemgr.conf"
@@ -305,7 +293,8 @@ function set_boot_configuration(){
   ###############################################################
   #cp /etc/rc.local /etc/rc.local.bak
   #sed -i 's/^exit/#exit/' /etc/rc.local
-    cat > /etc/squid_boot.sh <<EOF
+
+  cat > /etc/squid_boot.sh <<EOF
 #!/bin/bash
 if [ -f /var/run/squid/squid.pid ];
 then
@@ -351,12 +340,12 @@ EOF
   systemctl enable squid_boot
 
   # Copy the updatewhitelist.sh script to the home directory
-  require_file "${UPDATEWHITELIST_SCRIPT}"
-  cp "${UPDATEWHITELIST_SCRIPT}" "${HOME_FOLDER}/updatewhitelist.sh"
+  require_file "${UPDATEWHITELIST_SCRIPT_FILE}"
+  cp "${UPDATEWHITELIST_SCRIPT_FILE}" "${HOME_FOLDER}/updatewhitelist.sh"
   chmod +x "${HOME_FOLDER}/updatewhitelist.sh"
 
-  require_file "${HEALTHCHECK_SCRIPT}"
-  cp "${HEALTHCHECK_SCRIPT}" "${HOME_FOLDER}/healthcheck.sh"
+  require_file "${HEALTHCHECK_SCRIPT_FILE}"
+  cp "${HEALTHCHECK_SCRIPT_FILE}" "${HOME_FOLDER}/healthcheck.sh"
   chmod +x "${HOME_FOLDER}/healthcheck.sh"
 
   crontab -l > crontab_file || true
@@ -444,9 +433,9 @@ function set_user() {
   mkdir -m 700 "/home/${username}/.ssh"
   cp -r "${HOME_FOLDER}/cloud-automation" "/home/${username}"
 
-  require_file "${AUTHORIZED_KEYS_DIR}/squid_authorized_keys_user"
+  require_file "${SSH_USER_KEYS_FILE}"
 
-  cp "${AUTHORIZED_KEYS_DIR}/squid_authorized_keys_user" "/home/${username}/.ssh/authorized_keys"
+  cp "${SSH_USER_KEYS_FILE}" "/home/${username}/.ssh/authorized_keys"
   chown -R "${username}." "/home/${username}"
   chmod 600 "/home/${username}/.ssh/authorized_keys"
 }
