@@ -177,6 +177,21 @@ function prepare_external_files(){
 
   UPDATEWHITELIST_SCRIPT_FILE="$(resolve_file "${SCRIPT_ROOT}" "${UPDATEWHITELIST_SCRIPT_FILE}")"
   HEALTHCHECK_SCRIPT_FILE="$(resolve_file "${SCRIPT_ROOT}" "${HEALTHCHECK_SCRIPT_FILE}")"
+  ###############################################################
+  # persist resolved locations for updatewhitelist.sh
+  ###############################################################
+  cat > /etc/squid_file_locations <<EOF
+SSH_KEYS_REPO_DIR="${SSH_KEYS_REPO_DIR}"
+WHITELIST_REPO_DIR="${WHITELIST_REPO_DIR}"
+SCRIPT_REPO_DIR="${SCRIPT_REPO_DIR}"
+
+SSH_USER_KEYS_FILE="${SSH_USER_KEYS_FILE}"
+
+FTP_WHITELIST_FILE="${FTP_WHITELIST_FILE}"
+WEB_WHITELIST_FILE="${WEB_WHITELIST_FILE}"
+WEB_WILDCARD_WHITELIST_FILE="${WEB_WILDCARD_WHITELIST_FILE}"
+EOF
+  chmod 0644 /etc/squid_file_locations 
 }
 
 function require_file(){
