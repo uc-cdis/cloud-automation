@@ -210,6 +210,13 @@ spec:
               fi
               exitcode=$?
             else
+              SFTP_PORT=22
+              KNOWN_HOSTS_PATH="/root/.ssh/known_hosts"
+              HOSTS=$(yq eval '[.dbGaP[].info.host] | join(" ")' /var/www/fence/fence-config.yaml)
+              for HOST in $HOSTS; do
+                echo "Scanning SSH key for $HOST"
+                ssh-keyscan -p $SFTP_PORT "$HOST" >> "$KNOWN_HOSTS_PATH"
+              done
               output=$(mktemp "/tmp/fence-create-output_XXXXXX")
               if [[ -f /mnt/shared/user.yaml && "$ONLY_DBGAP" != "true" ]]; then
                 echo "Running fence-create dbgap-sync with user.yaml - see $output"
