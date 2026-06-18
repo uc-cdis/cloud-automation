@@ -51,8 +51,8 @@ spec:
 
             export ACCESS_TOKEN="$(cat /mnt/shared/access_token.txt)"
 
-            npx selenium-standalone install --version=4.0.0-alpha-7 --drivers.chrome.version=92.0.4515.107 --drivers.chrome.baseURL=https://chromedriver.storage.googleapis.com
-            timeout $SELENIUM_TIMEOUT npx selenium-standalone start --version=4.0.0-alpha-7 --drivers.chrome.version=92.0.4515.107 &
+            npx selenium-standalone install --version=4.0.0-alpha-7 --drivers.chrome.version=111.0.5563.64 --drivers.chrome.baseURL=https://chromedriver.storage.googleapis.com
+            timeout $SELENIUM_TIMEOUT npx selenium-standalone start --version=4.0.0-alpha-7 --drivers.chrome.version=111.0.5563.64 &
             set +x
             echo "running checkAllProjectsBucketAccessTest.js..."
             INDEXD_FILTER=$INDEXD_QUERY_FILTER GEN3_SKIP_PROJ_SETUP=true npm test -- suites/prod/checkAllProjectsBucketAccessTest.js
