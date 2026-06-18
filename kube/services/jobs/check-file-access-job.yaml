@@ -1,0 +1,32 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: check-file-access
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      serviceAccountName: jenkins-service
+      containers:
+        - name: check-access
+          image: quay.io/cdis/awshelper:master
+          imagePullPolicy: Always
+          env:
+            - name: gen3Env
+              valueFrom:
+                configMapKeyRef:
+                  name: global
+                  key: environment
+            - name: GEN3_HOME
+              value: /home/ubuntu/cloud-automation
+            - name: USERNAME
+              GEN3_USERNAME|-value: "emalinowski@uchicago.edu"-|
+          command: [ "/bin/bash" ]
+          args:
+            - "-c"
+            - |
+              bash ~/cloud-automation/files/scripts/check-file-access.sh
+      restartPolicy: Never
