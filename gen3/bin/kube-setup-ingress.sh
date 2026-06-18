@@ -16,17 +16,17 @@ scriptDir="${GEN3_HOME}/kube/services/ingress"
 
 gen3_ingress_setup_waf() {
     gen3_log_info "Attaching ACL to ALB."
-    export acl_arn=`aws wafv2 list-web-acls --scope REGIONAL | jq -r '.WebACLs[]|select(.Name| contains(env.vpc_name)).ARN'`
-    export alb_name=`kubectl get ingress gen3-ingress | awk '{print $4}' | tail +2 |  sed 's/^\([A-Za-z0-9]*-[A-Za-z0-9]*-[A-Za-z0-9]*\).*/\1/;q'`
-    export alb_arn=`aws elbv2 describe-load-balancers --name $alb_name | yq -r .LoadBalancers[0].LoadBalancerArn`
-    export association=`aws wafv2 list-resources-for-web-acl --web-acl-arn $acl_arn | grep $alb_arn| sed -e 's/^[ \t]*//' | sed -e 's/^"//' -e 's/"$//'`
+    export acl_arn=$(aws wafv2 list-web-acls --scope REGIONAL | jq -r '.WebACLs[]|select(.Name| contains(env.vpc_name)).ARN')
+    export alb_name=$(kubectl get ingress gen3-ingress | awk '{print $4}' | tail +2 |  sed 's/^\([A-Za-z0-9]*-[A-Za-z0-9]*-[A-Za-z0-9]*\).*/\1/;q')
+    export alb_arn=$(aws elbv2 describe-load-balancers --name "$alb_name" | yq -r .LoadBalancers[0].LoadBalancerArn)
+    export association=$(aws wafv2 list-resources-for-web-acl --web-acl-arn "$acl_arn" | grep "$alb_arn"| sed -e 's/^[ \t]*//' | sed -e 's/^"//' -e 's/"$//')
     #variable to see if the association already exists
     echo "acl_arn: $acl_arn"
     echo "alb_arn: $alb_arn"
 if [[ $association != $alb_arn ]]; then
     aws wafv2 associate-web-acl\
-        --web-acl-arn $acl_arn \
-        --resource-arn $alb_arn \
+        --web-acl-arn "$acl_arn" \
+        --resource-arn "$alb_arn" \
         --region us-east-1
 
     gen3_log_info "Add ACL arn annotation to ALB ingress"
@@ -89,7 +89,8 @@ gen3_ingress_setup_role() {
                 "elasticloadbalancing:DescribeTargetGroups",
                 "elasticloadbalancing:DescribeTargetGroupAttributes",
                 "elasticloadbalancing:DescribeTargetHealth",
-                "elasticloadbalancing:DescribeTags"
+                "elasticloadbalancing:DescribeTags",
+                "elasticloadbalancing:DescribeListenerAttributes"
             ],
             "Resource": "*"
         },
@@ -294,8 +295,8 @@ EOM
   if ! gen3 awsrole info "$roleName" "kube-system" > /dev/null; then # setup role
     gen3_log_info "creating IAM role for ingress: $roleName, linking to sa $saName"
     gen3 awsrole create "$roleName" "$saName" "kube-system" || return 1
-    aws iam put-role-policy --role-name "$roleName" --policy-document file://${ingressPolicy} --policy-name "$policyName" 1>&2
-    gen3 awsrole sa-annotate $saName $roleName kube-system
+    aws iam put-role-policy --role-name "$roleName" --policy-document file://"${ingressPolicy}" --policy-name "$policyName" 1>&2
+    gen3 awsrole sa-annotate $saName "$roleName" kube-system
   else
     # update the annotation - just to be thorough
     gen3 awsrole sa-annotate "$saName" "$roleName" kube-system
@@ -319,7 +320,7 @@ if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
   # Create role/SA for the alb's
   gen3_ingress_setup_role
   # Deploy the aws-load-balancer-controller helm chart and upgrade if --force flag applied
-  gen3_ingress_deploy_helm_chart $1
+  gen3_ingress_deploy_helm_chart "$1"
 else
   if [[ -z $(kubectl get sa -n kube-system | grep aws-load-balancer-controller) ]]; then
     gen3_log_err "Please run this in the default namespace first to setup the necessary roles"
@@ -331,7 +332,7 @@ fi
 gen3_log_info "Applying ingress resource"
 export ARN=$(g3kubectl get configmap global --output=jsonpath='{.data.revproxy_arn}')
 g3kubectl apply -f "${GEN3_HOME}/kube/services/revproxy/revproxy-service.yaml"
-envsubst <$scriptDir/ingress.yaml | g3kubectl apply -f -
+envsubst <"$scriptDir"/ingress.yaml | g3kubectl apply -f -
 if [ "$deployWaf" = true ]; then
   gen3_ingress_setup_waf
 fi
