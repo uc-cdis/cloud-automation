@@ -33,6 +33,15 @@ function get_autoscaler_version(){
   local casv
 
   case ${k8s_version} in
+    "1.25+")
+      casv="v1.25.3"
+      ;;  
+    "1.24+")
+      casv="v1.24.3"
+      ;;  
+    "1.23+")
+      casv="v1.23.1"
+      ;;  
     "1.22+")
       casv="v1.22.2"
       ;;
@@ -72,7 +81,7 @@ function get_autoscaler_version(){
 
 
 function deploy() {
-  if [["$ctxNamespace" == "default" || "$ctxNamespace" == "null"]]; then
+  if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
     if (! g3kubectl --namespace=kube-system get deployment cluster-autoscaler > /dev/null 2>&1 ||  "${FORCE}" == true); then
       if ! [ -z ${CAS_VERSION} ];
       then
