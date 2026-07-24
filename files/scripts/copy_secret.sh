@@ -53,44 +53,44 @@ for SECRET_NAME in $(echo "$SECRETS_LIST" | jq -r '.[]'); do
   SECRET_BINARY=$(echo "$SECRET_DATA" | jq -r '.SecretBinary // empty')
 
   # 3. Check if secret exists in destination
-  #if aws secretsmanager describe-secret \
-  #  --profile "$DEST_PROFILE" \
-  #  --region "$REGION" \
-  #  --secret-id "$SECRET_NAME" >/dev/null 2>&1; then
+  if aws secretsmanager describe-secret \
+    --profile "$DEST_PROFILE" \
+    --region "$REGION" \
+    --secret-id "$SECRET_NAME" >/dev/null 2>&1; then
 
-  #  echo "  [UPDATE] Secret exists in destination. Overwriting payload..."
-  #  if [[ -n "$SECRET_STRING" ]]; then
-  #    aws secretsmanager put-secret-value \
-  #      --profile "$DEST_PROFILE" \
-  #      --region "$REGION" \
-  #      --secret-id "$SECRET_NAME" \
-  #      --secret-string "$SECRET_STRING" >/dev/null
-  #  elif [[ -n "$SECRET_BINARY" ]]; then
-  #    aws secretsmanager put-secret-value \
-  #      --profile "$DEST_PROFILE" \
-  #      --region "$REGION" \
-  #      --secret-id "$SECRET_NAME" \
-  #      --secret-binary "$SECRET_BINARY" >/dev/null
-  #  fi
-  #  echo "  [SUCCESS] Updated $SECRET_NAME in destination."
+    echo "  [UPDATE] Secret exists in destination. Overwriting payload..."
+    if [[ -n "$SECRET_STRING" ]]; then
+      aws secretsmanager put-secret-value \
+        --profile "$DEST_PROFILE" \
+        --region "$REGION" \
+        --secret-id "$SECRET_NAME" \
+        --secret-string "$SECRET_STRING" >/dev/null
+    elif [[ -n "$SECRET_BINARY" ]]; then
+      aws secretsmanager put-secret-value \
+        --profile "$DEST_PROFILE" \
+        --region "$REGION" \
+        --secret-id "$SECRET_NAME" \
+        --secret-binary "$SECRET_BINARY" >/dev/null
+    fi
+    echo "  [SUCCESS] Updated $SECRET_NAME in destination."
 
-  #else
-  #  echo "  [CREATE] Creating new secret in destination..."
-  #  if [[ -n "$SECRET_STRING" ]]; then
-  #    aws secretsmanager create-secret \
-  #      --profile "$DEST_PROFILE" \
-  #      --region "$REGION" \
-  #      --name "$SECRET_NAME" \
-  #      --secret-string "$SECRET_STRING" >/dev/null
-  #  elif [[ -n "$SECRET_BINARY" ]]; then
-  #    aws secretsmanager create-secret \
-  #      --profile "$DEST_PROFILE" \
-  #      --region "$REGION" \
-  #      --name "$SECRET_NAME" \
-  #      --secret-binary "$SECRET_BINARY" >/dev/null
-  #  fi
-  #  echo "  [SUCCESS] Created $SECRET_NAME in destination."
-  #fi
+  else
+    echo "  [CREATE] Creating new secret in destination..."
+    if [[ -n "$SECRET_STRING" ]]; then
+      aws secretsmanager create-secret \
+        --profile "$DEST_PROFILE" \
+        --region "$REGION" \
+        --name "$SECRET_NAME" \
+        --secret-string "$SECRET_STRING" >/dev/null
+    elif [[ -n "$SECRET_BINARY" ]]; then
+      aws secretsmanager create-secret \
+        --profile "$DEST_PROFILE" \
+        --region "$REGION" \
+        --name "$SECRET_NAME" \
+        --secret-binary "$SECRET_BINARY" >/dev/null
+    fi
+    echo "  [SUCCESS] Created $SECRET_NAME in destination."
+  fi
 done
 
 echo "--------------------------------------------------"
