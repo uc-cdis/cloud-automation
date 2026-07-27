@@ -17,6 +17,16 @@ echo " Prefix Filter:       ${SECRET_PREFIX:-<ALL SECRETS>}"
 echo " Swap:                ${SWAP} to attempt secret rewriting"
 echo "=================================================="
 
+# Helper function to apply string replacements to a payload
+swap_secret_payload() {
+  local payload="$1"
+  if [[ -n "$payload" ]]; then
+    echo "$payload" | sed \
+      -e 's/covid19prod-aurora-cluster/unfunded-aurora-cluster-instance-new/g' \
+      -e 's/cluster-chr4fzt3fb1u/c2qpsmgsoq5z/g'
+  fi
+}
+
 # 1. Fetch secret names from source account
 echo "Fetching secret list from source..."
 SECRETS_LIST=$(aws secretsmanager list-secrets \
@@ -52,14 +62,14 @@ for SECRET_NAME in $(echo "$SECRETS_LIST" | jq -r '.[]'); do
   fi
 
   # TODO: This is very specific for changing secrets probably wont get them all
+  SECRET_STRING=$(echo "$SECRET_DATA" | jq -r '.SecretString // empty')
+  SECRET_BINARY=$(echo "$SECRET_DATA" | jq -r '.SecretBinary // empty')
+
   # but should get us somewhere in the right direction
   if [[ "$SWAP" ]]; then
     echo " SWAPPING secret value"
-    SECRET_STRING=$(echo "$SECRET_DATA" | sed "s/covid19prod/unfunded/g" | jq -r '.SecretString // empty')
-    SECRET_BINARY=$(echo "$SECRET_DATA" | sed "s/covid19prod/unfunded/g" | jq -r '.SecretBinary // empty')
-  else
-    SECRET_STRING=$(echo "$SECRET_DATA" | jq -r '.SecretString // empty')
-    SECRET_BINARY=$(echo "$SECRET_DATA" | jq -r '.SecretBinary // empty')
+    SECRET_STRING=$(swap_secret_payload "$SECRET_STRING")
+    SECRET_BINARY=$(swap_secret_payload "$SECRET_BINARY")
   fi
 
   # 3. Check if secret exists in destination
