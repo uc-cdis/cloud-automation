@@ -6,6 +6,7 @@ SRC_PROFILE="${1:?Error: Provide source AWS profile as arg 1}"
 DEST_PROFILE="${2:?Error: Provide destination AWS profile as arg 2}"
 SECRET_PREFIX="${3:-}" # Optional: Filter secrets starting with a prefix (e.g., "gen3/" or "eks/")
 REGION="${AWS_REGION:-us-east-1}"
+SWAP=true
 
 echo "=================================================="
 echo " AWS Secrets Manager Migration"
@@ -13,6 +14,7 @@ echo " Source Profile:      $SRC_PROFILE"
 echo " Destination Profile: $DEST_PROFILE"
 echo " Region:              $REGION"
 echo " Prefix Filter:       ${SECRET_PREFIX:-<ALL SECRETS>}"
+echo " Swap:                ${SWAP} to attempt secret rewriting"
 echo "=================================================="
 
 # 1. Fetch secret names from source account
@@ -49,8 +51,16 @@ for SECRET_NAME in $(echo "$SECRETS_LIST" | jq -r '.[]'); do
     continue
   fi
 
-  SECRET_STRING=$(echo "$SECRET_DATA" | jq -r '.SecretString // empty')
-  SECRET_BINARY=$(echo "$SECRET_DATA" | jq -r '.SecretBinary // empty')
+  # TODO: This is very specific for changing secrets probably wont get them all
+  # but should get us somewhere in the right direction
+  if [[ "$SWAP" ]]; then
+    echo " SWAPPING secret value"
+    SECRET_STRING=$(echo "$SECRET_DATA" | sed "s/covid19prod/unfunded/g" | jq -r '.SecretString // empty')
+    SECRET_BINARY=$(echo "$SECRET_DATA" | sed "s/covid19prod/unfunded/g" | jq -r '.SecretBinary // empty')
+  else
+    SECRET_STRING=$(echo "$SECRET_DATA" | jq -r '.SecretString // empty')
+    SECRET_BINARY=$(echo "$SECRET_DATA" | jq -r '.SecretBinary // empty')
+  fi
 
   # 3. Check if secret exists in destination
   if aws secretsmanager describe-secret \
