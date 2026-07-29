@@ -14,7 +14,7 @@ echo " Source Profile:      $SRC_PROFILE"
 echo " Destination Profile: $DEST_PROFILE"
 echo " Region:              $REGION"
 echo " Prefix Filter:       ${SECRET_PREFIX:-<ALL SECRETS>}"
-echo " Swap:                ${SWAP} to attempt secret rewriting"
+echo " Swap:                #FIXME: ${SWAP} to attempt secret rewriting"
 echo "=================================================="
 
 # Helper function to apply string replacements to a payload
@@ -23,7 +23,8 @@ swap_secret_payload() {
   if [[ -n "$payload" ]]; then
     echo "$payload" | sed \
       -e 's/covid19prod-aurora-cluster/unfunded-aurora-cluster-instance-new/g' \
-      -e 's/cluster-chr4fzt3fb1u/c2qpsmgsoq5z/g'
+      -e 's/cluster-chr4fzt3fb1u/c2qpsmgsoq5z/g' \
+      -e 's/default_250410_200258/covid19_250410_200258/g'
   fi
 }
 
