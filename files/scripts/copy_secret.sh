@@ -6,7 +6,7 @@ SRC_PROFILE="${1:?Error: Provide source AWS profile as arg 1}"
 DEST_PROFILE="${2:?Error: Provide destination AWS profile as arg 2}"
 SECRET_PREFIX="${3:-}" # Optional: Filter secrets starting with a prefix (e.g., "gen3/" or "eks/")
 REGION="${AWS_REGION:-us-east-1}"
-SWAP=true
+SWAP=false
 
 echo "=================================================="
 echo " AWS Secrets Manager Migration"
