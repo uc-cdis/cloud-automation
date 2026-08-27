@@ -187,6 +187,7 @@ $assumeImageBuilderRolePolicyBlock
                 "iam:DeletePolicyVersion",
                 "iam:ListRoles",
                 "iam:CreateRole",
+                "iam:GetRole",
                 "iam:TagRole",
                 "iam:AttachRolePolicy",
                 "iam:CreateUser",
