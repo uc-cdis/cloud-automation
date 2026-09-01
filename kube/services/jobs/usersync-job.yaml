@@ -93,7 +93,7 @@ spec:
             name: "projects"
       containers:
       - name: usersync
-        GEN3_FENCE_IMAGE
+        image: "quay.io/cdis/fence:10.4.0"
         imagePullPolicy: Always
         env:
           - name: prometheus_multiproc_dir
