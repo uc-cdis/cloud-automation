@@ -23,7 +23,7 @@ resource "aws_instance" "storage-gw-server" {
   root_block_device {
     # Get volume size from var permanently
     volume_size = "${var.size}"
-    volume_type = "gp2"
+    volume_type = "gp3"
     encrypted   = true
   }
   # add tags later
@@ -34,7 +34,7 @@ resource "aws_ebs_volume" "cache-disk" {
   # Get volume size from var permanently
   size = "${var.cache_size}"
   encrypted = true
-  type = "gp2"
+  type = "gp3"
   # add tags later
 }
 
