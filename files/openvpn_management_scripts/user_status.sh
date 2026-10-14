@@ -33,7 +33,7 @@ revoke-full client &>/dev/null
 set -u
 set -e
 
-crl=$(tempfile)
+crl=$(mktemp)
 make_crl(){
     cat ${KEY_PATH}/ca.crt  ${KEY_PATH}/crl.pem  > $crl
 }
