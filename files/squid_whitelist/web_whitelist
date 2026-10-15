@@ -44,6 +44,7 @@ centos.mirrors.wvstateu.edu
 cernvm.cern.ch
 charts.authelia.com
 charts.crossplane.io
+cilogon.org
 charts.helm.sh
 cloud.r-project.org
 coredns.github.io
@@ -152,8 +153,10 @@ portal.dev.genie.dci.thehyve.nl
 ppa.launchpad.net
 prometheus-community.github.io
 proxy.golang.org
+public-cr-prod.seqera.io
 pubmirrors.dal.corespace.com
 reflector.westga.edu
+registry.nextflow.io
 registry.npmjs.org
 registry.ollama.ai
 registry.terraform.io
@@ -189,6 +192,7 @@ us-central1-docker.pkg.dev
 www.google.com
 www.icpsr.umich.edu
 www.lua.org
+www.nextflow.io
 www.mathworks.com
 www.oracle.com
 www.rabbitmq.com
