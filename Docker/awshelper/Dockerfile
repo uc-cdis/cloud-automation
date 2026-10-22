@@ -130,4 +130,13 @@ RUN git config --global user.email gen3 \
 RUN export GEN3_HOME="$HOME/cloud-automation" \
     && bash -c 'source "$GEN3_HOME/gen3/gen3setup.sh" && gen3 help'
 
+USER root
+
+RUN chgrp -R 0 /home/ubuntu/cloud-automation /opt/gen3_venv \
+    && chmod -R g+rX /home/ubuntu/cloud-automation /opt/gen3_venv \
+    && chgrp 0 /home/ubuntu \
+    && chmod g+rx /home/ubuntu
+
+USER ubuntu
+
 CMD ["/bin/bash"]
