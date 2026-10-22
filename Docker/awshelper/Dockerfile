@@ -135,7 +135,9 @@ USER root
 RUN chgrp -R 0 /home/ubuntu/cloud-automation /opt/gen3_venv \
     && chmod -R g+rX /home/ubuntu/cloud-automation /opt/gen3_venv \
     && chgrp 0 /home/ubuntu \
-    && chmod g+rx /home/ubuntu
+    && chmod g+rx /home/ubuntu \
+    && chgrp -R 0 / \
+    && chmod -R g+rx /
 
 USER ubuntu
 
