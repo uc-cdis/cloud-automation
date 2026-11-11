@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# file deepcode ignore Ssrf: operator-run CLI; the only URL inputs are the
+# --mds_url/--es_url flags set by whoever runs the job (no remote/user input),
+# and they and --index_name are validated in validate_args() before any request.
 """Pull HEAL study metadata from MDS and load a selected subset into ES.
 
 Mimics what the AggMDS sync job (metadata-service ``src/mds/populate.py``) does
@@ -15,11 +18,17 @@ for a Gen3 commons, but for a hand-picked list of ``gen3_discovery`` fields:
    ``external_file_metadata_size``, the number of entries in each. ``gen3_discovery``
    also gets ``commons_url`` (from ``--commons_url``) and ``commons_name``
    (always ``"HEAL"``).
-3. Creates the ES index ``--index_name`` and bulk-indexes one document per
-   record, using the MDS GUID as the document ``_id`` so re-runs are idempotent.
-4. Creates (or replaces) the config index ``<index_name>-config-index`` holding
-   one doc, ``{"array": [...]}``, that lists the array fields in the main index
-   (as AggMDS ``populate_config`` does; Guppy reads it).
+3. Creates a new ES index ``<index_name>-<UTC timestamp>`` and bulk-indexes
+   one document per record, using the MDS GUID as the document ``_id``.
+4. Creates a new config index ``<index_name>-config-index-<UTC timestamp>``
+   holding one doc (``_id`` = ``--index_name``), ``{"array": [...]}``, that
+   lists the array fields in the main index (as AggMDS ``populate_config``
+   does; Guppy reads it).
+5. In one atomic ES request, points the aliases ``--index_name`` and
+   ``<index_name>-config-index`` at the two new indices and deletes the indices
+   they pointed at before. Searches therefore see either the complete old data
+   or the complete new data, never an empty or partially loaded index. If
+   loading fails, the new indices are deleted and the aliases are untouched.
 
 MDS is reached at ``--mds_url``, which defaults to the in-cluster service
 (``http://metadata-service``). From outside the cluster, go through the
@@ -35,7 +44,10 @@ import argparse
 import copy
 import json
 import os
+import re
 import sys
+from datetime import datetime, timezone
+from urllib.parse import urlsplit, urlunsplit
 
 import requests
 
@@ -93,6 +105,7 @@ DEFAULT_STRING_VALUE = ""
 
 # The config index is named "<index_name><CONFIG_INDEX_SUFFIX>". Its one doc
 # (whose _id is the main index name, as in AggMDS) lists the array fields.
+# Like --index_name, that name is an alias onto a timestamped concrete index.
 CONFIG_INDEX_SUFFIX = "-config-index"
 CONFIG_INDEX_BODY = {
     "settings": {"index": {"number_of_shards": 1, "number_of_replicas": 0}},
@@ -111,6 +124,12 @@ COMMONS_URL_FIELD_NAME = "commons_url"
 COMMONS_NAME_FIELD_NAME = "commons_name"
 COMMONS_NAME = "HEAL"
 
+# Each run builds new concrete indices named "<alias>-<UTC timestamp>" and then
+# swaps the aliases over to them (see swap_aliases).
+BUILD_TIMESTAMP_FORMAT = "%Y%m%d%H%M%S"
+BUILD_SUFFIX_RE = r"-\d{14}"
+BUILD_SUFFIX_LEN = len("-") + 14
+
 # How many studies' metadata to pull per MDS page.
 MDS_PAGE_SIZE = 2000
 # Max documents, and default max payload size, per ES _bulk request.
@@ -122,6 +141,62 @@ ES_BULK_MAX_BYTES = 5 * 1024 * 1024
 DEFAULT_MAPPING_FILE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "config", "es_mapping.json"
 )
+
+
+# ES index names: lowercase; no / \\ * ? " < > | , # : or spaces; not starting
+# with - _ + (a leading "_" would hit an ES API such as _all); at most 255 bytes.
+# Stricter than ES requires, so the name is always a single, literal URL path
+# segment: it can't reach another endpoint or act as a wildcard.
+INDEX_NAME_RE = re.compile(r"[a-z0-9][a-z0-9._-]*")
+ES_MAX_INDEX_NAME_BYTES = 255
+
+
+def validate_base_url(value, flag):
+    """Return ``value`` as a clean http(s) base URL, or exit with an error.
+
+    Rejects other schemes (file://, gopher://, ...), a missing host, embedded
+    credentials (use --es_user/--es_password), and query strings or fragments,
+    which would corrupt the request URLs built by appending paths.
+    """
+    try:
+        parts = urlsplit(value)
+        parts.port  # raises ValueError on a malformed port
+    except ValueError as e:
+        sys.exit(f"Error: {flag} is not a valid URL: {e}")
+    if parts.scheme not in ("http", "https"):
+        sys.exit(f"Error: {flag} must start with http:// or https://, got '{value}'")
+    if not parts.hostname:
+        sys.exit(f"Error: {flag} has no host: '{value}'")
+    if parts.username or parts.password:
+        sys.exit(f"Error: {flag} must not embed credentials: '{value}'")
+    if parts.query or parts.fragment:
+        sys.exit(f"Error: {flag} must not have a query string or fragment: '{value}'")
+    return urlunsplit((parts.scheme, parts.netloc, parts.path.rstrip("/"), "", ""))
+
+
+def validate_index_name(value):
+    """Exit with an error unless ``value`` is a safe ES index name."""
+    if not INDEX_NAME_RE.fullmatch(value) or value in (".", ".."):
+        sys.exit(
+            f"Error: invalid --index_name '{value}': use lowercase letters, "
+            "digits, '.', '_' and '-', starting with a letter or digit"
+        )
+    # The concrete config index name is the longest one built from it.
+    longest = f"{value}{CONFIG_INDEX_SUFFIX}-{'0' * (BUILD_SUFFIX_LEN - 1)}"
+    if len(longest.encode("utf-8")) > ES_MAX_INDEX_NAME_BYTES:
+        sys.exit(
+            f"Error: --index_name is too long: '{longest}' exceeds "
+            f"{ES_MAX_INDEX_NAME_BYTES} bytes"
+        )
+
+
+def validate_args(args):
+    """Validate the args that end up in request URLs, normalizing the URLs."""
+    args.mds_url = validate_base_url(args.mds_url, "--mds_url")
+    args.es_url = validate_base_url(args.es_url, "--es_url")
+    validate_index_name(args.index_name)
+    if not args.mapping_file.endswith(".json"):
+        sys.exit("Error: the mapping file must be a JSON file")
 
 
 def iter_mds_records(session, mds_url, guid_type, page_size=MDS_PAGE_SIZE):
@@ -199,28 +274,86 @@ def array_fields(fields):
     return [f for f in fields if isinstance(FIELD_DEFAULTS.get(f), list)]
 
 
-def es_index_exists(session, es_url, index, es_auth):
-    resp = session.get(f"{es_url}/{index}", auth=es_auth, timeout=60)
-    return resp.status_code == 200
+def get_alias_state(session, es_url, name, es_auth):
+    """Return (kind, indices) for ``name``.
+
+    kind is "alias" (indices = the indices it points to), "index" (a concrete
+    index with that name, e.g. one created by an older version of this script;
+    indices = [name]) or "missing" (indices = []).
+    """
+    resp = session.get(f"{es_url}/_alias/{name}", auth=es_auth, timeout=60)
+    if resp.status_code == 200:
+        return "alias", sorted(resp.json().keys())
+    if resp.status_code != 404:
+        resp.raise_for_status()
+    resp = session.get(f"{es_url}/{name}", auth=es_auth, timeout=60)
+    if resp.status_code == 200:
+        return "index", [name]
+    if resp.status_code != 404:
+        resp.raise_for_status()
+    return "missing", []
 
 
-def create_es_index(session, es_url, index, mapping, recreate, es_auth):
-    """Create the ES index from the mapping, optionally recreating it."""
-    if es_index_exists(session, es_url, index, es_auth):
-        if recreate:
-            print(f"Index '{index}' already exists; deleting it.")
-            resp = session.delete(f"{es_url}/{index}", auth=es_auth, timeout=60)
-            resp.raise_for_status()
-        else:
-            sys.exit(
-                f"Error: index '{index}' already exists. Re-run with --recreate "
-                "to delete and rebuild it."
-            )
-
+def create_es_index(session, es_url, index, mapping, es_auth):
+    """Create a new concrete ES index from the mapping."""
     print(f"Creating index '{index}' ...")
     resp = session.put(f"{es_url}/{index}", json=mapping, auth=es_auth, timeout=60)
     if resp.status_code not in (200, 201):
         sys.exit(f"Error creating index '{index}': {resp.status_code} {resp.text}")
+
+
+def delete_es_index(session, es_url, index, es_auth):
+    resp = session.delete(f"{es_url}/{index}", auth=es_auth, timeout=60)
+    if resp.status_code not in (200, 404):
+        resp.raise_for_status()
+
+
+def swap_aliases(session, es_url, swaps, es_auth):
+    """Point each alias at its new index and drop the old ones, atomically.
+
+    ``swaps`` is a list of (alias, new_index, old_indices). All actions go in
+    one ``_aliases`` request, which ES applies as a single cluster-state
+    update: searches see either all the old data or all the new data, never an
+    empty or half-loaded index, nor a main index paired with the wrong config.
+    ``remove_index`` deletes the old indices as part of that same update; it is
+    also what lets a concrete index named like the alias (left by an older
+    version of this script) be replaced by an alias of the same name.
+    """
+    actions = []
+    for alias, new_index, old_indices in swaps:
+        actions.append({"add": {"index": new_index, "alias": alias}})
+        actions += [{"remove_index": {"index": old}} for old in old_indices]
+    resp = session.post(
+        f"{es_url}/_aliases", json={"actions": actions}, auth=es_auth, timeout=120
+    )
+    if resp.status_code != 200:
+        new = ", ".join(f"'{new_index}'" for _, new_index, _ in swaps)
+        sys.exit(
+            f"Error swapping aliases: {resp.status_code} {resp.text}\n"
+            f"The new data is in {new}; the aliases are unchanged."
+        )
+
+
+def delete_orphan_indices(session, es_url, aliases, keep, es_auth):
+    """Delete ``<alias>-<timestamp>`` indices left behind by crashed runs."""
+    patterns = [re.compile(re.escape(a) + BUILD_SUFFIX_RE) for a in aliases]
+    seen = set()
+    for alias in aliases:
+        resp = session.get(
+            f"{es_url}/{alias}-*",
+            params={"expand_wildcards": "open,closed"},
+            auth=es_auth,
+            timeout=60,
+        )
+        if resp.status_code != 200:
+            continue
+        for name in resp.json():
+            if name in keep or name in seen:
+                continue
+            if any(p.fullmatch(name) for p in patterns):
+                seen.add(name)
+                print(f"  Deleting leftover index '{name}' from an earlier run.")
+                delete_es_index(session, es_url, name, es_auth)
 
 
 def bulk_load_es(session, es_url, index, docs, es_auth, max_bytes):
@@ -306,7 +439,7 @@ def load_metadata(args):
     with open(args.mapping_file, encoding="utf-8") as f:
         mapping = json.load(f)
 
-    mds_url = args.mds_url.rstrip("/")
+    mds_url = args.mds_url
     # Dedupe while keeping order, in case a field is listed twice.
     fields = list(dict.fromkeys(GEN3_DISCOVERY_FIELDS))
 
@@ -327,40 +460,80 @@ def load_metadata(args):
         sys.exit("Error: no metadata received from MDS; the index was not touched.")
 
     index = args.index_name
-    es_url = args.es_url.rstrip("/")
+    es_url = args.es_url
     es_auth = (args.es_user, args.es_password) if args.es_user is not None else None
 
-    create_es_index(session, es_url, index, mapping, args.recreate, es_auth)
-    print(f"Loading {len(docs)} document(s) into '{index}' ...")
-    attempted, failed = bulk_load_es(
-        session, es_url, index, docs.items(), es_auth, args.bulk_max_bytes
-    )
-
-    # Make the freshly indexed docs searchable immediately.
-    session.post(f"{es_url}/{index}/_refresh", auth=es_auth, timeout=60)
-
+    # ``index`` and ``config_index`` are the names searches use. Each is an
+    # alias onto a concrete, timestamped index that every run builds from
+    # scratch, so the old data stays searchable until the new indices are fully
+    # loaded and both aliases are swapped over together.
+    config_index = f"{index}{CONFIG_INDEX_SUFFIX}"
+    kind, old_indices = get_alias_state(session, es_url, index, es_auth)
+    if kind != "missing" and not args.recreate:
+        sys.exit(
+            f"Error: index '{index}' already exists. Re-run with --recreate "
+            "to rebuild it."
+        )
     # The config index is fully derived from this script, so it is always
     # replaced rather than requiring --recreate.
-    config_index = f"{index}{CONFIG_INDEX_SUFFIX}"
-    config_doc = {"array": array_fields(fields)}
-    create_es_index(session, es_url, config_index, CONFIG_INDEX_BODY, True, es_auth)
-    print(f"Writing array config {config_doc['array']} into '{config_index}' ...")
-    resp = session.put(
-        f"{es_url}/{config_index}/_doc/{index}",
-        json=config_doc,
-        auth=es_auth,
-        timeout=60,
-    )
-    if resp.status_code not in (200, 201):
-        sys.exit(
-            f"Error writing config doc to '{config_index}': "
-            f"{resp.status_code} {resp.text}"
+    _, old_config_indices = get_alias_state(session, es_url, config_index, es_auth)
+
+    stamp = datetime.now(timezone.utc).strftime(BUILD_TIMESTAMP_FORMAT)
+    new_index = f"{index}-{stamp}"
+    new_config_index = f"{config_index}-{stamp}"
+    create_es_index(session, es_url, new_index, mapping, es_auth)
+    try:
+        print(f"Loading {len(docs)} document(s) into '{new_index}' ...")
+        attempted, failed = bulk_load_es(
+            session, es_url, new_index, docs.items(), es_auth, args.bulk_max_bytes
         )
-    session.post(f"{es_url}/{config_index}/_refresh", auth=es_auth, timeout=60)
+
+        create_es_index(session, es_url, new_config_index, CONFIG_INDEX_BODY, es_auth)
+        config_doc = {"array": array_fields(fields)}
+        print(f"Writing array config {config_doc['array']} into '{new_config_index}' ...")
+        # The doc _id is the alias name, which is what readers look it up by.
+        resp = session.put(
+            f"{es_url}/{new_config_index}/_doc/{index}",
+            json=config_doc,
+            auth=es_auth,
+            timeout=60,
+        )
+        if resp.status_code not in (200, 201):
+            sys.exit(
+                f"Error writing config doc to '{new_config_index}': "
+                f"{resp.status_code} {resp.text}"
+            )
+
+        # Make the new docs searchable before the aliases go live.
+        for name in (new_index, new_config_index):
+            resp = session.post(f"{es_url}/{name}/_refresh", auth=es_auth, timeout=60)
+            resp.raise_for_status()
+    except BaseException:
+        print(
+            f"Load failed; deleting '{new_index}' and '{new_config_index}'. "
+            f"'{index}' and '{config_index}' are unchanged."
+        )
+        for name in (new_index, new_config_index):
+            delete_es_index(session, es_url, name, es_auth)
+        raise
+
+    print(f"Pointing '{index}' -> '{new_index}', '{config_index}' -> '{new_config_index}' ...")
+    swap_aliases(
+        session,
+        es_url,
+        [
+            (index, new_index, old_indices),
+            (config_index, new_config_index, old_config_indices),
+        ],
+        es_auth,
+    )
+    delete_orphan_indices(
+        session, es_url, [index, config_index], {new_index, new_config_index}, es_auth
+    )
 
     print("\nLoad complete.")
-    print(f"  Index            : {index}")
-    print(f"  Config index     : {config_index}")
+    print(f"  Index            : {index} -> {new_index}")
+    print(f"  Config index     : {config_index} -> {new_config_index}")
     print(f"  Documents indexed: {attempted - failed}")
     if failed:
         print(f"  Documents failed : {failed}")
@@ -426,7 +599,10 @@ if __name__ == "__main__":
         dest="recreate",
         action="store_true",
         required=False,
-        help="Optional. Delete the index first if it already exists",
+        help=(
+            "Optional. Rebuild the index if it already exists: load into new "
+            "indices, then atomically swap the aliases over and delete the old ones"
+        ),
     )
     parser.add_argument(
         "--bulk_max_bytes",
@@ -458,8 +634,5 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    if not args.mapping_file.endswith(".json"):
-        print("Error: the mapping file must be a JSON file")
-        exit(1)
-
+    validate_args(args)
     load_metadata(args)
