@@ -255,6 +255,7 @@ function set_squid_config(){
   cp "${WEB_WILDCARD_WHITELIST_FILE}" "${SQUID_CONFIG_DIR}/web_wildcard_whitelist"
 
   cp "${SUB_FOLDER}/flavors/squid_auto/startup_configs/squid.conf" "${SQUID_CONFIG_DIR}/squid.conf"
+  cp "${SUB_FOLDER}/flavors/squid_auto/startup_configs/sni_ip_check.py" "${SQUID_CONFIG_DIR}/sni_ip_check.py"
   cp "${SUB_FOLDER}/flavors/squid_auto/startup_configs/cachemgr.conf" "${SQUID_CONFIG_DIR}/cachemgr.conf"
   cp "${SUB_FOLDER}/flavors/squid_auto/startup_configs/errorpage.css" "${SQUID_CONFIG_DIR}/errorpage.css"
   cp "${SUB_FOLDER}/flavors/squid_auto/startup_configs/mime.conf" "${SQUID_CONFIG_DIR}/mime.conf"
