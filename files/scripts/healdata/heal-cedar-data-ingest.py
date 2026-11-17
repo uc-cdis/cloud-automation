@@ -494,14 +494,17 @@ if not args.hostname:
     print("Hostname is required!")
     sys.exit(1)
 
-dir_id = args.directory
 client_id = args.cedar_client_id
 client_secret = args.cedar_client_secret
 hostname = args.hostname
 
-if not is_valid_uuid(dir_id):
+if not is_valid_uuid(args.directory):
     print("Directory ID is not in UUID format!")
     sys.exit(1)
+
+# Rebuild the directory ID from a parsed UUID object so that only a canonical
+# UUID string (hex digits and hyphens) is ever interpolated into request URLs.
+dir_id = str(UUID(args.directory, version=4))
 
 token_header = {}
 refresh_token_header()
