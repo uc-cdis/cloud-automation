@@ -1,0 +1,161 @@
+{
+    "settings": {
+        "index": {
+            "mapping.ignore_malformed": true,
+            "mapping.nested_objects": {
+                "limit": 200000
+            },
+            "mapping.total_fields": {
+                "limit": 2500
+            },
+            "number_of_shards": 1,
+            "number_of_replicas": 0
+        }
+    },
+    "mappings": {
+        "properties": {
+            "gen3_discovery": {
+                "type": "nested",
+                "properties": {
+                    "authz": {
+                        "type": "keyword"
+                    },
+                    "registration_authz": {
+                        "type": "keyword"
+                    },
+                    "institutions": {
+                        "type": "keyword"
+                    },
+                    "investigators_name": {
+                        "type": "keyword"
+                    },
+                    "project_number": {
+                        "type": "keyword"
+                    },
+                    "_hdp_uid": {
+                        "type": "keyword"
+                    },
+                    "dataset_1_title": {
+                        "type": "keyword"
+                    },
+                    "dataset_2_title": {
+                        "type": "keyword"
+                    },
+                    "dataset_3_title": {
+                        "type": "keyword"
+                    },
+                    "dataset_4_title": {
+                        "type": "keyword"
+                    },
+                    "administering_ic": {
+                        "type": "keyword"
+                    },
+                    "research_program": {
+                        "type": "keyword"
+                    },
+                    "doi_identifier": {
+                        "type": "keyword"
+                    },
+                    "doi_resolvable_link": {
+                        "type": "keyword"
+                    },
+                    "research_focus_area": {
+                        "type": "keyword"
+                    },
+                    "data_availability": {
+                        "type": "keyword"
+                    },
+                    "file_manifest_size": {
+                        "type": "integer"
+                    },
+                    "external_file_metadata_size": {
+                        "type": "integer"
+                    },
+                    "commons_url": {
+                        "type": "keyword"
+                    },
+                    "commons_name": {
+                        "type": "keyword"
+                    },
+                    "advSearchFilters": {
+                        "type": "nested",
+                        "properties": {
+                            "key": {
+                                "type": "keyword"
+                            },
+                            "value": {
+                                "type": "keyword"
+                            }
+                        }
+                    },
+                    "tags": {
+                        "type": "nested",
+                        "properties": {
+                            "name": {
+                                "type": "keyword"
+                            },
+                            "category": {
+                                "type": "keyword"
+                            }
+                        }
+                    },
+                    "is_registered": {
+                        "type": "boolean"
+                    },
+                    "study_metadata": {
+                        "properties": {
+                            "minimal_info": {
+                                "properties": {
+                                    "study_name": {
+                                        "type": "keyword"
+                                    },
+                                    "study_description": {
+                                        "type": "keyword"
+                                    }
+                                }
+                            },
+                            "metadata_location": {
+                                "properties": {
+                                    "nih_application_id": {
+                                        "type": "keyword"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "variable_metadata": {
+                        "properties": {
+                            "field_standards_mappings_ids": {
+                                "type": "keyword"
+                            },
+                            "field_standards_mappings_sources": {
+                                "type": "keyword"
+                            },
+                            "standards_mappings_instrument_ids": {
+                                "type": "keyword"
+                            },
+                            "drupal_ids": {
+                                "type": "keyword"
+                            },
+                            "standards_mappings_instrument_titles": {
+                                "type": "keyword"
+                            },
+                            "field_standards_mappings_id_source_combos": {
+                                "type": "keyword"
+                            },
+                            "field_titles": {
+                                "type": "keyword"
+                            },
+                            "field_names": {
+                                "type": "keyword"
+                            },
+                            "field_descriptions": {
+                                "type": "keyword"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
